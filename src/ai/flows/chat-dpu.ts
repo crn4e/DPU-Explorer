@@ -115,17 +115,16 @@ const chatDpuFlow = ai.defineFlow(
     outputSchema: ChatDpuOutputSchema,
   },
   async ({ message, history }) => {
-    const chat = ai.getTool('chat', {
-        history,
-        system: systemPrompt,
-        tools: [ai.googleSearch],
-        config: {
-          temperature: 0.2,
-        },
+    const { text } = await ai.generate({
+      history,
+      system: systemPrompt,
+      prompt: message,
+      tools: [ai.googleSearch],
+      config: {
+        temperature: 0.2,
+      },
     });
 
-    const {output} = await chat(message);
-
-    return { response: output as string };
+    return { response: text };
   }
 );
