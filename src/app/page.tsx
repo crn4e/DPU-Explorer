@@ -32,7 +32,7 @@ const categories: (LocationCategory | 'All')[] = [
 
 export default function Home() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
-    allLocations[0]
+    null
   );
   const [activeCategory, setActiveCategory] = useState<LocationCategory | 'All'>('All');
 
