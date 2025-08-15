@@ -12,8 +12,45 @@ const defaultHours = {
 
 export const locations: Location[] = [
   {
+    id: 'building-1',
+    name: 'Building 1 - DPU Place',
+    category: 'Services',
+    description:
+      'Known as DPU Place, this building serves as a hotel and training center, offering accommodation and conference facilities.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'hotel lobby',
+    hours: defaultHours,
+    mapPosition: { x: 28, y: 65 },
+  },
+  {
+    id: 'building-2',
+    name: 'Building 2 - Administration Office',
+    category: 'Services',
+    description:
+      'The main administration building, housing key university offices including the Office of the President.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'office building',
+    hours: {
+      ...defaultHours,
+      Saturday: null,
+      Sunday: null,
+    },
+    mapPosition: { x: 38.5, y: 63 },
+  },
+  {
+    id: 'building-3',
+    name: 'Building 3 - Health and Wellness',
+    category: 'Academic',
+    description:
+      'Home to the College of Health and Wellness and the Faculty of Nursing, focusing on health sciences and medical education.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'medical building',
+    hours: defaultHours,
+    mapPosition: { x: 44, y: 48 },
+  },
+  {
     id: 'building-5',
-    name: 'Building 5 - Faculty of IT',
+    name: 'Building 5 - Communication Arts & ANT',
     category: 'Academic',
     description:
       'Home to the College of Creative Design and Entertainment Technology (ANT) and the College of Communication Arts (CA), fostering innovation in digital content and communication.',
@@ -21,7 +58,7 @@ export const locations: Location[] = [
     imageHint: 'modern building',
     hours: defaultHours,
     announcement: 'Special workshop on AI in Game Development this Saturday.',
-    mapPosition: { x: 55.5, y: 55 },
+    mapPosition: { x: 55, y: 55 },
   },
   {
     id: 'building-6',
@@ -32,7 +69,48 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'university building',
     hours: defaultHours,
-    mapPosition: { x: 48, y: 58 },
+    mapPosition: { x: 47.5, y: 57.5 },
+  },
+  {
+    id: 'building-7',
+    name: 'Building 7 - Student Services Center',
+    category: 'Services',
+    description:
+      'A one-stop service point for all student needs, including registration, academic advising, and administrative support.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'information desk',
+    hours: {
+      Monday: { open: '08:30', close: '16:30' },
+      Tuesday: { open: '08:30', close: '16:30' },
+      Wednesday: { open: '08:30', close: '16:30' },
+      Thursday: { open: '08:30', close: '16:30' },
+      Friday: { open: '08:30', close: '16:30' },
+      Saturday: null,
+      Sunday: null,
+    },
+    mapPosition: { x: 44.5, y: 65 },
+  },
+    {
+    id: 'building-9',
+    name: 'Building 9 - International College',
+    category: 'Academic',
+    description:
+      'The hub for international students and programs, home to the DPU International College (DPUIC).',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'global flags',
+    hours: defaultHours,
+    mapPosition: { x: 53.5, y: 44 },
+  },
+  {
+    id: 'building-10',
+    name: 'Building 10 - Graduate School',
+    category: 'Academic',
+    description:
+      'The center for postgraduate studies, housing the offices and classrooms for Master and Doctoral programs.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'lecture hall',
+    hours: defaultHours,
+    mapPosition: { x: 57.5, y: 48 },
   },
   {
     id: 'library',
@@ -47,7 +125,7 @@ export const locations: Location[] = [
       Saturday: { open: '09:00', close: '17:00' },
       Sunday: { open: '09:00', close: '17:00' },
     },
-    mapPosition: { x: 62.5, y: 41 },
+    mapPosition: { x: 62, y: 40 },
   },
   {
     id: 'food-court',
@@ -67,7 +145,7 @@ export const locations: Location[] = [
       Sunday: null,
     },
     announcement: 'New vegetarian stall now open!',
-    mapPosition: { x: 38, y: 46 },
+    mapPosition: { x: 37, y: 46 },
   },
   {
     id: 'gym',
@@ -86,25 +164,36 @@ export const locations: Location[] = [
       Saturday: { open: '10:00', close: '19:00' },
       Sunday: null,
     },
-    mapPosition: { x: 74, y: 28 },
+    mapPosition: { x: 74, y: 30 },
   },
   {
-    id: 'student-services',
-    name: 'Student Services Center',
-    category: 'Services',
+    id: 'swimming-pool',
+    name: 'Swimming Pool',
+    category: 'Recreation',
     description:
-      'A one-stop service point for all student needs, including registration, academic advising, and administrative support. Located in Building 7.',
+      'An outdoor swimming pool for leisure and exercise, located next to the Fitness Center.',
     image: 'https://placehold.co/600x400.png',
-    imageHint: 'information desk',
+    imageHint: 'swimming pool',
     hours: {
-      Monday: { open: '08:30', close: '16:30' },
-      Tuesday: { open: '08:30', close: '16:30' },
-      Wednesday: { open: '08:30', close: '16:30' },
-      Thursday: { open: '08:30', close: '16:30' },
-      Friday: { open: '08:30', close: '16:30' },
-      Saturday: null,
+      Monday: { open: '10:00', close: '20:00' },
+      Tuesday: { open: '10:00', close: '20:00' },
+      Wednesday: { open: '10:00', close: '20:00' },
+      Thursday: { open: '10:00', close: '20:00' },
+      Friday: { open: '10:00', close: '20:00' },
+      Saturday: { open: '10:00', close: '19:00' },
       Sunday: null,
     },
-    mapPosition: { x: 44.5, y: 64 },
+    mapPosition: { x: 78, y: 36 },
+  },
+  {
+    id: 'basketball-court',
+    name: 'Basketball Court',
+    category: 'Recreation',
+    description:
+      'An indoor basketball court available for student use and university team practices.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'basketball court',
+    hours: defaultHours,
+    mapPosition: { x: 67, y: 26 },
   },
 ];
