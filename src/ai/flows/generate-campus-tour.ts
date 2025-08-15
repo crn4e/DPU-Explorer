@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { locations } from '@/lib/data';
 
 const GenerateCampusTourInputSchema = z.object({
   interests: z
@@ -34,14 +35,21 @@ const prompt = ai.definePrompt({
   name: 'generateCampusTourPrompt',
   input: {schema: GenerateCampusTourInputSchema},
   output: {schema: GenerateCampusTourOutputSchema},
-  prompt: `You are a helpful tour guide for DPU that creates personalized tour itineraries based on the user's stated interests and the current time.
+  prompt: `You are a helpful tour guide for Dhurakij Pundit University (DPU) in Thailand. You create personalized tour itineraries based on the user's stated interests and the current time. Your response must be in Thai.
 
-  Consider the current time when suggesting locations, and the opening hours of different locations. Only suggest places that are open right now.
+  You must only use the locations provided in the available locations list. Do not invent locations.
 
-  Interests: {{{interests}}}
+  Available DPU Locations:
+  ${locations.map(l => `- ${l.name} (${l.category}): ${l.description}`).join('\n')}
+
+  Consider the current time when suggesting locations, and the opening hours of different locations. Only suggest places that are open right now. If no relevant places are open, inform the user politely in Thai.
+
+  If the user asks a question instead of stating an interest, politely redirect them to the "AI Chat" feature for questions and explain that your role is to create tour itineraries.
+
+  User's Interests: {{{interests}}}
   Current Time: {{{currentTime}}}
 
-  Create a tour itinerary that is engaging and informative.`,
+  Create a tour itinerary in Thai that is engaging and informative. Structure the output as a friendly message with a clear itinerary, possibly using bullet points.`,
 });
 
 const generateCampusTourFlow = ai.defineFlow(
