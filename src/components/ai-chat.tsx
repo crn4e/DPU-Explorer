@@ -45,9 +45,11 @@ const useTypewriter = (text: string, speed: number = 20) => {
     return displayText;
 };
 
-function ChatBubble({ message }: { message: ChatMessage }) {
+function ChatBubble({ message, isLastMessage, isPending }: { message: ChatMessage, isLastMessage: boolean, isPending: boolean }) {
     const isModel = message.role === 'model';
-    const displayText = useTypewriter(message.content);
+    // Only apply typewriter effect to the last model message when it's not from a pending (still generating) response
+    const useAnimation = isModel && isLastMessage && !isPending;
+    const displayText = useTypewriter(useAnimation ? message.content : '');
   
     return (
       <div className={`flex items-start gap-3 ${isModel ? 'justify-start' : 'justify-end'}`}>
@@ -56,8 +58,8 @@ function ChatBubble({ message }: { message: ChatMessage }) {
             <Bot className="h-5 w-5" />
           </div>
         )}
-        <div className={`rounded-lg px-4 py-2 max-w-sm prose prose-sm dark:prose-invert ${isModel ? 'bg-muted' : 'bg-primary/10 text-primary-foreground'}`}>
-          <Markdown>{isModel ? displayText : message.content}</Markdown>
+        <div className={`rounded-lg px-4 py-2 max-w-sm prose prose-sm dark:prose-invert ${isModel ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>
+          <Markdown>{useAnimation ? displayText : message.content}</Markdown>
         </div>
         {!isModel && (
           <div className="bg-muted rounded-full p-2">
@@ -132,7 +134,12 @@ export default function AiChat() {
         <ScrollArea className="flex-grow my-4 -mx-6 px-6" ref={scrollAreaRef}>
             <div className="space-y-4">
                 {history.map((msg, index) => (
-                    <ChatBubble key={index} message={msg} />
+                    <ChatBubble 
+                        key={index} 
+                        message={msg}
+                        isLastMessage={index === history.length - 1}
+                        isPending={isPending}
+                    />
                 ))}
                  {isPending && (
                     <div className="flex items-start gap-3 justify-start">
