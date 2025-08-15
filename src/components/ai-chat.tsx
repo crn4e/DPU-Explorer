@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useState, useTransition, useRef, useEffect } from 'react';
 import {
   Sheet,
@@ -24,7 +25,7 @@ type ChatMessage = {
 };
 
 // Custom hook for typing animation
-const useTypewriter = (text: string, onUpdate: () => void, speed: number = 20) => {
+const useTypewriter = (text: string, speed: number = 20) => {
     const [displayText, setDisplayText] = useState('');
   
     useEffect(() => {
@@ -35,24 +36,39 @@ const useTypewriter = (text: string, onUpdate: () => void, speed: number = 20) =
         if (i < text.length) {
           setDisplayText(prev => prev + text.charAt(i));
           i++;
-          onUpdate(); // Call onUpdate on every character change
         } else {
           clearInterval(timer);
         }
       }, speed);
   
       return () => clearInterval(timer);
-    }, [text, speed, onUpdate]);
+    }, [text, speed]);
   
     return displayText;
 };
 
-function ChatBubble({ message, isAnimating, onUpdateAnimation }: { message: ChatMessage; isAnimating: boolean, onUpdateAnimation: () => void }) {
+function ChatBubble({ message, isAnimating }: { message: ChatMessage; isAnimating: boolean }) {
   const isModel = message.role === 'model';
-  
+  const scrollAreaRef = React.useContext(ChatContext);
+
   const contentToShow = isModel && isAnimating 
-    ? useTypewriter(message.content, onUpdateAnimation) 
+    ? useTypewriter(message.content) 
     : message.content;
+
+  const scrollToBottom = () => {
+    if (scrollAreaRef?.current) {
+        scrollAreaRef.current.scrollTo({
+            top: scrollAreaRef.current.scrollHeight,
+            behavior: 'auto'
+        });
+    }
+  };
+
+  useEffect(() => {
+    if (isAnimating) {
+        scrollToBottom();
+    }
+  }, [contentToShow, isAnimating]);
 
   return (
     <div className={`flex items-start gap-3 ${isModel ? 'justify-start' : 'justify-end'}`}>
@@ -73,6 +89,7 @@ function ChatBubble({ message, isAnimating, onUpdateAnimation }: { message: Chat
   );
 }
 
+const ChatContext = React.createContext<React.RefObject<HTMLDivElement> | null>(null);
 
 export default function AiChat() {
   const [isPending, startTransition] = useTransition();
@@ -82,8 +99,7 @@ export default function AiChat() {
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [animatingMessage, setAnimatingMessage] = useState<ChatMessage | null>(null);
-  const [lastAnimatedContent, setLastAnimatedContent] = useState('');
-
+  
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
         scrollAreaRef.current.scrollTo({
@@ -94,8 +110,10 @@ export default function AiChat() {
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [history, isPending, lastAnimatedContent]);
+    if(!isPending) {
+        scrollToBottom();
+    }
+  }, [history, isPending]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -107,32 +125,25 @@ export default function AiChat() {
     setMessage('');
     
     startTransition(async () => {
-      setAnimatingMessage({ role: 'model', content: '' }); // Prepare for animation
-      try {
-        const result = await chatDpu({ history: newHistory.slice(0, -1), message: currentMessage });
-        const aiMessage = { role: 'model', content: result.response };
-        setAnimatingMessage(aiMessage);
-      } catch (error) {
-        console.error('Failed to get chat response:', error);
-        toast({
-          title: 'Error',
-          description:
-            'Could not get a response at this time. Please try again later.',
-          variant: 'destructive',
-        });
-        setHistory(history); // Rollback user message
-        setAnimatingMessage(null); // Stop animation on error
-      }
+        setAnimatingMessage({ role: 'model', content: '' }); // Prepare for animation
+        try {
+            const result = await chatDpu({ history: newHistory.slice(0, -1), message: currentMessage });
+            const aiMessage = { role: 'model', content: result.response };
+            setHistory(prev => [...prev, aiMessage]);
+            setAnimatingMessage(null);
+        } catch (error) {
+            console.error('Failed to get chat response:', error);
+            toast({
+              title: 'Error',
+              description:
+                'Could not get a response at this time. Please try again later.',
+              variant: 'destructive',
+            });
+            setHistory(history); // Rollback user message
+            setAnimatingMessage(null); // Stop animation on error
+        }
     });
   };
-
-  // When animation finishes, add the complete message to history
-  useEffect(() => {
-      if (animatingMessage && !isPending) {
-        setHistory(prev => [...prev, animatingMessage]);
-        setAnimatingMessage(null);
-      }
-  }, [animatingMessage, isPending]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -151,6 +162,7 @@ export default function AiChat() {
             Ask me anything about DPU campus, locations, and services!
           </SheetDescription>
         </SheetHeader>
+        <ChatContext.Provider value={scrollAreaRef}>
         <ScrollArea className="flex-grow my-4 -mx-6 px-6" ref={scrollAreaRef}>
             <div className="space-y-4">
                 {history.map((msg, index) => (
@@ -158,17 +170,15 @@ export default function AiChat() {
                         key={index} 
                         message={msg}
                         isAnimating={false}
-                        onUpdateAnimation={scrollToBottom}
                     />
                 ))}
                  {isPending && animatingMessage && (
                     <ChatBubble 
                         message={animatingMessage}
                         isAnimating={true}
-                        onUpdateAnimation={scrollToBottom}
                     />
                 )}
-                 {isPending && !animatingMessage && (
+                 {isPending && (
                      <div className="flex items-start gap-3 justify-start">
                         <div className="bg-primary text-primary-foreground rounded-full p-2">
                             <Bot className="h-5 w-5"/>
@@ -180,6 +190,7 @@ export default function AiChat() {
                  )}
             </div>
         </ScrollArea>
+        </ChatContext.Provider>
         <SheetFooter className="mt-auto">
              <form onSubmit={handleSubmit} className="flex w-full space-x-2">
                 <Input
