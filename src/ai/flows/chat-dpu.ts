@@ -111,11 +111,18 @@ AI ควรจะมีความสามารถในการตอบ�
 
 const prompt = ai.definePrompt({
   name: 'chatDpuPrompt',
-  input: {schema: ChatDpuInputSchema},
+  input: {schema: z.object({
+    history: z.array(z.object({
+      role: z.enum(['user', 'model']),
+      content: z.string(),
+      isUser: z.boolean(),
+    })).describe('The chat history.'),
+    message: z.string().describe('The latest user message.'),
+  })},
   output: {schema: ChatDpuOutputSchema},
   system: systemPrompt,
   prompt: `{{#each history}}
-    {{#if (eq role 'user')}}
+    {{#if isUser}}
         User: {{{content}}}
     {{else}}
         AI: {{{content}}}
@@ -140,7 +147,8 @@ const chatDpuFlow = ai.defineFlow(
     outputSchema: ChatDpuOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input);
+    const historyWithFlag = input.history.map(h => ({ ...h, isUser: h.role === 'user' }));
+    const {output} = await prompt({ ...input, history: historyWithFlag });
     return output!;
   }
 );
