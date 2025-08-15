@@ -18,8 +18,8 @@ export default function MapView({
   onSelectLocation,
 }: MapViewProps) {
   return (
-    <div className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen">
-      <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+    <div className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-gray-200">
+      <div className="absolute inset-0 flex items-center justify-center">
         <div className="relative h-full w-full">
           <Image
             src="/dpu-map.png"
