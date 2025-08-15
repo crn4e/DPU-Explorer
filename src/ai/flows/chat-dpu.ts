@@ -10,7 +10,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { locations } from '@/lib/data';
 
 const ChatDpuInputSchema = z.object({
   history: z.array(z.object({
@@ -109,46 +108,24 @@ AI ควรจะมีความสามารถในการตอบ�
 • คำถามที่พบบ่อย (FAQ):
 `;
 
-const prompt = ai.definePrompt({
-  name: 'chatDpuPrompt',
-  input: {schema: z.object({
-    history: z.array(z.object({
-      role: z.enum(['user', 'model']),
-      content: z.string(),
-      isUser: z.boolean(),
-    })).describe('The chat history.'),
-    message: z.string().describe('The latest user message.'),
-  })},
-  output: {schema: ChatDpuOutputSchema},
-  system: systemPrompt,
-  prompt: `{{#each history}}
-    {{#if isUser}}
-        User: {{{content}}}
-    {{else}}
-        AI: {{{content}}}
-    {{/if}}
-  {{/each}}
-
-  User: {{{message}}}
-  AI:`,
-  // Remap the output to our desired schema.
-  to: (output) => ({ response: output as string }),
-  config: {
-    temperature: 0.2,
-  },
-  tools: [ai.googleSearch],
-});
-
-
 const chatDpuFlow = ai.defineFlow(
   {
     name: 'chatDpuFlow',
     inputSchema: ChatDpuInputSchema,
     outputSchema: ChatDpuOutputSchema,
   },
-  async (input) => {
-    const historyWithFlag = input.history.map(h => ({ ...h, isUser: h.role === 'user' }));
-    const {output} = await prompt({ ...input, history: historyWithFlag });
-    return output!;
+  async ({ message, history }) => {
+    const chat = ai.getTool('chat', {
+        history,
+        system: systemPrompt,
+        tools: [ai.googleSearch],
+        config: {
+          temperature: 0.2,
+        },
+    });
+
+    const {output} = await chat(message);
+
+    return { response: output as string };
   }
 );
