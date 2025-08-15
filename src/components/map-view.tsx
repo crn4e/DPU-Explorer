@@ -9,7 +9,7 @@ import Image from 'next/image';
 interface MapViewProps {
   selectedLocation: Location | null;
   locations: Location[];
-  onSelectLocation: (location: Location) => void;
+  onSelectLocation: (location: Location | null) => void;
 }
 
 export default function MapView({
@@ -17,8 +17,20 @@ export default function MapView({
   locations,
   onSelectLocation,
 }: MapViewProps) {
+  const handleMapClick = () => {
+    onSelectLocation(null);
+  };
+
+  const handlePinClick = (e: React.MouseEvent, loc: Location) => {
+    e.stopPropagation(); // Prevents the map click from firing
+    onSelectLocation(loc);
+  };
+  
   return (
-    <div className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-gray-200">
+    <div 
+        className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-gray-200"
+        onClick={handleMapClick}
+    >
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="relative h-full w-full">
           <Image
@@ -32,7 +44,7 @@ export default function MapView({
           {locations.map((loc) => (
             <button
               key={loc.id}
-              onClick={() => onSelectLocation(loc)}
+              onClick={(e) => handlePinClick(e, loc)}
               className="absolute transform -translate-x-1/2 -translate-y-full"
               style={{
                 top: `${loc.mapPosition.y}%`,
