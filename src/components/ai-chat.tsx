@@ -28,6 +28,7 @@ const useTypewriter = (text: string, speed: number = 20) => {
     const [displayText, setDisplayText] = useState('');
   
     useEffect(() => {
+      if (!text) return;
       let i = 0;
       setDisplayText(''); // Reset when text changes
       const timer = setInterval(() => {
@@ -45,30 +46,34 @@ const useTypewriter = (text: string, speed: number = 20) => {
     return displayText;
 };
 
-function ChatBubble({ message, isLastMessage, isPending }: { message: ChatMessage, isLastMessage: boolean, isPending: boolean }) {
-    const isModel = message.role === 'model';
-    // Only apply typewriter effect to the last model message when it's not from a pending (still generating) response
-    const useAnimation = isModel && isLastMessage && !isPending;
-    const displayText = useTypewriter(useAnimation ? message.content : '');
-  
-    return (
-      <div className={`flex items-start gap-3 ${isModel ? 'justify-start' : 'justify-end'}`}>
-        {isModel && (
-          <div className="bg-primary text-primary-foreground rounded-full p-2">
-            <Bot className="h-5 w-5" />
-          </div>
-        )}
-        <div className={`rounded-lg px-4 py-2 max-w-sm prose prose-sm dark:prose-invert ${isModel ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>
-          <Markdown>{useAnimation ? displayText : message.content}</Markdown>
+function ChatBubble({ message, isLastMessage, isPending }: { message: ChatMessage; isLastMessage: boolean; isPending: boolean }) {
+  const isModel = message.role === 'model';
+  // The animation should only play on the last message, and only when that message is from the AI and we are currently waiting for a response to complete.
+  const useAnimation = isModel && isLastMessage && isPending;
+  const animatedText = useTypewriter(useAnimation ? message.content : '');
+
+  // If we are animating, show the animated text. Otherwise, show the full content.
+  const contentToShow = useAnimation ? animatedText : message.content;
+
+  return (
+    <div className={`flex items-start gap-3 ${isModel ? 'justify-start' : 'justify-end'}`}>
+      {isModel && (
+        <div className="bg-primary text-primary-foreground rounded-full p-2">
+          <Bot className="h-5 w-5" />
         </div>
-        {!isModel && (
-          <div className="bg-muted rounded-full p-2">
-            <User className="h-5 w-5 text-muted-foreground" />
-          </div>
-        )}
+      )}
+      <div className={`rounded-lg px-4 py-2 max-w-sm prose prose-sm dark:prose-invert ${isModel ? 'bg-muted' : 'bg-primary text-primary-foreground'}`}>
+        <Markdown>{contentToShow}</Markdown>
       </div>
-    );
-  }
+      {!isModel && (
+        <div className="bg-muted rounded-full p-2">
+          <User className="h-5 w-5 text-muted-foreground" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 export default function AiChat() {
   const [isPending, startTransition] = useTransition();
@@ -85,7 +90,7 @@ export default function AiChat() {
             behavior: 'smooth'
         });
     }
-  }, [history]);
+  }, [history, isPending]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -141,7 +146,7 @@ export default function AiChat() {
                         isPending={isPending}
                     />
                 ))}
-                 {isPending && (
+                 {isPending && history[history.length - 1]?.role === 'user' && (
                     <div className="flex items-start gap-3 justify-start">
                         <div className="bg-primary text-primary-foreground rounded-full p-2">
                             <Bot className="h-5 w-5"/>
