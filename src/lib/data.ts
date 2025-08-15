@@ -79,7 +79,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'university building',
     hours: defaultHours,
-    mapPosition: { x: 64.5, y: 62 },
+    mapPosition: { x: 74, y: 64 },
   },
   {
     id: 'building-7',
@@ -98,7 +98,7 @@ export const locations: Location[] = [
       Saturday: null,
       Sunday: null,
     },
-    mapPosition: { x: 60.5, y: 67 },
+    mapPosition: { x: 74, y: 81 },
   },
   {
     id: 'building-8',
@@ -119,7 +119,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'global flags',
     hours: defaultHours,
-    mapPosition: { x: 75.5, y: 78.5 },
+    mapPosition: { x: 84.5, y: 56.5 },
   },
   {
     id: 'building-10',
@@ -140,7 +140,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'hotel reception',
     hours: defaultHours,
-    mapPosition: { x: 84, y: 69 },
+    mapPosition: { x: 85, y: 72 },
   },
   {
     id: 'building-15-17',
