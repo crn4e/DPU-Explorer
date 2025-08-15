@@ -49,26 +49,18 @@ const useTypewriter = (text: string, speed: number = 20) => {
 
 function ChatBubble({ message, isAnimating }: { message: ChatMessage; isAnimating: boolean }) {
   const isModel = message.role === 'model';
-  const scrollAreaRef = React.useContext(ChatContext);
+  const chatContext = React.useContext(ChatContext);
 
   const contentToShow = isModel && isAnimating 
     ? useTypewriter(message.content) 
     : message.content;
-
-  const scrollToBottom = () => {
-    if (scrollAreaRef?.current) {
-        scrollAreaRef.current.scrollTo({
-            top: scrollAreaRef.current.scrollHeight,
-            behavior: 'auto'
-        });
-    }
-  };
-
+  
   useEffect(() => {
-    if (isAnimating) {
-        scrollToBottom();
+    if (isAnimating && chatContext?.scrollAreaRef.current) {
+        const scrollArea = chatContext.scrollAreaRef.current;
+        scrollArea.scrollTo({ top: scrollArea.scrollHeight, behavior: 'auto' });
     }
-  }, [contentToShow, isAnimating]);
+  }, [contentToShow, isAnimating, chatContext]);
 
   return (
     <div className={`flex items-start gap-3 ${isModel ? 'justify-start' : 'justify-end'}`}>
@@ -89,7 +81,10 @@ function ChatBubble({ message, isAnimating }: { message: ChatMessage; isAnimatin
   );
 }
 
-const ChatContext = React.createContext<React.RefObject<HTMLDivElement> | null>(null);
+type ChatContextType = {
+  scrollAreaRef: React.RefObject<HTMLDivElement>;
+};
+const ChatContext = React.createContext<ChatContextType | null>(null);
 
 export default function AiChat() {
   const [isPending, startTransition] = useTransition();
@@ -98,7 +93,6 @@ export default function AiChat() {
   const [message, setMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const [animatingMessage, setAnimatingMessage] = useState<ChatMessage | null>(null);
   
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -110,7 +104,7 @@ export default function AiChat() {
   };
 
   useEffect(() => {
-    if(!isPending) {
+    if(!isPending && history.length > 0) {
         scrollToBottom();
     }
   }, [history, isPending]);
@@ -125,12 +119,10 @@ export default function AiChat() {
     setMessage('');
     
     startTransition(async () => {
-        setAnimatingMessage({ role: 'model', content: '' }); // Prepare for animation
         try {
             const result = await chatDpu({ history: newHistory.slice(0, -1), message: currentMessage });
             const aiMessage = { role: 'model', content: result.response };
             setHistory(prev => [...prev, aiMessage]);
-            setAnimatingMessage(null);
         } catch (error) {
             console.error('Failed to get chat response:', error);
             toast({
@@ -139,11 +131,15 @@ export default function AiChat() {
                 'Could not get a response at this time. Please try again later.',
               variant: 'destructive',
             });
-            setHistory(history); // Rollback user message
-            setAnimatingMessage(null); // Stop animation on error
+            // Rollback only the user message on error
+            setHistory(prev => prev.slice(0, -1));
         }
     });
   };
+  
+  const lastMessage = history[history.length - 1];
+  const isLastMessageAnimating = isPending && lastMessage?.role === 'model';
+
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -162,23 +158,17 @@ export default function AiChat() {
             Ask me anything about DPU campus, locations, and services!
           </SheetDescription>
         </SheetHeader>
-        <ChatContext.Provider value={scrollAreaRef}>
+        <ChatContext.Provider value={{ scrollAreaRef }}>
         <ScrollArea className="flex-grow my-4 -mx-6 px-6" ref={scrollAreaRef}>
             <div className="space-y-4">
                 {history.map((msg, index) => (
                     <ChatBubble 
                         key={index} 
                         message={msg}
-                        isAnimating={false}
+                        isAnimating={isPending && index === history.length - 1 && msg.role === 'model'}
                     />
                 ))}
-                 {isPending && animatingMessage && (
-                    <ChatBubble 
-                        message={animatingMessage}
-                        isAnimating={true}
-                    />
-                )}
-                 {isPending && (
+                 {isPending && history[history.length - 1]?.role === 'user' && (
                      <div className="flex items-start gap-3 justify-start">
                         <div className="bg-primary text-primary-foreground rounded-full p-2">
                             <Bot className="h-5 w-5"/>
