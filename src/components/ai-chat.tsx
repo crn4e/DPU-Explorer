@@ -46,14 +46,12 @@ const useTypewriter = (text: string, speed: number = 20) => {
     return displayText;
 };
 
-function ChatBubble({ message, isLastMessage, isPending }: { message: ChatMessage; isLastMessage: boolean; isPending: boolean }) {
+function ChatBubble({ message, isAnimating }: { message: ChatMessage; isAnimating: boolean }) {
   const isModel = message.role === 'model';
-  // The animation should only play on the last message, and only when that message is from the AI and we are currently waiting for a response to complete.
-  const useAnimation = isModel && isLastMessage && isPending;
-  const animatedText = useTypewriter(useAnimation ? message.content : '');
+  const animatedText = useTypewriter(isAnimating ? message.content : '');
 
   // If we are animating, show the animated text. Otherwise, show the full content.
-  const contentToShow = useAnimation ? animatedText : message.content;
+  const contentToShow = isAnimating ? animatedText : message.content;
 
   return (
     <div className={`flex items-start gap-3 ${isModel ? 'justify-start' : 'justify-end'}`}>
@@ -142,8 +140,7 @@ export default function AiChat() {
                     <ChatBubble 
                         key={index} 
                         message={msg}
-                        isLastMessage={index === history.length - 1}
-                        isPending={isPending}
+                        isAnimating={isPending && msg.role === 'model' && index === history.length - 1}
                     />
                 ))}
                  {isPending && history[history.length - 1]?.role === 'user' && (
