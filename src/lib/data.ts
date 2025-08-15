@@ -20,7 +20,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'hotel lobby',
     hours: defaultHours,
-    mapPosition: { x: 33, y: 77.5 },
+    mapPosition: { x: 50, y: 27 },
   },
   {
     id: 'building-2',
@@ -35,7 +35,7 @@ export const locations: Location[] = [
       Saturday: null,
       Sunday: null,
     },
-    mapPosition: { x: 53.5, y: 39.5 },
+    mapPosition: { x: 53.5, y: 23.5 },
   },
   {
     id: 'building-3',
@@ -46,7 +46,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'medical building',
     hours: defaultHours,
-    mapPosition: { x: 61, y: 47 },
+    mapPosition: { x: 63, y: 33 },
   },
   {
     id: 'building-4',
@@ -56,7 +56,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'modern building',
     hours: defaultHours,
-    mapPosition: { x: 56.5, y: 52 },
+    mapPosition: { x: 57.55, y: 36 },
   },
   {
     id: 'building-5',
@@ -68,7 +68,7 @@ export const locations: Location[] = [
     imageHint: 'modern building',
     hours: defaultHours,
     announcement: 'Special workshop on AI in Game Development this Saturday.',
-    mapPosition: { x: 69, y: 57.5 },
+    mapPosition: { x: 71, y: 42 },
   },
   {
     id: 'building-6',
@@ -79,7 +79,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'university building',
     hours: defaultHours,
-    mapPosition: { x: 74, y: 64 },
+    mapPosition: { x: 67, y: 46 },
   },
   {
     id: 'building-7',
@@ -98,7 +98,7 @@ export const locations: Location[] = [
       Saturday: null,
       Sunday: null,
     },
-    mapPosition: { x: 74, y: 81 },
+    mapPosition: { x: 62, y: 51.5 },
   },
   {
     id: 'building-8',
@@ -108,7 +108,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'engineering lab',
     hours: defaultHours,
-    mapPosition: { x: 79.5, y: 73 },
+    mapPosition: { x: 75, y: 64 },
   },
   {
     id: 'building-9',
@@ -119,7 +119,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'global flags',
     hours: defaultHours,
-    mapPosition: { x: 84.5, y: 56.5 },
+    mapPosition: { x: 73.5, y: 67 },
   },
   {
     id: 'building-10',
@@ -235,5 +235,15 @@ export const locations: Location[] = [
     imageHint: 'basketball court',
     hours: defaultHours,
     mapPosition: { x: 23, y: 55 }, // Inside Building 10
+  },
+  {
+    id: 'building-55',
+    name: 'Building55 - Tourism and Hospitality',
+    category: 'Academic',
+    description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'hotel reception',
+    hours: defaultHours,
+    mapPosition: { x: 50, y: 20 },
   },
 ];
