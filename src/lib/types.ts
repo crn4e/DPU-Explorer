@@ -12,6 +12,5 @@ export interface Location {
     [day: string]: { open: string; close: string } | null;
   };
   announcement?: string;
-  lat: number;
-  lng: number;
+  mapPosition: { x: number; y: number };
 }

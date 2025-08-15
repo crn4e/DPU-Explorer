@@ -45,6 +45,19 @@ function EditLocationForm({
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
+  
+  const handlePositionChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ 
+        ...prev, 
+        mapPosition: { 
+            ...prev.mapPosition, 
+            [id]: Number(value) 
+        } 
+    }));
+  };
 
   const handleSave = () => {
     setIsSaving(true);
@@ -96,7 +109,19 @@ function EditLocationForm({
             rows={2}
           />
         </div>
-        {/* Simplified hours editing */}
+        <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Map Position</Label>
+            <div className="col-span-3 grid grid-cols-2 gap-2">
+                 <div className='flex items-center gap-2'>
+                    <Label htmlFor="x" className="text-sm">X:</Label>
+                    <Input id="x" type="number" value={formData.mapPosition.x} onChange={handlePositionChange} />
+                 </div>
+                 <div className='flex items-center gap-2'>
+                    <Label htmlFor="y" className="text-sm">Y:</Label>
+                    <Input id="y" type="number" value={formData.mapPosition.y} onChange={handlePositionChange} />
+                 </div>
+            </div>
+        </div>
         <p className="text-center text-sm text-muted-foreground">
           Editing opening hours is not available in this demo.
         </p>
@@ -121,8 +146,6 @@ export default function AdminPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // In a real app, this would be a proper auth flow.
-    // For this demo, we check if we've already authenticated in this session.
     if (sessionStorage.getItem('dpu-admin-auth') === 'true') {
       setIsAuthenticated(true);
       return;
@@ -148,7 +171,6 @@ export default function AdminPage() {
       title: 'Location Updated',
       description: `${updatedLocation.name} has been saved successfully.`,
     });
-    // Find the dialog close button and click it programmatically
     document.querySelector('[data-radix-dialog-close]')?.dispatchEvent(new MouseEvent('click'));
   };
 
@@ -217,7 +239,6 @@ export default function AdminPage() {
   );
 }
 
-// Dummy Card components to satisfy compiler since they are not in the provided files.
 const Card = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm" {...props}>
       {children}

@@ -4,6 +4,7 @@ import LocationCard from './location-card';
 import {
   MapPin,
 } from 'lucide-react';
+import Image from 'next/image';
 
 interface MapViewProps {
   selectedLocation: Location | null;
@@ -18,34 +19,35 @@ export default function MapView({
 }: MapViewProps) {
   return (
     <div className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen">
-      <div className="absolute inset-0 flex items-center justify-center bg-secondary/50">
+      <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
         <div className="relative h-full w-full">
-          {/* Placeholder for Google Maps */}
-          <div className="h-full w-full bg-gray-300" />
+          <Image
+            src="/dpu-map.png"
+            alt="DPU Campus Map"
+            layout="fill"
+            objectFit="contain"
+            className="pointer-events-none"
+          />
           {locations.map((loc) => (
             <button
               key={loc.id}
               onClick={() => onSelectLocation(loc)}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2"
+              className="absolute transform -translate-x-1/2 -translate-y-full"
               style={{
-                // Positions are simplified for demo purposes
-                top: `${(loc.lat - 13.85) * 500 + 50}%`,
-                left: `${(loc.lng - 100.56) * 500 + 50}%`,
+                top: `${loc.mapPosition.y}%`,
+                left: `${loc.mapPosition.x}%`,
               }}
               aria-label={`Select ${loc.name}`}
             >
               <MapPin
-                className={`h-8 w-8 transition-all duration-300 ${
+                className={`h-8 w-8 transition-all duration-300 drop-shadow-lg ${
                   selectedLocation?.id === loc.id
-                    ? 'text-primary scale-125 -translate-y-2 fill-primary/20'
-                    : 'text-muted-foreground/50 hover:text-primary'
+                    ? 'text-primary scale-125 fill-primary/20'
+                    : 'text-black/60 hover:text-primary fill-white/80'
                 }`}
               />
             </button>
           ))}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-xl bg-background/80 p-2 text-center text-sm text-muted-foreground backdrop-blur-sm">
-            Interactive map placeholder
-          </div>
         </div>
       </div>
       <div

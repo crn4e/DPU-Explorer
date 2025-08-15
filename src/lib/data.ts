@@ -21,8 +21,7 @@ export const locations: Location[] = [
     imageHint: 'modern building',
     hours: defaultHours,
     announcement: 'Special workshop on AI in Game Development this Saturday.',
-    lat: 13.8541,
-    lng: 100.562,
+    mapPosition: { x: 74, y: 55 },
   },
   {
     id: 'building-6',
@@ -33,8 +32,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'university building',
     hours: defaultHours,
-    lat: 13.8548,
-    lng: 100.563,
+    mapPosition: { x: 70, y: 52 },
   },
   {
     id: 'library',
@@ -49,8 +47,7 @@ export const locations: Location[] = [
       Saturday: { open: '09:00', close: '17:00' },
       Sunday: { open: '09:00', close: '17:00' },
     },
-    lat: 13.8535,
-    lng: 100.5635,
+    mapPosition: { x: 55, y: 68 },
   },
   {
     id: 'food-court',
@@ -70,8 +67,7 @@ export const locations: Location[] = [
       Sunday: null,
     },
     announcement: 'New vegetarian stall now open!',
-    lat: 13.853,
-    lng: 100.5625,
+    mapPosition: { x: 40, y: 80 },
   },
   {
     id: 'gym',
@@ -90,8 +86,7 @@ export const locations: Location[] = [
       Saturday: { open: '10:00', close: '19:00' },
       Sunday: null,
     },
-    lat: 13.8555,
-    lng: 100.564,
+    mapPosition: { x: 28, y: 60 },
   },
   {
     id: 'student-services',
@@ -110,7 +105,6 @@ export const locations: Location[] = [
       Saturday: null,
       Sunday: null,
     },
-    lat: 13.8545,
-    lng: 100.5638,
+    mapPosition: { x: 62, y: 62 },
   },
 ];
