@@ -48,10 +48,12 @@ const useTypewriter = (text: string, speed: number = 20) => {
 
 function ChatBubble({ message, isAnimating }: { message: ChatMessage; isAnimating: boolean }) {
   const isModel = message.role === 'model';
-  const animatedText = useTypewriter(isAnimating ? message.content : '');
-
-  // If we are animating, show the animated text. Otherwise, show the full content.
-  const contentToShow = isAnimating ? animatedText : message.content;
+  
+  // Use typewriter only if it's the model's turn and isAnimating is true.
+  // Otherwise, render the full content directly.
+  const contentToShow = isModel && isAnimating 
+    ? useTypewriter(message.content) 
+    : message.content;
 
   return (
     <div className={`flex items-start gap-3 ${isModel ? 'justify-start' : 'justify-end'}`}>
@@ -80,6 +82,7 @@ export default function AiChat() {
   const [message, setMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [animatingMessage, setAnimatingMessage] = useState<ChatMessage | null>(null);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -88,7 +91,7 @@ export default function AiChat() {
             behavior: 'smooth'
         });
     }
-  }, [history, isPending]);
+  }, [history, isPending, animatingMessage]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -98,11 +101,13 @@ export default function AiChat() {
     const newHistory: ChatMessage[] = [...history, { role: 'user', content: currentMessage }];
     setHistory(newHistory);
     setMessage('');
+    setAnimatingMessage(null); // Clear previous animation
 
     startTransition(async () => {
       try {
         const result = await chatDpu({ history: newHistory.slice(0, -1), message: currentMessage });
-        setHistory((prev) => [...prev, { role: 'model', content: result.response }]);
+        const aiMessage = { role: 'model', content: result.response };
+        setAnimatingMessage(aiMessage); // Set the new message to be animated
       } catch (error) {
         console.error('Failed to get chat response:', error);
         toast({
@@ -116,6 +121,17 @@ export default function AiChat() {
       }
     });
   };
+
+  // This effect handles adding the animated message to the history once it's done "typing"
+  // For now, we'll just add it directly, and the typewriter hook handles the animation.
+  // To truly "finalize" it after animation, a callback from the hook would be needed.
+  // But for this behavior, we'll just add it to history right away.
+  useEffect(() => {
+    if (animatingMessage) {
+        setHistory(prev => [...prev, animatingMessage]);
+        setAnimatingMessage(null);
+    }
+  }, [animatingMessage]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -140,10 +156,10 @@ export default function AiChat() {
                     <ChatBubble 
                         key={index} 
                         message={msg}
-                        isAnimating={isPending && msg.role === 'model' && index === history.length - 1}
+                        isAnimating={false} // All historical messages are not animated
                     />
                 ))}
-                 {isPending && history[history.length - 1]?.role === 'user' && (
+                 {isPending && (
                     <div className="flex items-start gap-3 justify-start">
                         <div className="bg-primary text-primary-foreground rounded-full p-2">
                             <Bot className="h-5 w-5"/>
