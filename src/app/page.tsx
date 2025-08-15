@@ -20,6 +20,7 @@ import { locations as allLocations } from '@/lib/data';
 import type { Location, LocationCategory } from '@/lib/types';
 import { KeyRound } from 'lucide-react';
 import AppHeader from '@/components/header';
+import AiChat from '@/components/ai-chat';
 
 const categories: (LocationCategory | 'All')[] = [
   'All',
@@ -84,6 +85,7 @@ export default function Home() {
         <SidebarFooter>
           <div className="flex flex-col gap-2 p-2">
             <AiTourGuide />
+            <AiChat />
             <Button variant="ghost" asChild>
               <Link href="/admin">
                 <KeyRound className="mr-2 h-4 w-4" />
