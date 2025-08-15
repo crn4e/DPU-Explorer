@@ -9,6 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const ChatDpuInputSchema = z.object({
@@ -116,10 +117,11 @@ const chatDpuFlow = ai.defineFlow(
   },
   async ({ message, history }) => {
     const { text } = await ai.generate({
+      model: googleAI.model('gemini-2.0-flash'),
       history,
       system: systemPrompt,
       prompt: message,
-      tools: [ai.googleSearch],
+      tools: [googleAI.googleSearch],
       config: {
         temperature: 0.2,
       },
