@@ -24,43 +24,36 @@ type ChatMessage = {
     content: string;
 };
 
-// Custom hook for typing animation
-const useTypewriter = (text: string, speed: number = 20) => {
-    const [displayText, setDisplayText] = useState('');
-  
-    useEffect(() => {
-      if (!text) return;
+function ChatBubble({ message, isAnimating }: { message: ChatMessage; isAnimating: boolean }) {
+  const isModel = message.role === 'model';
+  const chatContext = React.useContext(ChatContext);
+  const [typedContent, setTypedContent] = useState('');
+
+  useEffect(() => {
+    if (isModel && isAnimating) {
+      setTypedContent('');
       let i = 0;
-      setDisplayText(''); // Reset when text changes
       const timer = setInterval(() => {
-        if (i < text.length) {
-          setDisplayText(prev => prev + text.charAt(i));
+        if (i < message.content.length) {
+          setTypedContent(prev => prev + message.content.charAt(i));
           i++;
         } else {
           clearInterval(timer);
         }
-      }, speed);
-  
+      }, 20);
       return () => clearInterval(timer);
-    }, [text, speed]);
+    }
+  }, [isModel, isAnimating, message.content]);
   
-    return displayText;
-};
+  const contentToShow = isModel && isAnimating ? typedContent : message.content;
 
-function ChatBubble({ message, isAnimating }: { message: ChatMessage; isAnimating: boolean }) {
-  const isModel = message.role === 'model';
-  const chatContext = React.useContext(ChatContext);
-
-  const contentToShow = isModel && isAnimating 
-    ? useTypewriter(message.content) 
-    : message.content;
-  
   useEffect(() => {
-    if (isAnimating && chatContext?.scrollAreaRef.current) {
+    // This effect handles auto-scrolling
+    if (chatContext?.scrollAreaRef.current) {
         const scrollArea = chatContext.scrollAreaRef.current;
         scrollArea.scrollTo({ top: scrollArea.scrollHeight, behavior: 'auto' });
     }
-  }, [contentToShow, isAnimating, chatContext]);
+  }, [contentToShow, chatContext]);
 
   return (
     <div className={`flex items-start gap-3 ${isModel ? 'justify-start' : 'justify-end'}`}>
@@ -137,10 +130,6 @@ export default function AiChat() {
     });
   };
   
-  const lastMessage = history[history.length - 1];
-  const isLastMessageAnimating = isPending && lastMessage?.role === 'model';
-
-
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
