@@ -116,12 +116,12 @@ const chatDpuFlow = ai.defineFlow(
     outputSchema: ChatDpuOutputSchema,
   },
   async ({ message, history }) => {
+    const model = googleAI.model('gemini-2.0-flash', { tools: [googleAI.googleSearch]});
     const { text } = await ai.generate({
-      model: googleAI.model('gemini-2.0-flash'),
+      model,
       history,
       system: systemPrompt,
       prompt: message,
-      tools: [googleAI.googleSearch],
       config: {
         temperature: 0.2,
       },
