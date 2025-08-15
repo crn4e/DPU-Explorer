@@ -22,11 +22,12 @@ export default function MapView({
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="relative h-full w-full">
           <Image
-            src="/dpu-map.png"
+            src="https://placehold.co/1200x900.png"
             alt="DPU Campus Map"
             layout="fill"
             objectFit="contain"
             className="pointer-events-none"
+            data-ai-hint="map campus"
           />
           {locations.map((loc) => (
             <button
