@@ -28,7 +28,7 @@ export default function MapView({
   
   return (
     <div 
-        className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-gray-200"
+        className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-gray-200 focus:outline-none"
         onClick={handleMapClick}
     >
       <div className="absolute inset-0 flex items-center justify-center">
