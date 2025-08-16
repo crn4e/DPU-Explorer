@@ -72,8 +72,10 @@
 @layer base {
   * {
     @apply border-border;
+    outline: none;
   }
   body {
     @apply bg-background text-foreground;
+    outline: none;
   }
 }
