@@ -28,14 +28,12 @@ export default function MapView({
 
   const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (mapContainerRef.current) {
-        // Prevent default drag behavior (e.g., image dragging)
         e.preventDefault();
-        setDidDrag(false);
+        setDidDrag(false); // Reset drag status
         setIsDragging(true);
-        // PageX gives coordinate relative to the whole page
         setStartPos({
-            x: e.pageX - mapContainerRef.current.offsetLeft,
-            y: e.pageY - mapContainerRef.current.offsetTop,
+            x: e.pageX, // Use pageX directly
+            y: e.pageY,
         });
         setScrollPos({
             left: mapContainerRef.current.scrollLeft,
@@ -47,27 +45,37 @@ export default function MapView({
   const handleMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (isDragging && mapContainerRef.current) {
         e.preventDefault();
-        setDidDrag(true);
-        const x = e.pageX - (mapContainerRef.current.offsetLeft || 0);
-        const y = e.pageY - (mapContainerRef.current.offsetTop || 0);
-        const walkX = (x - startPos.x) * 1.5; // Adjust scroll speed
-        const walkY = (y - startPos.y) * 1.5;
-        mapContainerRef.current.scrollLeft = scrollPos.left - walkX;
-        mapContainerRef.current.scrollTop = scrollPos.top - walkY;
+        if(!didDrag) setDidDrag(true); // It's a drag if mouse moves while down
+
+        const dx = e.pageX - startPos.x;
+        const dy = e.pageY - startPos.y;
+
+        mapContainerRef.current.scrollLeft = scrollPos.left - dx;
+        mapContainerRef.current.scrollTop = scrollPos.top - dy;
     }
   };
   
-  const handleMouseUp = () => {
+  const handleMouseUp = (e: ReactMouseEvent<HTMLDivElement>) => {
     setIsDragging(false);
-    // Use a timeout to reset didDrag, allowing the click event to check it first
-    setTimeout(() => setDidDrag(false), 0);
+    // If it was a drag, prevent the click event. Otherwise, it was a click.
+    if (didDrag) {
+      e.stopPropagation();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
   };
   
   const handleMapClick = (e: ReactMouseEvent<HTMLDivElement>) => {
-    // Only deselect if we didn't just finish a drag.
+    // Check if the click event should proceed.
+    // If we just finished a drag, handleMouseUp would have set isDragging to false,
+    // and didDrag will still be true. We don't want to deselect in that case.
     if (!didDrag) {
-        onSelectLocation(null);
+      onSelectLocation(null);
     }
+    // Reset didDrag after the click logic has been evaluated.
+    setDidDrag(false);
   };
 
   const handlePinClick = (e: React.MouseEvent, loc: Location) => {
@@ -84,7 +92,7 @@ export default function MapView({
         )}
         onClick={handleMapClick}
         onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
     >
