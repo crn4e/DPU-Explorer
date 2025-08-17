@@ -28,7 +28,7 @@ export default function MapView({
   
   return (
     <div 
-        className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-gray-200 focus:outline-none flex items-center justify-center p-4"
+        className="relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-white flex items-center justify-center p-4"
         onClick={handleMapClick}
     >
         {/* Aspect Ratio Container */}
