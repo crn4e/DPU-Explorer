@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DpuLogo } from '@/components/dpu-logo';
+import Image from 'next/image';
 import { locations as initialLocations } from '@/lib/data';
 import type { Location } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -186,7 +186,13 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <header className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <DpuLogo className="h-10 w-10 text-primary" />
+          <Image
+              src="/Logo.jpg"
+              alt="DPU Logo"
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-full object-cover"
+            />
           <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
         </div>
         <Button variant="outline" onClick={() => router.push('/')}>

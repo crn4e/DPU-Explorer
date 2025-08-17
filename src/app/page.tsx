@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Sidebar,
   SidebarProvider,
@@ -12,7 +13,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { DpuLogo } from '@/components/dpu-logo';
 import LocationList from '@/components/location-list';
 import MapView from '@/components/map-view';
 import AiTourGuide from '@/components/ai-tour-guide';
@@ -46,7 +46,13 @@ export default function Home() {
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-3 p-2">
-            <DpuLogo className="h-10 w-10 text-primary" />
+            <Image
+                src="/Logo.jpg"
+                alt="DPU Logo"
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-full object-cover"
+              />
             <div className="flex flex-col">
               <h1 className="font-headline text-2xl font-bold tracking-tight text-primary">
                 DPU Explorer
