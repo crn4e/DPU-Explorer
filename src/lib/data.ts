@@ -20,7 +20,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'hotel lobby',
     hours: defaultHours,
-    mapPosition: { x: 50, y: 27 },
+    mapPosition: { x: 50, y: 28 },
   },
   {
     id: 'building-2',
@@ -35,7 +35,7 @@ export const locations: Location[] = [
       Saturday: null,
       Sunday: null,
     },
-    mapPosition: { x: 53.5, y: 23.5 },
+    mapPosition: { x: 53.5, y: 25 },
   },
   {
     id: 'building-3',
@@ -108,7 +108,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'engineering lab',
     hours: defaultHours,
-    mapPosition: { x: 75, y: 64 },
+    mapPosition: { x: 75, y: 63 },
   },
   {
     id: 'building-9',
@@ -119,28 +119,38 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'global flags',
     hours: defaultHours,
-    mapPosition: { x: 73.5, y: 67 },
+    mapPosition: { x: 73.5, y: 66 },
   },
   {
     id: 'building-10',
-    name: 'Building 10 - Sports Complex',
+    name: 'Building 10 - Tourism and Hospitality',
+    category: 'Academic',
+    description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'hotel reception',
+    hours: defaultHours,
+    mapPosition: { x: 32, y: 46 },
+  },
+  {
+    id: 'building-12',
+    name: 'Building 12 - Sports Complex',
     category: 'Recreation',
     description:
       'Features an indoor gymnasium, basketball court, and other sports facilities. Also includes the main university football field.',
     image: 'https://placehold.co/600x400.png',
     imageHint: 'lecture hall',
     hours: defaultHours,
-    mapPosition: { x: 23, y: 55 },
+    mapPosition: { x:82, y: 60 },
   },
   {
-    id: 'building-12',
-    name: 'Building 12 - Tourism and Hospitality',
+    id: 'โรงละคร',
+    name: 'โรงละคร - Tourism and Hospitality',
     category: 'Academic',
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
     image: 'https://placehold.co/600x400.png',
     imageHint: 'hotel reception',
     hours: defaultHours,
-    mapPosition: { x: 85, y: 72 },
+    mapPosition: { x: 82, y: 50 },
   },
   {
     id: 'building-15-17',
@@ -150,7 +160,7 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'airplane hangar',
     hours: defaultHours,
-    mapPosition: { x: 12, y: 44.5 },
+    mapPosition: { x: 12, y: 36 },
   },
   {
     id: 'library',
@@ -185,7 +195,7 @@ export const locations: Location[] = [
       Sunday: null,
     },
     announcement: 'New vegetarian stall now open!',
-    mapPosition: { x: 50, y: 75 },
+    mapPosition: { x: 38, y: 64.5 },
   },
   {
     id: 'gym',
@@ -204,7 +214,7 @@ export const locations: Location[] = [
       Saturday: { open: '10:00', close: '19:00' },
       Sunday: null,
     },
-    mapPosition: { x: 23, y: 55 }, // The gym is inside Building 10
+    mapPosition: { x: 25, y: 62 }, // The gym is inside Building 10
   },
   {
     id: 'swimming-pool',
@@ -223,7 +233,7 @@ export const locations: Location[] = [
       Saturday: { open: '10:00', close: '19:00' },
       Sunday: null,
     },
-    mapPosition: { x: 27, y: 64 },
+    mapPosition: { x: 31, y: 62 },
   },
   {
     id: 'basketball-court',
@@ -234,16 +244,44 @@ export const locations: Location[] = [
     image: 'https://placehold.co/600x400.png',
     imageHint: 'basketball court',
     hours: defaultHours,
-    mapPosition: { x: 23, y: 55 }, // Inside Building 10
+    mapPosition: { x: 27, y: 58 }, // Inside Building 10
   },
   {
-    id: 'building-55',
-    name: 'Building55 - Tourism and Hospitality',
-    category: 'Academic',
-    description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
+    id: 'Building 20',
+    name: 'Building 20',
+    category: 'Services',
+    description:
+      'Building 20.',
     image: 'https://placehold.co/600x400.png',
-    imageHint: 'hotel reception',
-    hours: defaultHours,
-    mapPosition: { x: 50, y: 20 },
+    imageHint: 'Building 20',
+    hours: {
+      Monday: { open: '10:00', close: '20:00' },
+      Tuesday: { open: '10:00', close: '20:00' },
+      Wednesday: { open: '10:00', close: '20:00' },
+      Thursday: { open: '10:00', close: '20:00' },
+      Friday: { open: '10:00', close: '20:00' },
+      Saturday: { open: '10:00', close: '19:00' },
+      Sunday: null,
+    },
+    mapPosition: { x: 49, y: 61 },
+  },
+  {
+    id: 'Building21',
+    name: 'Building21',
+    category: 'Services',
+    description:
+      ' Building 21.',
+    image: 'https://placehold.co/600x400.png',
+    imageHint: 'Building21',
+    hours: {
+      Monday: { open: '10:00', close: '20:00' },
+      Tuesday: { open: '10:00', close: '20:00' },
+      Wednesday: { open: '10:00', close: '20:00' },
+      Thursday: { open: '10:00', close: '20:00' },
+      Friday: { open: '10:00', close: '20:00' },
+      Saturday: { open: '10:00', close: '19:00' },
+      Sunday: null,
+    },
+    mapPosition: { x: 56, y: 61 },
   },
 ];
