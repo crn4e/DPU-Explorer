@@ -28,8 +28,11 @@ export default function MapView({
 
   const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (mapContainerRef.current) {
+        // Prevent default drag behavior (e.g., image dragging)
+        e.preventDefault();
         setDidDrag(false);
         setIsDragging(true);
+        // PageX gives coordinate relative to the whole page
         setStartPos({
             x: e.pageX - mapContainerRef.current.offsetLeft,
             y: e.pageY - mapContainerRef.current.offsetTop,
@@ -43,8 +46,8 @@ export default function MapView({
 
   const handleMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (isDragging && mapContainerRef.current) {
-        setDidDrag(true);
         e.preventDefault();
+        setDidDrag(true);
         const x = e.pageX - (mapContainerRef.current.offsetLeft || 0);
         const y = e.pageY - (mapContainerRef.current.offsetTop || 0);
         const walkX = (x - startPos.x) * 1.5; // Adjust scroll speed
@@ -60,7 +63,8 @@ export default function MapView({
     setTimeout(() => setDidDrag(false), 0);
   };
   
-  const handleMapClick = () => {
+  const handleMapClick = (e: ReactMouseEvent<HTMLDivElement>) => {
+    // Only deselect if we didn't just finish a drag.
     if (!didDrag) {
         onSelectLocation(null);
     }
@@ -75,7 +79,7 @@ export default function MapView({
     <div 
         ref={mapContainerRef}
         className={cn(
-            "relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-white overflow-auto cursor-grab",
+            "relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-white overflow-auto cursor-grab focus:outline-none",
             isDragging && "cursor-grabbing"
         )}
         onClick={handleMapClick}
@@ -87,7 +91,7 @@ export default function MapView({
         {/* Wrapper to allow scrolling beyond initial view */}
         <div className="relative w-[150%] max-w-[1400px] lg:w-[120%] xl:w-full mx-auto">
              {/* Aspect Ratio Container */}
-            <div className="relative w-full aspect-[1.77]"> 
+            <div className="relative w-full" style={{ paddingTop: '56.25%' /* 16:9 Aspect Ratio */ }}> 
                 <div className="absolute inset-0">
                     <Image
                         src="/dpu-map.png.png"
