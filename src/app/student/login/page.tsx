@@ -81,7 +81,7 @@ export default function StudentLoginPage() {
                 <Input
                   id="id"
                   type="text"
-                  placeholder="e.g. 6612345678"
+                  placeholder="ex.67xxxxxx"
                   required
                   value={id}
                   onChange={(e) => setId(e.target.value)}

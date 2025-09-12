@@ -201,14 +201,9 @@ export default function AdminPage() {
             />
           <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
         </div>
-        <div className='flex items-center gap-2'>
-            <Button variant="outline" onClick={() => router.push('/')}>
-              Back to Site
-            </Button>
-            <Button variant="destructive" onClick={handleLogout}>
-              Logout
-            </Button>
-        </div>
+        <Button variant="destructive" onClick={handleLogout}>
+            Logout
+        </Button>
       </header>
       <main>
         <Card>
