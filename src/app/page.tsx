@@ -85,8 +85,12 @@ export default function Home() {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Student Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>Login</DropdownMenuItem>
-                    <DropdownMenuItem>Register</DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/student/login">Login</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/student/register">Register</Link>
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
              </DropdownMenu>
           </div>
