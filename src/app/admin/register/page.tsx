@@ -1,41 +1,93 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 export default function AdminRegisterPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    // In a real application, you would handle form data and API calls here.
+    // For this demo, we'll just show a success message and redirect.
+    setTimeout(() => {
+        toast({
+            title: 'Registration Submitted',
+            description: 'Your registration is pending approval.',
+        });
+        router.push('/admin/login');
+    }, 1500);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <Card className="w-full max-w-sm text-center">
-        <CardHeader>
-        <div className="flex justify-center items-center gap-3 mb-2">
-            <Image
-                src="/Logo.jpg"
-                alt="DPU Logo"
-                width={40}
-                height={40}
-                className="h-10 w-10 rounded-full object-cover"
-            />
-            <CardTitle className="font-headline text-2xl">Register</CardTitle>
-        </div>
-          <CardDescription>Registration is currently disabled.</CardDescription>
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 py-12">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+            <div className="flex justify-center items-center gap-3 mb-2">
+                <Image
+                    src="/Logo.jpg"
+                    alt="DPU Logo"
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 rounded-full object-cover"
+                />
+                <CardTitle className="font-headline text-2xl">Admin Registration</CardTitle>
+            </div>
+          <CardDescription>Create a new administrator account.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            For access, please contact the system administrator.
-          </p>
-          <Button variant="outline" asChild className="mt-6 w-full">
-            <Link href="/admin/login">Back to Login</Link>
-          </Button>
-        </CardContent>
+        <form onSubmit={handleRegister}>
+          <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="id">ID</Label>
+              <Input id="id" placeholder="Your unique ID" required disabled={isLoading} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" placeholder="John" required disabled={isLoading} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="surname">Surname</Label>
+              <Input id="surname" placeholder="Doe" required disabled={isLoading} />
+            </div>
+             <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} />
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" required disabled={isLoading} />
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Register
+            </Button>
+            <Button variant="link" size="sm" asChild disabled={isLoading}>
+                <Link href="/admin/login">
+                    Already have an account? Login
+                </Link>
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );
