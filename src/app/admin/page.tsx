@@ -28,6 +28,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 function EditLocationForm({
   location,
@@ -146,18 +147,12 @@ export default function AdminPage() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check for auth status in session storage
     if (sessionStorage.getItem('dpu-admin-auth') === 'true') {
       setIsAuthenticated(true);
-      return;
-    }
-
-    const password = prompt('Enter admin password:');
-    if (password === 'dpuadmin123') {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('dpu-admin-auth', 'true');
     } else {
-      alert('Incorrect password.');
-      router.push('/');
+      // If not authenticated, redirect to login page
+      router.push('/admin/login');
     }
   }, [router]);
 
@@ -171,13 +166,24 @@ export default function AdminPage() {
       title: 'Location Updated',
       description: `${updatedLocation.name} has been saved successfully.`,
     });
-    document.querySelector('[data-radix-dialog-close]')?.dispatchEvent(new MouseEvent('click'));
+    // This is a bit of a hack to close the dialog programmatically
+    document.querySelector<HTMLElement>('[data-radix-dialog-content]')?.parentElement?.querySelector('button')?.click();
   };
+  
+  const handleLogout = () => {
+    sessionStorage.removeItem('dpu-admin-auth');
+    toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+    });
+    router.push('/admin/login');
+  }
 
   if (!isAuthenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Redirecting to login...</p>
       </div>
     );
   }
@@ -195,9 +201,14 @@ export default function AdminPage() {
             />
           <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
         </div>
-        <Button variant="outline" onClick={() => router.push('/')}>
-          Back to Site
-        </Button>
+        <div className='flex items-center gap-2'>
+            <Button variant="outline" onClick={() => router.push('/')}>
+              Back to Site
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+        </div>
       </header>
       <main>
         <Card>
@@ -244,33 +255,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-const Card = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm" {...props}>
-      {children}
-    </div>
-  );
-  
-  const CardHeader = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className="flex flex-col space-y-1.5 p-6" {...props}>
-      {children}
-    </div>
-  );
-  
-  const CardTitle = ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="text-2xl font-semibold leading-none tracking-tight" {...props}>
-      {children}
-    </h3>
-  );
-  
-  const CardDescription = ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="text-sm text-muted-foreground" {...props}>
-      {children}
-    </p>
-  );
-  
-  const CardContent = ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-    <div className="p-6 pt-0" {...props}>
-      {children}
-    </div>
-  );

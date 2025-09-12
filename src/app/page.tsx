@@ -93,7 +93,7 @@ export default function Home() {
             <AiTourGuide />
             <AiChat />
             <Button variant="ghost" asChild>
-              <Link href="/admin">
+              <Link href="/admin/login">
                 <KeyRound className="mr-2 h-4 w-4" />
                 Admin Login
               </Link>
