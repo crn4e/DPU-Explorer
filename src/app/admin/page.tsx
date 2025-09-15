@@ -27,8 +27,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { auth, db } from '@/lib/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+
+
+interface AdminUser {
+    name: string;
+    surname: string;
+    email: string;
+}
 
 function EditLocationForm({
   location,
@@ -143,17 +154,41 @@ function EditLocationForm({
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [locations, setLocations] = useState(initialLocations);
+  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for auth status in session storage
-    if (sessionStorage.getItem('dpu-admin-auth') === 'true') {
-      setIsAuthenticated(true);
-    } else {
-      // If not authenticated, redirect to login page
-      router.push('/admin/login');
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
+        if (user && sessionStorage.getItem('dpu-admin-auth') === 'true') {
+            setIsAuthenticated(true);
+
+            // Fetch admin details from Firestore
+            const adminDocRef = doc(db, 'admins', user.uid);
+            const adminDocSnap = await getDoc(adminDocRef);
+
+            if (adminDocSnap.exists()) {
+                const adminData = adminDocSnap.data() as Omit<AdminUser, 'email'>;
+                setAdminUser({
+                    name: adminData.name,
+                    surname: adminData.surname,
+                    email: user.email || 'No email found',
+                });
+            } else {
+                 setAdminUser({
+                    name: 'Admin',
+                    surname: '',
+                    email: user.email || 'No email found',
+                });
+            }
+        } else {
+            setIsAuthenticated(false);
+            sessionStorage.removeItem('dpu-admin-auth');
+            router.push('/admin/login');
+        }
+    });
+
+    return () => unsubscribe();
   }, [router]);
 
   const handleSaveLocation = (updatedLocation: Location) => {
@@ -166,24 +201,33 @@ export default function AdminPage() {
       title: 'Location Updated',
       description: `${updatedLocation.name} has been saved successfully.`,
     });
-    // This is a bit of a hack to close the dialog programmatically
     document.querySelector<HTMLElement>('[data-radix-dialog-content]')?.parentElement?.querySelector('button')?.click();
   };
   
-  const handleLogout = () => {
-    sessionStorage.removeItem('dpu-admin-auth');
-    toast({
-        title: 'Logged Out',
-        description: 'You have been successfully logged out.',
-    });
-    router.push('/admin/login');
+  const handleLogout = async () => {
+    try {
+        await auth.signOut();
+        sessionStorage.removeItem('dpu-admin-auth');
+        toast({
+            title: 'Logged Out',
+            description: 'You have been successfully logged out.',
+        });
+        router.push('/admin/login');
+    } catch (error) {
+        console.error('Logout Error:', error);
+        toast({
+            title: 'Logout Failed',
+            description: 'An error occurred while logging out.',
+            variant: 'destructive',
+        });
+    }
   }
 
   if (!isAuthenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2">Redirecting to login...</p>
+        <p className="ml-2">Verifying authentication...</p>
       </div>
     );
   }
@@ -201,9 +245,27 @@ export default function AdminPage() {
             />
           <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
         </div>
-        <Button variant="destructive" onClick={handleLogout}>
-            Logout
-        </Button>
+        <div className="flex items-center gap-4">
+             {adminUser ? (
+                <div className="text-right">
+                    <p className="font-semibold">{`${adminUser.name} ${adminUser.surname}`}</p>
+                    <p className="text-sm text-muted-foreground">{adminUser.email}</p>
+                </div>
+            ) : (
+                <div className="flex items-center gap-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Loading...</span>
+                </div>
+            )}
+             <Avatar>
+                <AvatarFallback>
+                    <User />
+                </AvatarFallback>
+            </Avatar>
+            <Button variant="destructive" onClick={handleLogout}>
+                Logout
+            </Button>
+        </div>
       </header>
       <main>
         <Card>
