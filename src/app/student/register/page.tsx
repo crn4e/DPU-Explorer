@@ -109,11 +109,25 @@ export default function StudentRegisterPage() {
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
-                    <div className="space-y-2 sm:col-system-message:
-I've identified the issue and am making the necessary changes to fix it. The current login system is a simulation and not yet connected to the Firebase Authentication you set up. I'll replace this simulation with a full Firebase implementation.
-
-I will:
-1.  Update the registration and login pages for both Admins and Students to use the `createUserWithEmailAndPassword` and `signInWithEmailAndPassword` functions from Firebase.
-2.  Improve the error notifications to show the actual error messages from Firebase, making it easier to diagnose any future issues.
-
-I've updated the registration pages to now collect the `Email` and `Password` and other relevant details, and the login page to use `Email` and `Password` for authentication. After these changes, your login and registration should work correctly with your Firebase project.
+                    <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input id="password" type="password" required disabled={isLoading} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </div>
+                </CardContent>
+                <CardFooter className="flex flex-col gap-4">
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Register
+                    </Button>
+                    <Button variant="link" size="sm" asChild disabled={isLoading}>
+                        <Link href="/student/login">
+                            Already have an account? Login
+                        </Link>
+                    </Button>
+                </CardFooter>
+                </form>
+            </Card>
+        </div>
+    </div>
+  );
+}

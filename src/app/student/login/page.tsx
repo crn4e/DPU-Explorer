@@ -116,4 +116,5 @@ export default function StudentLoginPage() {
         </Card>
       </div>
     </div>
-  
+  );
+}
