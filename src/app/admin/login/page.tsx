@@ -17,15 +17,14 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
-import { auth, db } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [id, setId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -33,24 +32,6 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      // 1. Find the user's email from their admin ID
-      const adminsRef = collection(db, 'admins');
-      const q = query(adminsRef, where('id', '==', id));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        throw new Error('Admin ID not found.');
-      }
-
-      const adminDoc = querySnapshot.docs[0];
-      const adminData = adminDoc.data();
-      const email = adminData.email;
-
-      if (!email) {
-          throw new Error('No email associated with this Admin ID.');
-      }
-
-      // 2. Sign in with the retrieved email and provided password
       await signInWithEmailAndPassword(auth, email, password);
 
       sessionStorage.setItem('dpu-admin-auth', 'true');
@@ -65,16 +46,15 @@ export default function AdminLoginPage() {
           switch (error.code) {
               case 'auth/wrong-password':
               case 'auth/invalid-credential':
-                  errorMessage = 'Incorrect password. Please try again.';
+                  errorMessage = 'Incorrect email or password. Please try again.';
                   break;
               case 'auth/user-not-found':
-                  // This case might be less likely now, but good to have
-                  errorMessage = 'No account found with this ID.';
+                  errorMessage = 'No account found with this email.';
                   break;
               default:
-                  errorMessage = error.message;
+                  errorMessage = 'An error occurred during login. Please try again.';
           }
-      } else if (error instanceof Error) {
+      } else {
           errorMessage = error.message;
       }
       
@@ -84,7 +64,8 @@ export default function AdminLoginPage() {
         description: errorMessage,
         variant: 'destructive',
       });
-      setIsLoading(false);
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -114,14 +95,14 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="id">Admin ID</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="id"
-                type="text"
-                placeholder="Your Admin ID"
+                id="email"
+                type="email"
+                placeholder="[email protected]"
                 required
-                value={id}
-                onChange={(e) => setId(e.target.value.replace(/[^0-9]/g, ''))}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
               />
             </div>
