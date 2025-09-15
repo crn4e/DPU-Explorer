@@ -70,10 +70,8 @@ export default function StudentRegisterPage() {
               errorMessage = 'Password should be at least 6 characters.';
               break;
             default:
-              errorMessage = error.message;
+              errorMessage = 'Missing or insufficient permissions.';
           }
-        } else {
-             errorMessage = "Missing or insufficient permissions.";
         }
         console.error('Firebase Registration Error:', error);
         toast({

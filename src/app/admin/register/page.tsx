@@ -48,10 +48,11 @@ export default function AdminRegisterPage() {
     }
 
     try {
+        // 1. Create user in Firebase Authentication
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Save additional user info to Firestore
+        // 2. Save additional user info to Firestore using the UID from Auth
         await setDoc(doc(db, "admins", user.uid), {
             id: id,
             name: name,
@@ -60,6 +61,7 @@ export default function AdminRegisterPage() {
             role: 'admin'
         });
 
+        // 3. Show success and redirect
         toast({
             title: 'Registration Successful',
             description: 'Your admin account has been created.',
@@ -80,10 +82,8 @@ export default function AdminRegisterPage() {
               errorMessage = 'Password should be at least 6 characters.';
               break;
             default:
-              errorMessage = error.message;
+              errorMessage = 'Missing or insufficient permissions.';
           }
-        } else {
-             errorMessage = "Missing or insufficient permissions.";
         }
         console.error('Firebase Registration Error:', error);
         toast({
