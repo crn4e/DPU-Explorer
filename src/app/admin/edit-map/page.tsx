@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { locations as initialLocations } from '@/lib/data';
 import type { Location } from '@/lib/types';
@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit } from 'lucide-react';
-import { auth } from '@/lib/firebase';
+import { Loader2, Edit, UploadCloud } from 'lucide-react';
+import { auth, storage } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
 import LocationCard from '@/components/location-card';
@@ -23,6 +23,8 @@ import {
   SheetFooter,
   SheetClose,
 } from '@/components/ui/sheet';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { Progress } from '@/components/ui/progress';
 
 
 function EditLocationSheet({
@@ -38,9 +40,15 @@ function EditLocationSheet({
 }) {
   const [formData, setFormData] = useState(location);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     setFormData(location);
+    setUploadProgress(0);
+    setIsUploading(false);
   }, [location]);
 
   const handleChange = (
@@ -49,7 +57,7 @@ function EditLocationSheet({
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
-  
+
   const handlePositionChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -63,16 +71,54 @@ function EditLocationSheet({
     }));
   };
 
-  const handleSave = () => {
-    setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      onSave(formData);
-      setIsSaving(false);
-      onOpenChange(false); // Close sheet after saving
-    }, 1000);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const storageRef = ref(storage, `locations/${location.id}/${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      'state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setUploadProgress(progress);
+      },
+      (error) => {
+        console.error("Upload failed:", error);
+        toast({
+          title: "Upload Failed",
+          description: "Could not upload the new image. Please try again.",
+          variant: "destructive",
+        });
+        setIsUploading(false);
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          setFormData((prev) => ({ ...prev, image: downloadURL }));
+          setIsUploading(false);
+           toast({
+            title: "Upload Successful",
+            description: "New image is ready to be saved.",
+          });
+        });
+      }
+    );
   };
 
+  const handleSave = () => {
+    setIsSaving(true);
+    onSave(formData);
+    // Simulate latency then close
+    setTimeout(() => {
+      setIsSaving(false);
+      onOpenChange(false);
+    }, 500)
+  };
+  
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent>
@@ -81,8 +127,18 @@ function EditLocationSheet({
         </SheetHeader>
         <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
             <div className="space-y-2">
-                <Label htmlFor="image">Image URL</Label>
-                <Input id="image" value={formData.image} onChange={handleChange} />
+                <Label htmlFor="image">Image</Label>
+                <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
+                <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                    <UploadCloud className="mr-2 h-4 w-4" />
+                    {isUploading ? 'Uploading...' : 'Change Image'}
+                </Button>
+                {isUploading && (
+                  <div className="space-y-1">
+                    <Progress value={uploadProgress} className="w-full" />
+                    <p className="text-xs text-muted-foreground">{Math.round(uploadProgress)}% complete</p>
+                  </div>
+                )}
             </div>
             <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
@@ -117,7 +173,7 @@ function EditLocationSheet({
           <SheetClose asChild>
             <Button variant="outline">Cancel</Button>
           </SheetClose>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isSaving || isUploading}>
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>
@@ -151,6 +207,9 @@ export default function EditMapPage() {
   }, [router]);
 
   const handleSaveLocation = (updatedLocation: Location) => {
+    // In a real app, you would send this to your backend/DB
+    // For this demo, we just update the local state
+    console.log("Saving (locally):", updatedLocation);
     setLocations((prevLocations) =>
       prevLocations.map((loc) =>
         loc.id === updatedLocation.id ? updatedLocation : loc
