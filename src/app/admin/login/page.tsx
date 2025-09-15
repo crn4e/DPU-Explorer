@@ -17,14 +17,15 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState('');
+  const [id, setId] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,7 +33,24 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      // For admin login, we'll use email/password.
+      // 1. Find the user's email from their admin ID
+      const adminsRef = collection(db, 'admins');
+      const q = query(adminsRef, where('id', '==', id));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        throw new Error('Admin ID not found.');
+      }
+
+      const adminDoc = querySnapshot.docs[0];
+      const adminData = adminDoc.data();
+      const email = adminData.email;
+
+      if (!email) {
+          throw new Error('No email associated with this Admin ID.');
+      }
+
+      // 2. Sign in with the retrieved email and provided password
       await signInWithEmailAndPassword(auth, email, password);
 
       sessionStorage.setItem('dpu-admin-auth', 'true');
@@ -42,11 +60,27 @@ export default function AdminLoginPage() {
       });
       router.push('/admin');
     } catch (error) {
-      const authError = error as AuthError;
-      console.error('Firebase Login Error:', authError);
+      let errorMessage = 'An unexpected error occurred.';
+      if (error instanceof AuthError) {
+          switch (error.code) {
+              case 'auth/wrong-password':
+                  errorMessage = 'Incorrect password. Please try again.';
+                  break;
+              case 'auth/user-not-found':
+                  // This case might be less likely now, but good to have
+                  errorMessage = 'No account found with this ID.';
+                  break;
+              default:
+                  errorMessage = error.message;
+          }
+      } else if (error instanceof Error) {
+          errorMessage = error.message;
+      }
+      
+      console.error('Login Error:', error);
       toast({
         title: 'Login Failed',
-        description: authError.message || 'An unexpected error occurred.',
+        description: errorMessage,
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -79,14 +113,14 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="id">Admin ID</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="[email protected]"
+                id="id"
+                type="text"
+                placeholder="Your Admin ID"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={id}
+                onChange={(e) => setId(e.target.value)}
                 disabled={isLoading}
               />
             </div>
