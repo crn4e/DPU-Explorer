@@ -273,14 +273,14 @@ export default function AdminPage() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" asChild>
-                    <Link href="/">
+                    <Link href="/admin/edit-map">
                       <Map className="h-5 w-5" />
-                      <span className="sr-only">Switch to Map</span>
+                      <span className="sr-only">Switch to Edit Map</span>
                     </Link>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Switch to map</p>
+                  <p>Edit Map</p>
                 </TooltipContent>
               </Tooltip>
               <Button variant="destructive" onClick={handleLogout}>
@@ -334,3 +334,5 @@ export default function AdminPage() {
     </TooltipProvider>
   );
 }
+
+    
