@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      // For admin login, we'll use email/password. Let's pretend the 'id' field is for email.
+      // For admin login, we'll use email/password.
       await signInWithEmailAndPassword(auth, email, password);
 
       sessionStorage.setItem('dpu-admin-auth', 'true');
