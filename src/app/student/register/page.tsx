@@ -18,7 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
 
@@ -56,12 +56,27 @@ export default function StudentRegisterPage() {
         });
         router.push('/student/login');
 
-    } catch (error) {
-        const authError = error as AuthError;
-        console.error('Firebase Registration Error:', authError);
+    } catch (error: any) {
+        let errorMessage = 'An unexpected error occurred.';
+        if (error.code) {
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              errorMessage = 'This email is already in use by another account.';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'The email address is not valid.';
+              break;
+            case 'auth/weak-password':
+              errorMessage = 'Password should be at least 6 characters.';
+              break;
+            default:
+              errorMessage = error.message;
+          }
+        }
+        console.error('Firebase Registration Error:', error);
         toast({
             title: 'Registration Failed',
-            description: authError.message || 'An unexpected error occurred.',
+            description: errorMessage,
             variant: 'destructive',
         });
         setIsLoading(false);
@@ -94,8 +109,15 @@ export default function StudentRegisterPage() {
                 <form onSubmit={handleRegister}>
                 <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="id">Student ID</Label>
-                    <Input id="id" placeholder="Your student ID" required disabled={isLoading} value={studentId} onChange={(e) => setStudentId(e.target.value)} />
+                    <Label htmlFor="studentId">Student ID</Label>
+                    <Input 
+                        id="studentId"
+                        type="number"
+                        placeholder="Your student ID" 
+                        required 
+                        disabled={isLoading} 
+                        value={studentId} 
+                        onChange={(e) => setStudentId(e.target.value.replace(/[^0-9]/g, ''))} />
                     </div>
                     <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>

@@ -117,11 +117,11 @@ export default function AdminLoginPage() {
               <Label htmlFor="id">Admin ID</Label>
               <Input
                 id="id"
-                type="text"
+                type="number"
                 placeholder="Your Admin ID"
                 required
                 value={id}
-                onChange={(e) => setId(e.target.value)}
+                onChange={(e) => setId(e.target.value.replace(/[^0-9]/g, ''))}
                 disabled={isLoading}
               />
             </div>

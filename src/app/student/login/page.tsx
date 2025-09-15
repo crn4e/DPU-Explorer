@@ -17,14 +17,15 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
-import { auth } from '@/lib/firebase';
-import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { auth, db } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function StudentLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState(''); // Changed from id to email
+  const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,6 +33,24 @@ export default function StudentLoginPage() {
     setIsLoading(true);
 
     try {
+      // 1. Find student's email from their Student ID
+      const studentsRef = collection(db, 'students');
+      const q = query(studentsRef, where('studentId', '==', studentId));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        throw new Error('Student ID not found.');
+      }
+
+      const studentDoc = querySnapshot.docs[0];
+      const studentData = studentDoc.data();
+      const email = studentData.email;
+
+      if (!email) {
+        throw new Error('No email associated with this Student ID.');
+      }
+
+      // 2. Sign in with the retrieved email and provided password
       await signInWithEmailAndPassword(auth, email, password);
       
       sessionStorage.setItem('dpu-student-auth', 'true');
@@ -40,12 +59,28 @@ export default function StudentLoginPage() {
         description: 'Welcome back!',
       });
       router.push('/'); // Redirect to home page after login
-    } catch (error) {
-      const authError = error as AuthError;
-      console.error('Firebase Login Error:', authError);
+    } catch (error: any) {
+      let errorMessage = 'An unexpected error occurred.';
+      if (error.code) {
+          switch (error.code) {
+              case 'auth/wrong-password':
+              case 'auth/invalid-credential':
+                  errorMessage = 'Incorrect password. Please try again.';
+                  break;
+              case 'auth/user-not-found':
+                  errorMessage = 'No account found with this ID.';
+                  break;
+              default:
+                  errorMessage = error.message;
+          }
+      } else if (error instanceof Error) {
+          errorMessage = error.message;
+      }
+      
+      console.error('Login Error:', error);
       toast({
         title: 'Login Failed',
-        description: authError.message || 'Incorrect Student ID or password.',
+        description: errorMessage,
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -77,14 +112,14 @@ export default function StudentLoginPage() {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Student Email</Label>
+              <Label htmlFor="studentId">Student ID</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="[email protected]"
+                id="studentId"
+                type="number"
+                placeholder="Your Student ID"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value.replace(/[^0-9]/g, ''))}
                 disabled={isLoading}
               />
             </div>

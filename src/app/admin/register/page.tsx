@@ -67,10 +67,26 @@ export default function AdminRegisterPage() {
         router.push('/admin/login');
 
     } catch (error: any) {
+        let errorMessage = 'An unexpected error occurred.';
+        if (error.code) {
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              errorMessage = 'This email is already in use by another account.';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'The email address is not valid.';
+              break;
+            case 'auth/weak-password':
+              errorMessage = 'Password should be at least 6 characters.';
+              break;
+            default:
+              errorMessage = error.message;
+          }
+        }
         console.error('Firebase Registration Error:', error);
         toast({
             title: 'Registration Failed',
-            description: error.message || 'An unexpected error occurred.',
+            description: errorMessage,
             variant: 'destructive',
         });
         setIsLoading(false);
@@ -104,7 +120,15 @@ export default function AdminRegisterPage() {
                 <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="id">ID</Label>
-                    <Input id="id" placeholder="Your unique ID" required disabled={isLoading} value={id} onChange={(e) => setId(e.target.value)} />
+                    <Input 
+                        id="id" 
+                        type="number"
+                        placeholder="Your unique ID" 
+                        required 
+                        disabled={isLoading} 
+                        value={id} 
+                        onChange={(e) => setId(e.target.value.replace(/[^0-9]/g, ''))} 
+                    />
                     </div>
                     <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
