@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { locations as initialLocations } from '@/lib/data';
 import type { Location } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -27,12 +28,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, Map } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 
 interface AdminUser {
@@ -233,82 +240,97 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <header className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Image
-              src="/Logo.jpg"
-              alt="DPU Logo"
-              width={40}
-              height={40}
-              className="h-10 w-10 rounded-full object-cover"
-            />
-          <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
-        </div>
-        <div className="flex items-center gap-4">
-             {adminUser ? (
-                <div className="text-right">
-                    <p className="font-semibold">{`${adminUser.name} ${adminUser.surname}`}</p>
-                    <p className="text-sm text-muted-foreground">{adminUser.email}</p>
-                </div>
-            ) : (
-                <div className="flex items-center gap-2">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Loading...</span>
-                </div>
-            )}
-             <Avatar>
-                <AvatarFallback>
-                    <User />
-                </AvatarFallback>
-            </Avatar>
-            <Button variant="destructive" onClick={handleLogout}>
-                Logout
-            </Button>
-        </div>
-      </header>
-      <main>
-        <Card>
-          <CardHeader>
-            <CardTitle>Manage Locations</CardTitle>
-            <CardDescription>
-              Click "Edit" to update location details. Changes are saved for the current session.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {locations.map((location) => (
-                  <TableRow key={location.id}>
-                    <TableCell className="font-medium">{location.name}</TableCell>
-                    <TableCell>{location.category}</TableCell>
-                    <TableCell className="text-right">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            Edit
-                          </Button>
-                        </DialogTrigger>
-                        <EditLocationForm
-                          location={location}
-                          onSave={handleSaveLocation}
-                        />
-                      </Dialog>
-                    </TableCell>
+    <TooltipProvider>
+      <div className="min-h-screen bg-background p-4 md:p-8">
+        <header className="mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Image
+                src="/Logo.jpg"
+                alt="DPU Logo"
+                width={40}
+                height={40}
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
+          </div>
+          <div className="flex items-center gap-4">
+              {adminUser ? (
+                  <div className="text-right">
+                      <p className="font-semibold">{`${adminUser.name} ${adminUser.surname}`}</p>
+                      <p className="text-sm text-muted-foreground">{adminUser.email}</p>
+                  </div>
+              ) : (
+                  <div className="flex items-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span className="text-sm text-muted-foreground">Loading...</span>
+                  </div>
+              )}
+              <Avatar>
+                  <AvatarFallback>
+                      <User />
+                  </AvatarFallback>
+              </Avatar>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href="/">
+                      <Map className="h-5 w-5" />
+                      <span className="sr-only">Switch to Map</span>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Switch to map</p>
+                </TooltipContent>
+              </Tooltip>
+              <Button variant="destructive" onClick={handleLogout}>
+                  Logout
+              </Button>
+          </div>
+        </header>
+        <main>
+          <Card>
+            <CardHeader>
+              <CardTitle>Manage Locations</CardTitle>
+              <CardDescription>
+                Click "Edit" to update location details. Changes are saved for the current session.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </main>
-    </div>
+                </TableHeader>
+                <TableBody>
+                  {locations.map((location) => (
+                    <TableRow key={location.id}>
+                      <TableCell className="font-medium">{location.name}</TableCell>
+                      <TableCell>{location.category}</TableCell>
+                      <TableCell className="text-right">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              Edit
+                            </Button>
+                          </DialogTrigger>
+                          <EditLocationForm
+                            location={location}
+                            onSave={handleSaveLocation}
+                          />
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    </TooltipProvider>
   );
 }
