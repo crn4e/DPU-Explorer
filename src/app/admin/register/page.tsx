@@ -51,7 +51,7 @@ export default function AdminRegisterPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // You can save additional user info to Firestore
+        // Save additional user info to Firestore
         await setDoc(doc(db, "admins", user.uid), {
             id: id,
             name: name,
@@ -82,6 +82,8 @@ export default function AdminRegisterPage() {
             default:
               errorMessage = error.message;
           }
+        } else {
+             errorMessage = "Missing or insufficient permissions.";
         }
         console.error('Firebase Registration Error:', error);
         toast({

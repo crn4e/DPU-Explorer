@@ -72,6 +72,8 @@ export default function StudentRegisterPage() {
             default:
               errorMessage = error.message;
           }
+        } else {
+             errorMessage = "Missing or insufficient permissions.";
         }
         console.error('Firebase Registration Error:', error);
         toast({
