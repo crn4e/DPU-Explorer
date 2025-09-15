@@ -17,36 +17,40 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [id, setId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      if (id === 'admin' && password === 'dpuadmin123') {
-        sessionStorage.setItem('dpu-admin-auth', 'true');
-        toast({
-          title: 'Login Successful',
-          description: 'Welcome back, Admin!',
-        });
-        router.push('/admin');
-      } else {
-        toast({
-          title: 'Login Failed',
-          description: 'Incorrect ID or password.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      }
-    }, 1000);
+    try {
+      // For admin login, we'll use email/password. Let's pretend the 'id' field is for email.
+      await signInWithEmailAndPassword(auth, email, password);
+
+      sessionStorage.setItem('dpu-admin-auth', 'true');
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back, Admin!',
+      });
+      router.push('/admin');
+    } catch (error) {
+      const authError = error as AuthError;
+      console.error('Firebase Login Error:', authError);
+      toast({
+        title: 'Login Failed',
+        description: authError.message || 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -75,14 +79,14 @@ export default function AdminLoginPage() {
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="id">ID</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="id"
-                  type="text"
-                  placeholder="admin"
+                  id="email"
+                  type="email"
+                  placeholder="[email protected]"
                   required
-                  value={id}
-                  onChange={(e) => setId(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -111,7 +115,4 @@ export default function AdminLoginPage() {
             </CardFooter>
           </form>
         </Card>
-      </div>
-    </div>
-  );
-}
+      

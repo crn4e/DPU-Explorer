@@ -17,24 +17,55 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
+import { auth, db } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+
 
 export default function AdminRegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [id, setId] = useState('');
+  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // In a real application, you would handle form data and API calls here.
-    // For this demo, we'll just show a success message and redirect.
-    setTimeout(() => {
+    
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // You can save additional user info to Firestore
+        await setDoc(doc(db, "admins", user.uid), {
+            id: id,
+            name: name,
+            surname: surname,
+            email: email,
+            role: 'admin'
+        });
+
         toast({
-            title: 'Registration Submitted',
-            description: 'Your registration is pending approval.',
+            title: 'Registration Successful',
+            description: 'Your admin account has been created.',
         });
         router.push('/admin/login');
-    }, 1500);
+
+    } catch (error) {
+        const authError = error as AuthError;
+        console.error('Firebase Registration Error:', authError);
+        toast({
+            title: 'Registration Failed',
+            description: authError.message || 'An unexpected error occurred.',
+            variant: 'destructive',
+        });
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -64,23 +95,23 @@ export default function AdminRegisterPage() {
                 <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="id">ID</Label>
-                    <Input id="id" placeholder="Your unique ID" required disabled={isLoading} />
+                    <Input id="id" placeholder="Your unique ID" required disabled={isLoading} value={id} onChange={(e) => setId(e.target.value)} />
                     </div>
                     <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
-                    <Input id="name" placeholder="John" required disabled={isLoading} />
+                    <Input id="name" placeholder="John" required disabled={isLoading} value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
                     <div className="space-y-2">
                     <Label htmlFor="surname">Surname</Label>
-                    <Input id="surname" placeholder="Doe" required disabled={isLoading} />
+                    <Input id="surname" placeholder="Doe" required disabled={isLoading} value={surname} onChange={(e) => setSurname(e.target.value)} />
                     </div>
                     <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} />
+                    <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
                     <div className="space-y-2 sm:col-span-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required disabled={isLoading} />
+                    <Input id="password" type="password" required disabled={isLoading} value={password} onChange={(e) => setPassword(e.target.value)} />
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
@@ -95,8 +126,3 @@ export default function AdminRegisterPage() {
                     </Button>
                 </CardFooter>
                 </form>
-            </Card>
-        </div>
-    </div>
-  );
-}

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -18,37 +17,39 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
 
 export default function StudentLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [id, setId] = useState('');
+  const [email, setEmail] = useState(''); // Changed from id to email
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call for student login
-    setTimeout(() => {
-      // Replace with your actual student authentication logic
-      if (id === 'student' && password === 'dpu123') {
-        sessionStorage.setItem('dpu-student-auth', 'true');
-        toast({
-          title: 'Login Successful',
-          description: 'Welcome back!',
-        });
-        router.push('/'); // Redirect to home page after login
-      } else {
-        toast({
-          title: 'Login Failed',
-          description: 'Incorrect Student ID or password.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      }
-    }, 1000);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      
+      sessionStorage.setItem('dpu-student-auth', 'true');
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+      router.push('/'); // Redirect to home page after login
+    } catch (error) {
+      const authError = error as AuthError;
+      console.error('Firebase Login Error:', authError);
+      toast({
+        title: 'Login Failed',
+        description: authError.message || 'Incorrect Student ID or password.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -77,14 +78,14 @@ export default function StudentLoginPage() {
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="id">Student ID</Label>
+                <Label htmlFor="email">Student Email</Label>
                 <Input
-                  id="id"
-                  type="text"
-                  placeholder="ex.67xxxxxx"
+                  id="email"
+                  type="email"
+                  placeholder="[email protected]"
                   required
-                  value={id}
-                  onChange={(e) => setId(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -115,5 +116,4 @@ export default function StudentLoginPage() {
         </Card>
       </div>
     </div>
-  );
-}
+  
