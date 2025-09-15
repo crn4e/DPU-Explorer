@@ -18,7 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
-import { signInWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 export default function AdminLoginPage() {
@@ -59,11 +59,12 @@ export default function AdminLoginPage() {
         description: 'Welcome back, Admin!',
       });
       router.push('/admin');
-    } catch (error) {
+    } catch (error: any) {
       let errorMessage = 'An unexpected error occurred.';
-      if (error instanceof AuthError) {
+      if (error.code) {
           switch (error.code) {
               case 'auth/wrong-password':
+              case 'auth/invalid-credential':
                   errorMessage = 'Incorrect password. Please try again.';
                   break;
               case 'auth/user-not-found':

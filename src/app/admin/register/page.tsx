@@ -18,7 +18,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, AuthError } from 'firebase/auth';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
 
@@ -37,6 +37,16 @@ export default function AdminRegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     
+    if (password.length < 6) {
+        toast({
+            title: 'Registration Failed',
+            description: 'Password should be at least 6 characters.',
+            variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+    }
+
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -56,12 +66,11 @@ export default function AdminRegisterPage() {
         });
         router.push('/admin/login');
 
-    } catch (error) {
-        const authError = error as AuthError;
-        console.error('Firebase Registration Error:', authError);
+    } catch (error: any) {
+        console.error('Firebase Registration Error:', error);
         toast({
             title: 'Registration Failed',
-            description: authError.message || 'An unexpected error occurred.',
+            description: error.message || 'An unexpected error occurred.',
             variant: 'destructive',
         });
         setIsLoading(false);
