@@ -129,15 +129,20 @@ function EditLocationSheet({
             <div className="space-y-2">
                 <Label htmlFor="image">Image</Label>
                 <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-                    <UploadCloud className="mr-2 h-4 w-4" />
-                    {isUploading ? 'Uploading...' : 'Change Image'}
-                </Button>
-                {isUploading && (
-                  <div className="space-y-1">
+                 {isUploading ? (
+                  <div className="space-y-2">
+                    <Button variant="outline" disabled>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                    </Button>
                     <Progress value={uploadProgress} className="w-full" />
                     <p className="text-xs text-muted-foreground">{Math.round(uploadProgress)}% complete</p>
                   </div>
+                ) : (
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                      <UploadCloud className="mr-2 h-4 w-4" />
+                      Change Image
+                  </Button>
                 )}
             </div>
             <div className="space-y-2">
