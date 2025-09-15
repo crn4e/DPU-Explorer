@@ -81,16 +81,16 @@ function EditLocationSheet({
         </SheetHeader>
         <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
             <div className="space-y-2">
+                <Label htmlFor="image">Image URL</Label>
+                <Input id="image" value={formData.image} onChange={handleChange} />
+            </div>
+            <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
                 <Input id="name" value={formData.name} onChange={handleChange} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" value={formData.description} onChange={handleChange} rows={4} />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="image">Image URL</Label>
-                <Input id="image" value={formData.image} onChange={handleChange} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="announcement">Announcement</Label>
