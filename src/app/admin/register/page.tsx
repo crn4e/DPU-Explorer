@@ -126,3 +126,8 @@ export default function AdminRegisterPage() {
                     </Button>
                 </CardFooter>
                 </form>
+            </Card>
+        </div>
+    </div>
+  );
+}
