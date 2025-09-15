@@ -88,6 +88,10 @@ function EditLocationSheet({
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" value={formData.description} onChange={handleChange} rows={4} />
             </div>
+             <div className="space-y-2">
+                <Label htmlFor="image">Image URL</Label>
+                <Input id="image" value={formData.image} onChange={handleChange} />
+            </div>
             <div className="space-y-2">
                 <Label htmlFor="announcement">Announcement</Label>
                 <Textarea id="announcement" value={formData.announcement || ''} onChange={handleChange} rows={2} />
@@ -186,7 +190,7 @@ export default function EditMapPage() {
       {/* Location Card with Edit Button */}
       <div
         className={`pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-10 flex items-start justify-end p-4 transition-all duration-500 md:items-end ${
-          selectedLocation ? 'opacity-100' : 'opacity-0'
+          selectedLocation && !isSheetOpen ? 'opacity-100' : 'opacity-0'
         }`}
       >
         {selectedLocation && (
@@ -217,5 +221,3 @@ export default function EditMapPage() {
     </div>
   );
 }
-
-    
