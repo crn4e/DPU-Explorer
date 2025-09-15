@@ -112,7 +112,7 @@ export default function StudentRegisterPage() {
                     <Label htmlFor="studentId">Student ID</Label>
                     <Input 
                         id="studentId"
-                        type="number"
+                        type="text"
                         placeholder="Your student ID" 
                         required 
                         disabled={isLoading} 

@@ -115,7 +115,7 @@ export default function StudentLoginPage() {
               <Label htmlFor="studentId">Student ID</Label>
               <Input
                 id="studentId"
-                type="number"
+                type="text"
                 placeholder="Your Student ID"
                 required
                 value={studentId}

@@ -117,7 +117,7 @@ export default function AdminLoginPage() {
               <Label htmlFor="id">Admin ID</Label>
               <Input
                 id="id"
-                type="number"
+                type="text"
                 placeholder="Your Admin ID"
                 required
                 value={id}

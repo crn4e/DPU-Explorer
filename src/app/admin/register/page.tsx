@@ -122,7 +122,7 @@ export default function AdminRegisterPage() {
                     <Label htmlFor="id">ID</Label>
                     <Input 
                         id="id" 
-                        type="number"
+                        type="text"
                         placeholder="Your unique ID" 
                         required 
                         disabled={isLoading} 
