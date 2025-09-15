@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -32,14 +34,30 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      sessionStorage.setItem('dpu-admin-auth', 'true');
-      toast({
-        title: 'Login Successful',
-        description: 'Welcome back, Admin!',
-      });
-      router.push('/admin');
+      // Check if the user is an admin
+      const adminDocRef = doc(db, 'admins', user.uid);
+      const adminDocSnap = await getDoc(adminDocRef);
+
+      if (adminDocSnap.exists() && adminDocSnap.data().role === 'admin') {
+        sessionStorage.setItem('dpu-admin-auth', 'true');
+        toast({
+          title: 'Login Successful',
+          description: 'Welcome back, Admin!',
+        });
+        router.push('/admin');
+      } else {
+        // Not an admin, sign them out and show an error
+        await auth.signOut();
+        toast({
+          title: 'Access Denied',
+          description: 'You do not have permission to access the admin dashboard.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      }
     } catch (error: any) {
       let errorMessage = 'An unexpected error occurred.';
       if (error.code) {
@@ -54,8 +72,6 @@ export default function AdminLoginPage() {
               default:
                   errorMessage = 'An error occurred during login. Please try again.';
           }
-      } else {
-          errorMessage = error.message;
       }
       
       console.error('Login Error:', error);
@@ -64,8 +80,7 @@ export default function AdminLoginPage() {
         description: errorMessage,
         variant: 'destructive',
       });
-    } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
