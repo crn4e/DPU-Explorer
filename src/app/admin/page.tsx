@@ -28,7 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Map } from 'lucide-react';
+import { Loader2, User, Map, UserCheck } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -273,6 +273,19 @@ export default function AdminPage() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" asChild>
+                    <Link href="/admin/approve">
+                      <UserCheck className="h-5 w-5" />
+                      <span className="sr-only">Approve Admins</span>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Approve Admins</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" asChild>
                     <Link href="/admin/edit-map">
                       <Map className="h-5 w-5" />
                       <span className="sr-only">Switch to Edit Map</span>
@@ -334,5 +347,3 @@ export default function AdminPage() {
     </TooltipProvider>
   );
 }
-
-    

@@ -52,19 +52,23 @@ export default function AdminRegisterPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 2. Save additional user info to Firestore using the UID from Auth
+        // 2. Save additional user info to Firestore with 'pending' status
         await setDoc(doc(db, "admins", user.uid), {
             id: id,
             name: name,
             surname: surname,
             email: email,
-            role: 'admin'
+            role: 'admin',
+            status: 'pending' // Add status field
         });
+        
+        // Sign out the user immediately after registration
+        await auth.signOut();
 
         // 3. Show success and redirect
         toast({
-            title: 'Registration Successful',
-            description: 'Your admin account has been created.',
+            title: 'Registration Submitted',
+            description: 'Your account has been created and is awaiting approval.',
         });
         router.push('/admin/login');
 
@@ -82,7 +86,7 @@ export default function AdminRegisterPage() {
               errorMessage = 'Password should be at least 6 characters.';
               break;
             default:
-              errorMessage = 'Missing or insufficient permissions.';
+              errorMessage = 'An error occurred during registration.';
           }
         }
         console.error('Firebase Registration Error:', error);
@@ -116,7 +120,7 @@ export default function AdminRegisterPage() {
                         />
                         <CardTitle className="font-headline text-2xl">Admin Registration</CardTitle>
                     </div>
-                <CardDescription>Create a new administrator account.</CardDescription>
+                <CardDescription>Request an administrator account. Your account will require approval.</CardDescription>
                 </CardHeader>
                 <form onSubmit={handleRegister}>
                 <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -152,7 +156,7 @@ export default function AdminRegisterPage() {
                 <CardFooter className="flex flex-col gap-4">
                     <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Register
+                    Request Account
                     </Button>
                     <Button variant="link" size="sm" asChild disabled={isLoading}>
                         <Link href="/admin/login">

@@ -37,23 +37,41 @@ export default function AdminLoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Check if the user is an admin
       const adminDocRef = doc(db, 'admins', user.uid);
       const adminDocSnap = await getDoc(adminDocRef);
 
-      if (adminDocSnap.exists() && adminDocSnap.data().role === 'admin') {
-        sessionStorage.setItem('dpu-admin-auth', 'true');
-        toast({
-          title: 'Login Successful',
-          description: 'Welcome back, Admin!',
-        });
-        router.push('/admin');
+      if (adminDocSnap.exists()) {
+        const adminData = adminDocSnap.data();
+        if (adminData.role === 'admin' && adminData.status === 'approved') {
+          sessionStorage.setItem('dpu-admin-auth', 'true');
+          toast({
+            title: 'Login Successful',
+            description: 'Welcome back, Admin!',
+          });
+          router.push('/admin');
+        } else if (adminData.role === 'admin' && adminData.status === 'pending') {
+          await auth.signOut();
+          toast({
+            title: 'Login Pending',
+            description: 'Your account is awaiting approval from an administrator.',
+            variant: 'destructive',
+          });
+          setIsLoading(false);
+        } else {
+           await auth.signOut();
+           toast({
+             title: 'Access Denied',
+             description: 'You do not have permission to access the admin dashboard.',
+             variant: 'destructive',
+           });
+           setIsLoading(false);
+        }
       } else {
         // Not an admin, sign them out and show an error
         await auth.signOut();
         toast({
           title: 'Access Denied',
-          description: 'You do not have permission to access the admin dashboard.',
+          description: 'This is not a valid admin account.',
           variant: 'destructive',
         });
         setIsLoading(false);
