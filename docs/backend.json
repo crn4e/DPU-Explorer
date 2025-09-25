@@ -1,0 +1,89 @@
+{
+  "entities": {
+    "adminUser": {
+      "title": "Admin User",
+      "description": "Schema for an admin user account.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The admin's unique ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "The admin's first name."
+        },
+        "surname": {
+          "type": "string",
+          "description": "The admin's last name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The admin's email address."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin"],
+          "description": "The user's role."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"],
+          "description": "The approval status of the admin account."
+        }
+      },
+      "required": ["id", "name", "surname", "email", "role", "status"]
+    },
+    "studentUser": {
+      "title": "Student User",
+      "description": "Schema for a student user account.",
+      "type": "object",
+      "properties": {
+        "studentId": {
+          "type": "string",
+          "description": "The student's unique ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "The student's first name."
+        },
+        "surname": {
+          "type": "string",
+          "description": "The student's last name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The student's email address."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["student"],
+          "description": "The user's role."
+        }
+      },
+      "required": ["studentId", "name", "surname", "email", "role"]
+    }
+  },
+  "auth": {
+    "providers": ["email-password"]
+  },
+  "firestore": {
+    "'/admins/{adminId}'": {
+      "schema": {
+        "$ref": "#/entities/adminUser"
+      },
+      "description": "Stores admin user profiles."
+    },
+    "'/students/{studentId}'": {
+      "schema": {
+        "$ref": "#/entities/studentUser"
+      },
+      "description": "Stores student user profiles."
+    }
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
