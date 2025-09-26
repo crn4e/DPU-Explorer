@@ -5,7 +5,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useRef, useState, MouseEvent as ReactMouseEvent } from 'react';
+import { useRef, useState, MouseEvent as ReactMouseEvent, RefObject } from 'react';
 import { cn } from '@/lib/utils';
 
 interface MapViewProps {
@@ -14,6 +14,7 @@ interface MapViewProps {
   onSelectLocation: (location: Location | null) => void;
   onMapRepositionClick?: (e: ReactMouseEvent<HTMLDivElement>) => void;
   isRepositioning?: boolean;
+  mapImageWrapperRef: RefObject<HTMLDivElement>;
 }
 
 export default function MapView({
@@ -22,6 +23,7 @@ export default function MapView({
   onSelectLocation,
   onMapRepositionClick,
   isRepositioning = false,
+  mapImageWrapperRef,
 }: MapViewProps) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -96,14 +98,16 @@ export default function MapView({
             isDragging && "cursor-grabbing",
             isRepositioning ? "cursor-crosshair" : "cursor-grab"
         )}
-        onClick={handleMapClick}
         onMouseDown={handleMouseDown}
         onMouseLeave={handleMouseLeave}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
     >
-        <div className="relative w-[150%] max-w-[1400px] lg:w-[120%] xl:w-full mx-auto">
-            <div className="relative w-full" style={{ paddingTop: '56.25%' }}> 
+        <div 
+            className="relative w-[150%] max-w-[1400px] lg:w-[120%] xl:w-full mx-auto"
+            onClick={handleMapClick}
+        >
+            <div ref={mapImageWrapperRef} className="relative w-full" style={{ paddingTop: '56.25%' }}> 
                 <div className="absolute inset-0">
                     <Image
                         src="/dpu-map.png.png"
@@ -156,3 +160,5 @@ export default function MapView({
     </div>
   );
 }
+
+    

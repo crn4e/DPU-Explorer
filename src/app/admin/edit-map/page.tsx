@@ -370,6 +370,7 @@ export default function EditMapPage() {
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [newLocationPosition, setNewLocationPosition] = useState({ x: 0, y: 0 });
   const [activeCategory, setActiveCategory] = useState<LocationCategory | 'All'>('All');
+  const mapImageWrapperRef = useRef<HTMLDivElement>(null);
   
   const router = useRouter();
   const { toast } = useToast();
@@ -446,10 +447,11 @@ export default function EditMapPage() {
   const handleMapClick = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (!isAddingLocation && !isRepositioning) return;
 
-    const mapImage = e.currentTarget.querySelector('img');
-    if (!mapImage) return;
+    // Use the ref to the map image wrapper for accurate calculations
+    const mapImageWrapper = mapImageWrapperRef.current;
+    if (!mapImageWrapper) return;
 
-    const rect = mapImage.getBoundingClientRect();
+    const rect = mapImageWrapper.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
@@ -576,7 +578,7 @@ export default function EditMapPage() {
       <SidebarInset>
         <div className={cn("relative h-full w-full", (isRepositioning || isAddingLocation) && "cursor-crosshair")}>
         {(isRepositioning || isAddingLocation) && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 p-4 text-white animate-in fade-in-0">
+            <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center bg-black/50 p-4 text-white animate-in fade-in-0">
             <div className='text-center'>
                 <MapPin className="mx-auto h-12 w-12 animate-bounce" />
                 <h2 className="mt-4 text-2xl font-bold">
@@ -585,7 +587,7 @@ export default function EditMapPage() {
                 <p className="text-lg">
                     {isRepositioning ? `You are moving: ${selectedLocation?.name}` : 'You are adding a new location.'}
                 </p>
-                <Button variant="secondary" className="mt-4" onClick={() => {
+                <Button variant="secondary" className="mt-4 pointer-events-auto" onClick={() => {
                     setIsRepositioning(false);
                     setIsAddingLocation(false);
                     if (selectedLocation) setIsSheetOpen(true);
@@ -596,6 +598,7 @@ export default function EditMapPage() {
             </div>
         )}
         <MapView
+            mapImageWrapperRef={mapImageWrapperRef}
             selectedLocation={selectedLocation}
             locations={filteredLocations}
             onSelectLocation={handleSelectLocation}
@@ -642,3 +645,5 @@ export default function EditMapPage() {
     </SidebarProvider>
   );
 }
+
+    
