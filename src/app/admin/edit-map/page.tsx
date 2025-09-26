@@ -1,19 +1,22 @@
 'use client';
 
 import { useEffect, useState, useRef, MouseEvent as ReactMouseEvent } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { locations as initialLocations } from '@/lib/data';
-import type { Location } from '@/lib/types';
+import type { Location, LocationCategory } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, UploadCloud, MapPin, Move } from 'lucide-react';
+import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft } from 'lucide-react';
 import { auth, storage } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
 import LocationCard from '@/components/location-card';
+import LocationList from '@/components/location-list';
 import {
   Sheet,
   SheetContent,
@@ -25,6 +28,22 @@ import {
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import {
+  Sidebar,
+  SidebarProvider,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+
+const categories: (LocationCategory | 'All')[] = [
+  'All',
+  'Academic',
+  'Food',
+  'Recreation',
+  'Services',
+];
 
 
 function EditLocationSheet({
@@ -206,9 +225,15 @@ export default function EditMapPage() {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isRepositioning, setIsRepositioning] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<LocationCategory | 'All'>('All');
   
   const router = useRouter();
   const { toast } = useToast();
+
+  const filteredLocations =
+    activeCategory === 'All'
+      ? locations
+      : locations.filter((loc) => loc.category === activeCategory);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
@@ -224,16 +249,18 @@ export default function EditMapPage() {
   }, [router]);
 
   const handleSaveLocation = (updatedLocation: Location) => {
+    // In a real app, this would be an API call to save to a database.
+    // For this demo, we'll just update the local state.
     console.log("Saving (locally):", updatedLocation);
     setLocations((prevLocations) =>
       prevLocations.map((loc) =>
         loc.id === updatedLocation.id ? updatedLocation : loc
       )
     );
-    setSelectedLocation(updatedLocation);
+    setSelectedLocation(updatedLocation); // Keep the updated location selected
     toast({
       title: 'Location Updated',
-      description: `${updatedLocation.name} has been saved successfully.`,
+      description: `${updatedLocation.name} has been saved successfully. (Demo only)`,
     });
   };
 
@@ -241,7 +268,7 @@ export default function EditMapPage() {
     if (isRepositioning) return;
     setSelectedLocation(location);
     if(isSheetOpen) {
-        setIsSheetOpen(false);
+        setIsSheetOpen(false); // Close sheet if a new location is selected from map/list
     }
   }
 
@@ -294,58 +321,120 @@ export default function EditMapPage() {
   }
 
   return (
-    <div className={cn("relative h-screen w-screen", isRepositioning && "cursor-crosshair")}>
-       {isRepositioning && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 p-4 text-white animate-in fade-in-0">
-          <div className='text-center'>
-            <MapPin className="mx-auto h-12 w-12 animate-bounce" />
-            <h2 className="mt-4 text-2xl font-bold">Click on the map to place the pin</h2>
-            <p className="text-lg">You are moving: {selectedLocation?.name}</p>
-            <Button variant="secondary" className="mt-4" onClick={() => {
-              setIsRepositioning(false);
-              setIsSheetOpen(true);
-            }}>
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-      <MapView
-        selectedLocation={selectedLocation}
-        locations={locations}
-        onSelectLocation={handleSelectLocation}
-        onMapRepositionClick={handleMapRepositionClick}
-        isRepositioning={isRepositioning}
-      />
-      
-      <div
-        className={`pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-10 flex items-start justify-end p-4 transition-all duration-500 md:items-end ${
-          selectedLocation && !isSheetOpen && !isRepositioning ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        {selectedLocation && (
-          <div className="pointer-events-auto w-full max-w-sm">
-            <div className="relative">
-                <LocationCard location={selectedLocation} />
-                <Button 
-                    size="icon" 
-                    className="absolute top-4 right-4 rounded-full"
-                    onClick={() => setIsSheetOpen(true)}
-                >
-                    <Edit className="h-4 w-4"/>
-                </Button>
+    <SidebarProvider>
+       <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center justify-between p-2">
+            <div className="flex items-center gap-3">
+              <Image
+                  src="/Logo.jpg"
+                  alt="DPU Logo"
+                  width={40}
+                  height={40}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              <div className="flex flex-col">
+                <h1 className="font-headline text-2xl font-bold tracking-tight text-primary">
+                  Edit Map
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Admin Panel
+                </p>
+              </div>
             </div>
           </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <div className="p-2">
+            <h2 className="px-2 pb-2 font-headline text-lg font-semibold">
+              Categories
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  variant={activeCategory === category ? 'default' : 'outline'}
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => setActiveCategory(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <LocationList
+            locations={filteredLocations}
+            onSelectLocation={handleSelectLocation}
+            selectedLocation={selectedLocation}
+          />
+        </SidebarContent>
+        <SidebarFooter>
+          <div className="flex flex-col gap-2 p-2">
+            <Button variant="ghost" asChild>
+              <Link href="/admin">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Link>
+            </Button>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <div className={cn("relative h-full w-full", isRepositioning && "cursor-crosshair")}>
+        {isRepositioning && (
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 p-4 text-white animate-in fade-in-0">
+            <div className='text-center'>
+                <MapPin className="mx-auto h-12 w-12 animate-bounce" />
+                <h2 className="mt-4 text-2xl font-bold">Click on the map to place the pin</h2>
+                <p className="text-lg">You are moving: {selectedLocation?.name}</p>
+                <Button variant="secondary" className="mt-4" onClick={() => {
+                setIsRepositioning(false);
+                setIsSheetOpen(true);
+                }}>
+                Cancel
+                </Button>
+            </div>
+            </div>
         )}
-      </div>
+        <MapView
+            selectedLocation={selectedLocation}
+            locations={filteredLocations}
+            onSelectLocation={handleSelectLocation}
+            onMapRepositionClick={handleMapRepositionClick}
+            isRepositioning={isRepositioning}
+        />
+        
+        <div
+            className={`pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-10 flex items-start justify-end p-4 transition-all duration-500 md:items-end ${
+            selectedLocation && !isSheetOpen && !isRepositioning ? 'opacity-100' : 'opacity-0'
+            }`}
+        >
+            {selectedLocation && (
+            <div className="pointer-events-auto w-full max-w-sm">
+                <div className="relative">
+                    <LocationCard location={selectedLocation} />
+                    <Button 
+                        size="icon" 
+                        className="absolute top-4 right-4 rounded-full"
+                        onClick={() => setIsSheetOpen(true)}
+                    >
+                        <Edit className="h-4 w-4"/>
+                    </Button>
+                </div>
+            </div>
+            )}
+        </div>
 
-      <EditLocationSheet
-        location={selectedLocation}
-        onSave={handleSaveLocation}
-        isOpen={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        onEnterRepositionMode={enterRepositionMode}
-      />
-    </div>
+        <EditLocationSheet
+            location={selectedLocation}
+            onSave={handleSaveLocation}
+            isOpen={isSheetOpen}
+            onOpenChange={setIsSheetOpen}
+            onEnterRepositionMode={enterRepositionMode}
+        />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
