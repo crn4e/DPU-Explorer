@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -16,9 +16,8 @@ import { Button } from '@/components/ui/button';
 import LocationList from '@/components/location-list';
 import MapView from '@/components/map-view';
 import AiTourGuide from '@/components/ai-tour-guide';
-import { locations as allLocations } from '@/lib/data';
 import type { Location, LocationCategory } from '@/lib/types';
-import { KeyRound, User } from 'lucide-react';
+import { KeyRound, User, Loader2 } from 'lucide-react';
 import AppHeader from '@/components/header';
 import AiChat from '@/components/ai-chat';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -30,6 +29,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+
 
 const categories: (LocationCategory | 'All')[] = [
   'All',
@@ -40,10 +42,30 @@ const categories: (LocationCategory | 'All')[] = [
 ];
 
 export default function Home() {
+  const [allLocations, setAllLocations] = useState<Location[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(
     null
   );
   const [activeCategory, setActiveCategory] = useState<LocationCategory | 'All'>('All');
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'locations'));
+        const locationsData = querySnapshot.docs.map(doc => doc.data() as Location);
+        setAllLocations(locationsData);
+      } catch (error) {
+        console.error("Error fetching locations: ", error);
+        // Optionally, handle the error in the UI
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchLocations();
+  }, []);
 
   const filteredLocations =
     activeCategory === 'All'
@@ -114,11 +136,17 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <LocationList
-            locations={filteredLocations}
-            onSelectLocation={setSelectedLocation}
-            selectedLocation={selectedLocation}
-          />
+          {isLoading ? (
+            <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : (
+            <LocationList
+                locations={filteredLocations}
+                onSelectLocation={setSelectedLocation}
+                selectedLocation={selectedLocation}
+            />
+          )}
         </SidebarContent>
         <SidebarFooter>
           <div className="flex flex-col gap-2 p-2">

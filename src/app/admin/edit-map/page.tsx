@@ -4,7 +4,6 @@ import { useEffect, useState, useRef, MouseEvent as ReactMouseEvent } from 'reac
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { locations as initialLocations } from '@/lib/data';
 import type { Location, LocationCategory } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft } from 'lucide-react';
-import { auth, storage } from '@/lib/firebase';
+import { auth, storage, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
 import LocationCard from '@/components/location-card';
@@ -26,6 +25,7 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { doc, setDoc, collection, getDocs, updateDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
@@ -135,14 +135,28 @@ function EditLocationSheet({
     );
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData) return;
     setIsSaving(true);
-    onSave(formData);
-    setTimeout(() => {
-      setIsSaving(false);
-      onOpenChange(false);
-    }, 500)
+    try {
+        const locationRef = doc(db, 'locations', formData.id);
+        await updateDoc(locationRef, { ...formData });
+        onSave(formData);
+        toast({
+            title: 'Location Updated',
+            description: `${formData.name} has been saved successfully.`,
+        });
+    } catch (error) {
+        console.error("Error saving location:", error);
+        toast({
+            title: "Save Failed",
+            description: "Could not save the location. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsSaving(false);
+        onOpenChange(false);
+    }
   };
   
   return (
@@ -221,7 +235,8 @@ function EditLocationSheet({
 
 export default function EditMapPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [locations, setLocations] = useState(initialLocations);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isRepositioning, setIsRepositioning] = useState(false);
@@ -229,11 +244,6 @@ export default function EditMapPage() {
   
   const router = useRouter();
   const { toast } = useToast();
-
-  const filteredLocations =
-    activeCategory === 'All'
-      ? locations
-      : locations.filter((loc) => loc.category === activeCategory);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
@@ -247,28 +257,44 @@ export default function EditMapPage() {
     });
     return () => unsubscribe();
   }, [router]);
+  
+  useEffect(() => {
+    const fetchLocations = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'locations'));
+        const locationsData = querySnapshot.docs.map(doc => doc.data() as Location);
+        setLocations(locationsData);
+      } catch (error) {
+        console.error("Error fetching locations: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if(isAuthenticated){
+      fetchLocations();
+    }
+  }, [isAuthenticated]);
 
   const handleSaveLocation = (updatedLocation: Location) => {
-    // In a real app, this would be an API call to save to a database.
-    // For this demo, we'll just update the local state.
-    console.log("Saving (locally):", updatedLocation);
     setLocations((prevLocations) =>
       prevLocations.map((loc) =>
         loc.id === updatedLocation.id ? updatedLocation : loc
       )
     );
-    setSelectedLocation(updatedLocation); // Keep the updated location selected
-    toast({
-      title: 'Location Updated',
-      description: `${updatedLocation.name} has been saved successfully. (Demo only)`,
-    });
+    setSelectedLocation(updatedLocation); 
   };
+  
+  const filteredLocations =
+    activeCategory === 'All'
+      ? locations
+      : locations.filter((loc) => loc.category === activeCategory);
 
   const handleSelectLocation = (location: Location | null) => {
     if (isRepositioning) return;
     setSelectedLocation(location);
     if(isSheetOpen) {
-        setIsSheetOpen(false); // Close sheet if a new location is selected from map/list
+        setIsSheetOpen(false); 
     }
   }
 
@@ -293,8 +319,8 @@ export default function EditMapPage() {
     setSelectedLocation(updatedLocation);
     setLocations((prev) => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
     
-    setIsRepositioning(false); // Exit repositioning mode
-    setIsSheetOpen(true); // Re-open the sheet
+    setIsRepositioning(false);
+    setIsSheetOpen(true);
 
     toast({
         title: "Position Updated",
@@ -311,7 +337,7 @@ export default function EditMapPage() {
     });
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
