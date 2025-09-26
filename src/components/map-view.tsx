@@ -27,14 +27,14 @@ export default function MapView({
     const [isDragging, setIsDragging] = useState(false);
     const [startPos, setStartPos] = useState({ x: 0, y: 0 });
     const [scrollPos, setScrollPos] = useState({ left: 0, top: 0 });
-    const [didDrag, setDidDrag] = useState(false);
+    const didDragRef = useRef(false);
 
 
   const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (mapContainerRef.current) {
         if (isRepositioning) return;
         e.preventDefault();
-        setDidDrag(false);
+        didDragRef.current = false;
         setIsDragging(true);
         setStartPos({
             x: e.pageX,
@@ -50,7 +50,7 @@ export default function MapView({
   const handleMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (isDragging && mapContainerRef.current) {
         e.preventDefault();
-        if(!didDrag) setDidDrag(true);
+        if(!didDragRef.current) didDragRef.current = true;
 
         const dx = e.pageX - startPos.x;
         const dy = e.pageY - startPos.y;
@@ -62,7 +62,7 @@ export default function MapView({
   
   const handleMouseUp = (e: ReactMouseEvent<HTMLDivElement>) => {
     setIsDragging(false);
-    if (didDrag) {
+    if (didDragRef.current) {
       e.stopPropagation();
     }
   };
@@ -76,10 +76,10 @@ export default function MapView({
         onMapRepositionClick?.(e);
         return;
     }
-    if (!didDrag) {
+    if (!didDragRef.current) {
       onSelectLocation(null);
     }
-    setDidDrag(false);
+    didDragRef.current = false;
   };
 
   const handlePinClick = (e: React.MouseEvent, loc: Location) => {

@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft } from 'lucide-react';
+import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle } from 'lucide-react';
 import { auth, storage, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -25,7 +26,7 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import { doc, setDoc, collection, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, updateDoc, addDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
@@ -45,6 +46,131 @@ const categories: (LocationCategory | 'All')[] = [
   'Services',
 ];
 
+
+function AddLocationSheet({
+    isOpen,
+    onOpenChange,
+    onSave,
+    newPosition
+}: {
+    isOpen: boolean;
+    onOpenChange: (isOpen: boolean) => void;
+    onSave: (newLocation: Omit<Location, 'id'>) => void;
+    newPosition: { x: number; y: number };
+}) {
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [category, setCategory] = useState<LocationCategory>('Services');
+    const [announcement, setAnnouncement] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+    const { toast } = useToast();
+
+    const handleSave = async () => {
+        if (!name || !description) {
+            toast({
+                title: 'Missing Information',
+                description: 'Please fill out the name and description.',
+                variant: 'destructive',
+            });
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const newLocation: Omit<Location, 'id'> = {
+                name,
+                description,
+                category,
+                announcement,
+                mapPosition: newPosition,
+                // Default values for new locations
+                image: 'https://placehold.co/600x400.png',
+                imageHint: 'placeholder',
+                hours: {
+                    Monday: { open: '08:00', close: '20:00' },
+                    Tuesday: { open: '08:00', close: '20:00' },
+                    Wednesday: { open: '08:00', close: '20:00' },
+                    Thursday: { open: '08:00', close: '20:00' },
+                    Friday: { open: '08:00', close: '18:00' },
+                    Saturday: null,
+                    Sunday: null,
+                },
+            };
+            onSave(newLocation);
+            toast({
+                title: 'Location Added',
+                description: `${name} has been added successfully.`,
+            });
+        } catch (error) {
+            console.error("Error saving new location:", error);
+            toast({
+                title: "Save Failed",
+                description: "Could not save the new location. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSaving(false);
+            onOpenChange(false);
+            // Reset form
+            setName('');
+            setDescription('');
+            setCategory('Services');
+            setAnnouncement('');
+        }
+    };
+
+    return (
+        <Sheet open={isOpen} onOpenChange={onOpenChange}>
+            <SheetContent>
+                <SheetHeader>
+                    <SheetTitle>Add New Location</SheetTitle>
+                </SheetHeader>
+                <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
+                    <div className="space-y-2">
+                        <Label>Map Position</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Input value={`X: ${newPosition.x.toFixed(2)}%`} disabled />
+                            <Input value={`Y: ${newPosition.y.toFixed(2)}%`} disabled />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-name">Name</Label>
+                        <Input id="new-name" value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="new-category">Category</Label>
+                        <Select value={category} onValueChange={(value: LocationCategory) => setCategory(value)}>
+                            <SelectTrigger id="new-category">
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.filter(c => c !== 'All').map(cat => (
+                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-description">Description</Label>
+                        <Textarea id="new-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="new-announcement">Announcement (Optional)</Label>
+                        <Textarea id="new-announcement" value={announcement} onChange={(e) => setAnnouncement(e.target.value)} rows={2} />
+                    </div>
+                </div>
+                <SheetFooter>
+                    <SheetClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                    </SheetClose>
+                    <Button onClick={handleSave} disabled={isSaving}>
+                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Location
+                    </Button>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
+    );
+}
 
 function EditLocationSheet({
   location,
@@ -239,7 +365,10 @@ export default function EditMapPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isRepositioning, setIsRepositioning] = useState(false);
+  const [isAddingLocation, setIsAddingLocation] = useState(false);
+  const [newLocationPosition, setNewLocationPosition] = useState({ x: 0, y: 0 });
   const [activeCategory, setActiveCategory] = useState<LocationCategory | 'All'>('All');
   
   const router = useRouter();
@@ -263,7 +392,7 @@ export default function EditMapPage() {
       setIsLoading(true);
       try {
         const querySnapshot = await getDocs(collection(db, 'locations'));
-        const locationsData = querySnapshot.docs.map(doc => doc.data() as Location);
+        const locationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
         setLocations(locationsData);
       } catch (error) {
         console.error("Error fetching locations: ", error);
@@ -285,21 +414,37 @@ export default function EditMapPage() {
     setSelectedLocation(updatedLocation); 
   };
   
+  const handleAddNewLocation = async (newLocationData: Omit<Location, 'id'>) => {
+    try {
+        const docRef = await addDoc(collection(db, 'locations'), newLocationData);
+        const newLocationWithId = { id: docRef.id, ...newLocationData };
+        setLocations(prev => [...prev, newLocationWithId]);
+        setSelectedLocation(newLocationWithId);
+    } catch (error) {
+        console.error("Error adding new location: ", error);
+        toast({
+            title: "Add Failed",
+            description: "Could not add the new location. Please try again.",
+            variant: "destructive",
+        });
+    }
+  };
+
   const filteredLocations =
     activeCategory === 'All'
       ? locations
       : locations.filter((loc) => loc.category === activeCategory);
 
   const handleSelectLocation = (location: Location | null) => {
-    if (isRepositioning) return;
+    if (isRepositioning || isAddingLocation) return;
     setSelectedLocation(location);
     if(isSheetOpen) {
         setIsSheetOpen(false); 
     }
   }
 
-  const handleMapRepositionClick = (e: ReactMouseEvent<HTMLDivElement>) => {
-    if (!isRepositioning || !selectedLocation) return;
+  const handleMapClick = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (!isAddingLocation && !isRepositioning) return;
 
     const mapImage = e.currentTarget.querySelector('img');
     if (!mapImage) return;
@@ -311,22 +456,26 @@ export default function EditMapPage() {
     const newXPercent = (x / rect.width) * 100;
     const newYPercent = (y / rect.height) * 100;
 
-    const updatedLocation = {
-      ...selectedLocation,
-      mapPosition: { x: newXPercent, y: newYPercent },
-    };
-
-    setSelectedLocation(updatedLocation);
-    setLocations((prev) => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
-    
-    setIsRepositioning(false);
-    setIsSheetOpen(true);
-
-    toast({
-        title: "Position Updated",
-        description: "Click 'Save Changes' to confirm the new location.",
-    });
+    if (isRepositioning && selectedLocation) {
+        const updatedLocation = {
+          ...selectedLocation,
+          mapPosition: { x: newXPercent, y: newYPercent },
+        };
+        setSelectedLocation(updatedLocation);
+        setLocations((prev) => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
+        setIsRepositioning(false);
+        setIsSheetOpen(true);
+        toast({
+            title: "Position Updated",
+            description: "Click 'Save Changes' to confirm the new location.",
+        });
+    } else if (isAddingLocation) {
+        setNewLocationPosition({ x: newXPercent, y: newYPercent });
+        setIsAddingLocation(false);
+        setIsAddSheetOpen(true);
+    }
   };
+
 
   const enterRepositionMode = () => {
     setIsSheetOpen(false);
@@ -336,6 +485,18 @@ export default function EditMapPage() {
       description: "Click on the map to set the new location for the pin.",
     });
   }
+  
+  const enterAddLocationMode = () => {
+      setSelectedLocation(null);
+      setIsSheetOpen(false);
+      setIsRepositioning(false);
+      setIsAddingLocation(true);
+      toast({
+          title: "Add Location Mode",
+          description: "Click on the map to place the new pin.",
+      });
+  }
+
 
   if (!isAuthenticated || isLoading) {
     return (
@@ -371,22 +532,28 @@ export default function EditMapPage() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <div className="p-2">
-            <h2 className="px-2 pb-2 font-headline text-lg font-semibold">
-              Categories
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={activeCategory === category ? 'default' : 'outline'}
-                  size="sm"
-                  className="rounded-full"
-                  onClick={() => setActiveCategory(category)}
-                >
-                  {category}
-                </Button>
-              ))}
+          <div className="space-y-4 p-2">
+            <Button onClick={enterAddLocationMode} className="w-full">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Location
+            </Button>
+            <div>
+              <h2 className="px-2 pb-2 font-headline text-lg font-semibold">
+                Categories
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <Button
+                    key={category}
+                    variant={activeCategory === category ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => setActiveCategory(category)}
+                  >
+                    {category}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
           <LocationList
@@ -407,16 +574,21 @@ export default function EditMapPage() {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <div className={cn("relative h-full w-full", isRepositioning && "cursor-crosshair")}>
-        {isRepositioning && (
+        <div className={cn("relative h-full w-full", (isRepositioning || isAddingLocation) && "cursor-crosshair")}>
+        {(isRepositioning || isAddingLocation) && (
             <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 p-4 text-white animate-in fade-in-0">
             <div className='text-center'>
                 <MapPin className="mx-auto h-12 w-12 animate-bounce" />
-                <h2 className="mt-4 text-2xl font-bold">Click on the map to place the pin</h2>
-                <p className="text-lg">You are moving: {selectedLocation?.name}</p>
+                <h2 className="mt-4 text-2xl font-bold">
+                    {isAddingLocation ? 'Click on the map to place the new pin' : 'Click on the map to place the pin'}
+                </h2>
+                <p className="text-lg">
+                    {isRepositioning ? `You are moving: ${selectedLocation?.name}` : 'You are adding a new location.'}
+                </p>
                 <Button variant="secondary" className="mt-4" onClick={() => {
-                setIsRepositioning(false);
-                setIsSheetOpen(true);
+                    setIsRepositioning(false);
+                    setIsAddingLocation(false);
+                    if (selectedLocation) setIsSheetOpen(true);
                 }}>
                 Cancel
                 </Button>
@@ -427,13 +599,13 @@ export default function EditMapPage() {
             selectedLocation={selectedLocation}
             locations={filteredLocations}
             onSelectLocation={handleSelectLocation}
-            onMapRepositionClick={handleMapRepositionClick}
-            isRepositioning={isRepositioning}
+            onMapRepositionClick={handleMapClick}
+            isRepositioning={isRepositioning || isAddingLocation}
         />
         
         <div
             className={`pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-10 flex items-start justify-end p-4 transition-all duration-500 md:items-end ${
-            selectedLocation && !isSheetOpen && !isRepositioning ? 'opacity-100' : 'opacity-0'
+            selectedLocation && !isSheetOpen && !isRepositioning && !isAddingLocation ? 'opacity-100' : 'opacity-0'
             }`}
         >
             {selectedLocation && (
@@ -458,6 +630,12 @@ export default function EditMapPage() {
             isOpen={isSheetOpen}
             onOpenChange={setIsSheetOpen}
             onEnterRepositionMode={enterRepositionMode}
+        />
+        <AddLocationSheet
+            isOpen={isAddSheetOpen}
+            onOpenChange={setIsAddSheetOpen}
+            onSave={handleAddNewLocation}
+            newPosition={newLocationPosition}
         />
         </div>
       </SidebarInset>
