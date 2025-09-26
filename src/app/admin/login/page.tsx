@@ -156,11 +156,6 @@ export default function AdminLoginPage() {
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
             </Button>
-            <Button variant="link" size="sm" asChild>
-                <Link href="/admin/register">
-                    Don't have an account? Register
-                </Link>
-            </Button>
           </CardFooter>
         </form>
       </Card>
