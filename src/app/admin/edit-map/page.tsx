@@ -55,7 +55,7 @@ function AddLocationSheet({
 }: {
     isOpen: boolean;
     onOpenChange: (isOpen: boolean) => void;
-    onSave: (newLocation: Omit<Location, 'id'>) => void;
+    onSave: (newLocation: Omit<Location, 'id'>) => Promise<void>;
     newPosition: { x: number; y: number };
 }) {
     const [name, setName] = useState('');
@@ -95,11 +95,17 @@ function AddLocationSheet({
                     Sunday: null,
                 },
             };
-            onSave(newLocation);
+            await onSave(newLocation);
             toast({
                 title: 'Location Added',
                 description: `${name} has been added successfully.`,
             });
+            onOpenChange(false);
+             // Reset form
+            setName('');
+            setDescription('');
+            setCategory('Services');
+            setAnnouncement('');
         } catch (error) {
             console.error("Error saving new location:", error);
             toast({
@@ -109,12 +115,6 @@ function AddLocationSheet({
             });
         } finally {
             setIsSaving(false);
-            onOpenChange(false);
-            // Reset form
-            setName('');
-            setDescription('');
-            setCategory('Services');
-            setAnnouncement('');
         }
     };
 
@@ -397,6 +397,11 @@ export default function EditMapPage() {
         setLocations(locationsData);
       } catch (error) {
         console.error("Error fetching locations: ", error);
+        toast({
+            title: "Error fetching locations",
+            description: "Could not fetch locations from the database. Please check permissions.",
+            variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -404,7 +409,7 @@ export default function EditMapPage() {
     if(isAuthenticated){
       fetchLocations();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, toast]);
 
   const handleSaveLocation = (updatedLocation: Location) => {
     setLocations((prevLocations) =>
@@ -417,17 +422,14 @@ export default function EditMapPage() {
   
   const handleAddNewLocation = async (newLocationData: Omit<Location, 'id'>) => {
     try {
-        const docRef = await addDoc(collection(db, 'locations'), newLocationData);
+        const docRef = doc(collection(db, 'locations'));
         const newLocationWithId = { id: docRef.id, ...newLocationData };
+        await setDoc(docRef, newLocationData);
         setLocations(prev => [...prev, newLocationWithId]);
         setSelectedLocation(newLocationWithId);
     } catch (error) {
         console.error("Error adding new location: ", error);
-        toast({
-            title: "Add Failed",
-            description: "Could not add the new location. Please try again.",
-            variant: "destructive",
-        });
+        throw error;
     }
   };
 
@@ -447,7 +449,6 @@ export default function EditMapPage() {
   const handleMapClick = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (!isAddingLocation && !isRepositioning) return;
 
-    // Use the ref to the map image wrapper for accurate calculations
     const mapImageWrapper = mapImageWrapperRef.current;
     if (!mapImageWrapper) return;
 
@@ -558,11 +559,18 @@ export default function EditMapPage() {
               </div>
             </div>
           </div>
-          <LocationList
-            locations={filteredLocations}
-            onSelectLocation={handleSelectLocation}
-            selectedLocation={selectedLocation}
-          />
+          {isLoading ? (
+             <div className="p-8 text-center text-muted-foreground">
+                <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                <p className="mt-2">Loading Locations...</p>
+             </div>
+          ) : (
+            <LocationList
+                locations={filteredLocations}
+                onSelectLocation={handleSelectLocation}
+                selectedLocation={selectedLocation}
+            />
+          )}
         </SidebarContent>
         <SidebarFooter>
           <div className="flex flex-col gap-2 p-2">
@@ -645,5 +653,7 @@ export default function EditMapPage() {
     </SidebarProvider>
   );
 }
+
+    
 
     
