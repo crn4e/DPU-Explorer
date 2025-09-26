@@ -84,6 +84,7 @@ export default function MapView({
 
   const handlePinClick = (e: React.MouseEvent, loc: Location) => {
     e.stopPropagation(); 
+    if (isRepositioning) return;
     onSelectLocation(loc);
   };
   
