@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -48,13 +48,15 @@ export default function Home() {
     null
   );
   const [activeCategory, setActiveCategory] = useState<LocationCategory | 'All'>('All');
+  const mapImageWrapperRef = React.useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     const fetchLocations = async () => {
       setIsLoading(true);
       try {
         const querySnapshot = await getDocs(collection(db, 'locations'));
-        const locationsData = querySnapshot.docs.map(doc => doc.data() as Location);
+        const locationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
         setAllLocations(locationsData);
       } catch (error) {
         console.error("Error fetching locations: ", error);
@@ -164,6 +166,7 @@ export default function Home() {
       <SidebarInset>
         <AppHeader />
         <MapView
+          mapImageWrapperRef={mapImageWrapperRef}
           selectedLocation={selectedLocation}
           locations={filteredLocations}
           onSelectLocation={setSelectedLocation}

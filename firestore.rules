@@ -2,24 +2,25 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // Admins collection: Only authenticated users can manage admin documents.
+
+    // Rules for Admins
+    // Only authenticated users can read or write to the admins collection.
     match /admins/{adminId} {
       allow read, write: if request.auth != null;
     }
 
-    // Students collection: Allow users to create their own accounts, 
-    // but only let them read/write their own data post-creation.
+    // Rules for Students
+    // Only authenticated users can read or write to their own student document.
     match /students/{studentId} {
-      allow create: if request.auth != null;
       allow read, write: if request.auth != null && request.auth.uid == studentId;
     }
-    
-    // Locations collection: Allow public read access, but restrict writes to authenticated users.
+
+    // Rules for Locations
+    // Allow public read access for locations.
+    // Restrict write access (create, update, delete) to authenticated users.
     match /locations/{locationId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
   }
 }
-    
