@@ -5,19 +5,23 @@ import {
   MapPin,
 } from 'lucide-react';
 import Image from 'next/image';
-import { useRef, useState, MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent } from 'react';
+import { useRef, useState, MouseEvent as ReactMouseEvent } from 'react';
 import { cn } from '@/lib/utils';
 
 interface MapViewProps {
   selectedLocation: Location | null;
   locations: Location[];
   onSelectLocation: (location: Location | null) => void;
+  onMapRepositionClick?: (e: ReactMouseEvent<HTMLDivElement>) => void;
+  isRepositioning?: boolean;
 }
 
 export default function MapView({
   selectedLocation,
   locations,
   onSelectLocation,
+  onMapRepositionClick,
+  isRepositioning = false,
 }: MapViewProps) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -28,11 +32,12 @@ export default function MapView({
 
   const handleMouseDown = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (mapContainerRef.current) {
+        if (isRepositioning) return;
         e.preventDefault();
-        setDidDrag(false); // Reset drag status
+        setDidDrag(false);
         setIsDragging(true);
         setStartPos({
-            x: e.pageX, // Use pageX directly
+            x: e.pageX,
             y: e.pageY,
         });
         setScrollPos({
@@ -45,7 +50,7 @@ export default function MapView({
   const handleMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
     if (isDragging && mapContainerRef.current) {
         e.preventDefault();
-        if(!didDrag) setDidDrag(true); // It's a drag if mouse moves while down
+        if(!didDrag) setDidDrag(true);
 
         const dx = e.pageX - startPos.x;
         const dy = e.pageY - startPos.y;
@@ -57,7 +62,6 @@ export default function MapView({
   
   const handleMouseUp = (e: ReactMouseEvent<HTMLDivElement>) => {
     setIsDragging(false);
-    // If it was a drag, prevent the click event. Otherwise, it was a click.
     if (didDrag) {
       e.stopPropagation();
     }
@@ -68,18 +72,18 @@ export default function MapView({
   };
   
   const handleMapClick = (e: ReactMouseEvent<HTMLDivElement>) => {
-    // Check if the click event should proceed.
-    // If we just finished a drag, handleMouseUp would have set isDragging to false,
-    // and didDrag will still be true. We don't want to deselect in that case.
+    if (isRepositioning) {
+        onMapRepositionClick?.(e);
+        return;
+    }
     if (!didDrag) {
       onSelectLocation(null);
     }
-    // Reset didDrag after the click logic has been evaluated.
     setDidDrag(false);
   };
 
   const handlePinClick = (e: React.MouseEvent, loc: Location) => {
-    e.stopPropagation(); // Prevents the map click from firing
+    e.stopPropagation(); 
     onSelectLocation(loc);
   };
   
@@ -87,8 +91,9 @@ export default function MapView({
     <div 
         ref={mapContainerRef}
         className={cn(
-            "relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-white overflow-auto cursor-grab focus:outline-none",
-            isDragging && "cursor-grabbing"
+            "relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-white overflow-auto focus:outline-none",
+            isDragging && "cursor-grabbing",
+            isRepositioning ? "cursor-crosshair" : "cursor-grab"
         )}
         onClick={handleMapClick}
         onMouseDown={handleMouseDown}
@@ -96,10 +101,8 @@ export default function MapView({
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
     >
-        {/* Wrapper to allow scrolling beyond initial view */}
         <div className="relative w-[150%] max-w-[1400px] lg:w-[120%] xl:w-full mx-auto">
-             {/* Aspect Ratio Container */}
-            <div className="relative w-full" style={{ paddingTop: '56.25%' /* 16:9 Aspect Ratio */ }}> 
+            <div className="relative w-full" style={{ paddingTop: '56.25%' }}> 
                 <div className="absolute inset-0">
                     <Image
                         src="/dpu-map.png.png"
@@ -113,19 +116,24 @@ export default function MapView({
                         <button
                         key={loc.id}
                         onClick={(e) => handlePinClick(e, loc)}
-                        className="absolute transform -translate-x-1/2 -translate-y-full focus:outline-none"
+                        className={cn(
+                            "absolute transform -translate-x-1/2 -translate-y-full focus:outline-none transition-all duration-300",
+                            isRepositioning && selectedLocation?.id !== loc.id && "opacity-30"
+                        )}
                         style={{
                             top: `${loc.mapPosition.y}%`,
                             left: `${loc.mapPosition.x}%`,
                         }}
                         aria-label={`Select ${loc.name}`}
+                        disabled={isRepositioning}
                         >
                         <MapPin
-                            className={`h-8 w-8 transition-all duration-300 drop-shadow-lg ${
-                            selectedLocation?.id === loc.id
+                            className={cn(`h-8 w-8 drop-shadow-lg`,
+                                selectedLocation?.id === loc.id
                                 ? 'text-primary scale-125 fill-primary/20'
-                                : 'text-black/60 hover:text-primary fill-white/80'
-                            }`}
+                                : 'text-black/60 hover:text-primary fill-white/80',
+                                isRepositioning && selectedLocation?.id === loc.id && 'animate-pulse'
+                            )}
                         />
                         </button>
                     ))}
@@ -135,7 +143,7 @@ export default function MapView({
 
       <div
         className={`pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-10 flex items-start justify-end p-4 transition-all duration-500 md:items-end ${
-          selectedLocation ? 'opacity-100' : 'opacity-0'
+          selectedLocation && !isRepositioning ? 'opacity-100' : 'opacity-0'
         }`}
       >
         {selectedLocation && (

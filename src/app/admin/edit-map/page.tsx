@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, MouseEvent as ReactMouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { locations as initialLocations } from '@/lib/data';
 import type { Location } from '@/lib/types';
@@ -10,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, UploadCloud } from 'lucide-react';
+import { Loader2, Edit, UploadCloud, MapPin, Move } from 'lucide-react';
 import { auth, storage } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -25,6 +24,7 @@ import {
 } from '@/components/ui/sheet';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 
 function EditLocationSheet({
@@ -32,13 +32,15 @@ function EditLocationSheet({
   onSave,
   isOpen,
   onOpenChange,
+  onEnterRepositionMode,
 }: {
-  location: Location;
+  location: Location | null;
   onSave: (updatedLocation: Location) => void;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onEnterRepositionMode: () => void;
 }) {
-  const [formData, setFormData] = useState(location);
+  const [formData, setFormData] = useState<Location | null>(location);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -51,34 +53,39 @@ function EditLocationSheet({
     setIsUploading(false);
   }, [location]);
 
+  if (!formData) return null;
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
+    setFormData((prev) => prev ? ({ ...prev, [id]: value }) : null);
   };
 
   const handlePositionChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const { id, value } = e.target;
-    setFormData((prev) => ({ 
+    const numValue = Number(value);
+     if (isNaN(numValue)) return;
+    setFormData((prev) => prev ? ({ 
         ...prev, 
         mapPosition: { 
             ...prev.mapPosition, 
-            [id]: Number(value) 
+            [id]: numValue, 
         } 
-    }));
+    }) : null);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!formData) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
     setUploadProgress(0);
 
-    const storageRef = ref(storage, `locations/${location.id}/${file.name}`);
+    const storageRef = ref(storage, `locations/${formData.id}/${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
     uploadTask.on(
@@ -98,7 +105,7 @@ function EditLocationSheet({
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setFormData((prev) => ({ ...prev, image: downloadURL }));
+          setFormData((prev) => prev ? ({ ...prev, image: downloadURL }) : null);
           setIsUploading(false);
            toast({
             title: "Upload Successful",
@@ -110,9 +117,9 @@ function EditLocationSheet({
   };
 
   const handleSave = () => {
+    if (!formData) return;
     setIsSaving(true);
     onSave(formData);
-    // Simulate latency then close
     setTimeout(() => {
       setIsSaving(false);
       onOpenChange(false);
@@ -123,7 +130,7 @@ function EditLocationSheet({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Edit: {location.name}</SheetTitle>
+          <SheetTitle>Edit: {location?.name}</SheetTitle>
         </SheetHeader>
         <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
             <div className="space-y-2">
@@ -159,14 +166,18 @@ function EditLocationSheet({
             </div>
             <div className="space-y-2">
                 <Label>Map Position</Label>
+                 <Button variant="outline" onClick={onEnterRepositionMode} className='w-full'>
+                    <Move className="mr-2 h-4 w-4" />
+                    Set Position on Map
+                </Button>
                 <div className="grid grid-cols-2 gap-2">
                     <div className='flex items-center gap-2'>
-                        <Label htmlFor="x" className="text-sm">X:</Label>
-                        <Input id="x" type="number" value={formData.mapPosition.x} onChange={handlePositionChange} />
+                        <Label htmlFor="x" className="text-sm">X (%):</Label>
+                        <Input id="x" type="number" value={formData.mapPosition.x.toFixed(2)} onChange={handlePositionChange} />
                     </div>
                     <div className='flex items-center gap-2'>
-                        <Label htmlFor="y" className="text-sm">Y:</Label>
-                        <Input id="y" type="number" value={formData.mapPosition.y} onChange={handlePositionChange} />
+                        <Label htmlFor="y" className="text-sm">Y (%):</Label>
+                        <Input id="y" type="number" value={formData.mapPosition.y.toFixed(2)} onChange={handlePositionChange} />
                     </div>
                 </div>
             </div>
@@ -194,6 +205,7 @@ export default function EditMapPage() {
   const [locations, setLocations] = useState(initialLocations);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isRepositioning, setIsRepositioning] = useState(false);
   
   const router = useRouter();
   const { toast } = useToast();
@@ -212,15 +224,13 @@ export default function EditMapPage() {
   }, [router]);
 
   const handleSaveLocation = (updatedLocation: Location) => {
-    // In a real app, you would send this to your backend/DB
-    // For this demo, we just update the local state
     console.log("Saving (locally):", updatedLocation);
     setLocations((prevLocations) =>
       prevLocations.map((loc) =>
         loc.id === updatedLocation.id ? updatedLocation : loc
       )
     );
-    setSelectedLocation(updatedLocation); // Update selected location to show new data
+    setSelectedLocation(updatedLocation);
     toast({
       title: 'Location Updated',
       description: `${updatedLocation.name} has been saved successfully.`,
@@ -228,10 +238,50 @@ export default function EditMapPage() {
   };
 
   const handleSelectLocation = (location: Location | null) => {
+    if (isRepositioning) return;
     setSelectedLocation(location);
     if(isSheetOpen) {
         setIsSheetOpen(false);
     }
+  }
+
+  const handleMapRepositionClick = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (!isRepositioning || !selectedLocation) return;
+
+    const mapImage = e.currentTarget.querySelector('img');
+    if (!mapImage) return;
+
+    const rect = mapImage.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const newXPercent = (x / rect.width) * 100;
+    const newYPercent = (y / rect.height) * 100;
+
+    const updatedLocation = {
+      ...selectedLocation,
+      mapPosition: { x: newXPercent, y: newYPercent },
+    };
+
+    setSelectedLocation(updatedLocation);
+    setLocations((prev) => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
+    
+    setIsRepositioning(false); // Exit repositioning mode
+    setIsSheetOpen(true); // Re-open the sheet
+
+    toast({
+        title: "Position Updated",
+        description: "Click 'Save Changes' to confirm the new location.",
+    });
+  };
+
+  const enterRepositionMode = () => {
+    setIsSheetOpen(false);
+    setIsRepositioning(true);
+    toast({
+      title: "Repositioning Mode",
+      description: "Click on the map to set the new location for the pin.",
+    });
   }
 
   if (!isAuthenticated) {
@@ -244,17 +294,33 @@ export default function EditMapPage() {
   }
 
   return (
-    <div className="relative h-screen w-screen">
+    <div className={cn("relative h-screen w-screen", isRepositioning && "cursor-crosshair")}>
+       {isRepositioning && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 p-4 text-white animate-in fade-in-0">
+          <div className='text-center'>
+            <MapPin className="mx-auto h-12 w-12 animate-bounce" />
+            <h2 className="mt-4 text-2xl font-bold">Click on the map to place the pin</h2>
+            <p className="text-lg">You are moving: {selectedLocation?.name}</p>
+            <Button variant="secondary" className="mt-4" onClick={() => {
+              setIsRepositioning(false);
+              setIsSheetOpen(true);
+            }}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
       <MapView
         selectedLocation={selectedLocation}
         locations={locations}
         onSelectLocation={handleSelectLocation}
+        onMapRepositionClick={handleMapRepositionClick}
+        isRepositioning={isRepositioning}
       />
       
-      {/* Location Card with Edit Button */}
       <div
         className={`pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-10 flex items-start justify-end p-4 transition-all duration-500 md:items-end ${
-          selectedLocation && !isSheetOpen ? 'opacity-100' : 'opacity-0'
+          selectedLocation && !isSheetOpen && !isRepositioning ? 'opacity-100' : 'opacity-0'
         }`}
       >
         {selectedLocation && (
@@ -273,15 +339,13 @@ export default function EditMapPage() {
         )}
       </div>
 
-      {/* Edit Sheet */}
-      {selectedLocation && (
-        <EditLocationSheet
-          location={selectedLocation}
-          onSave={handleSaveLocation}
-          isOpen={isSheetOpen}
-          onOpenChange={setIsSheetOpen}
-        />
-      )}
+      <EditLocationSheet
+        location={selectedLocation}
+        onSave={handleSaveLocation}
+        isOpen={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        onEnterRepositionMode={enterRepositionMode}
+      />
     </div>
   );
 }
