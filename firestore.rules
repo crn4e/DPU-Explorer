@@ -4,22 +4,39 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Rules for Admins
-    match /admins/{adminId} {
-      // Allow anyone to read admin data (for login/registration checks)
-      // Allow logged-in users to update (for approvals)
-      allow read, update: if request.auth != null;
+    match /admins/{userId} {
+      // Allow admin creation for anyone, but validate the role. This is for registration.
+      allow create: if request.resource.data.role == 'admin';
       
-      // Allow anyone to create a new admin document
-      allow create: if true;
+      // Only authenticated users can read admin data.
+      allow read: if request.auth != null;
+      
+      // Only authenticated users can update admin data (e.g., for approval).
+      allow update: if request.auth != null;
+      
+      // Disallow deletion for safety.
+      allow delete: if false;
     }
 
     // Rules for Students
-    match /students/{studentId} {
-      // Allow anyone to create a new student document
+    match /students/{userId} {
+      // Allow any user to create a student profile (register).
       allow create: if true;
       
-      // Only the authenticated student can read/update their own data
-      allow read, update: if request.auth != null && request.auth.uid == studentId;
+      // A student can only read/update their own profile.
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      
+      // Disallow deletion for safety.
+      allow delete: if false;
+    }
+    
+    // Rules for Locations
+    match /locations/{locationId} {
+      // Anyone can view the locations on the map.
+      allow read: if true;
+
+      // Only authenticated users (admins) can create, update, or delete locations.
+      allow create, update, delete: if request.auth != null;
     }
   }
 }
