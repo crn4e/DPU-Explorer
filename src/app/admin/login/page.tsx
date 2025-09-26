@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, collection, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 
 export default function AdminLoginPage() {
@@ -40,48 +40,19 @@ export default function AdminLoginPage() {
       const adminDocRef = doc(db, 'admins', user.uid);
       const adminDocSnap = await getDoc(adminDocRef);
 
-      if (adminDocSnap.exists()) {
-        const adminData = adminDocSnap.data();
-
-        // Auto-approve the first admin
-        const adminsCollection = collection(db, 'admins');
-        const allAdminsSnapshot = await getDocs(adminsCollection);
-        
-        if (allAdminsSnapshot.size === 1 && adminData.status === 'pending') {
-            await updateDoc(adminDocRef, { status: 'approved' });
-            adminData.status = 'approved'; // Update local data to reflect change
-        }
-
-        if (adminData.role === 'admin' && adminData.status === 'approved') {
+      if (adminDocSnap.exists() && adminDocSnap.data().role === 'admin') {
           sessionStorage.setItem('dpu-admin-auth', 'true');
           toast({
             title: 'Login Successful',
             description: 'Welcome back, Admin!',
           });
           router.push('/admin');
-        } else if (adminData.role === 'admin' && adminData.status === 'pending') {
-          await auth.signOut();
-          toast({
-            title: 'Login Pending',
-            description: 'Your account is awaiting approval from an administrator.',
-            variant: 'destructive',
-          });
-           setIsLoading(false);
-        } else {
-           await auth.signOut();
-           toast({
-             title: 'Access Denied',
-             description: 'You do not have permission to access the admin dashboard.',
-             variant: 'destructive',
-           });
-           setIsLoading(false);
-        }
       } else {
         // Not an admin, sign them out and show an error
         await auth.signOut();
         toast({
           title: 'Access Denied',
-          description: 'This is not a valid admin account.',
+          description: 'You do not have permission to access the admin dashboard.',
           variant: 'destructive',
         });
         setIsLoading(false);

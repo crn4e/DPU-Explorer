@@ -52,14 +52,13 @@ export default function AdminRegisterPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // 2. Save additional user info to Firestore with 'pending' status
+        // 2. Save additional user info to Firestore
         await setDoc(doc(db, "admins", user.uid), {
             id: id,
             name: name,
             surname: surname,
             email: email,
             role: 'admin',
-            status: 'pending' // Add status field
         });
         
         // Sign out the user immediately after registration
@@ -157,11 +156,6 @@ export default function AdminRegisterPage() {
                     <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Request Account
-                    </Button>
-                    <Button variant="link" size="sm" asChild disabled={isLoading}>
-                        <Link href="/admin/login">
-                            Already have an account? Login
-                        </Link>
                     </Button>
                 </CardFooter>
                 </form>

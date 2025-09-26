@@ -1,169 +1,177 @@
-
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
-import { db, auth } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, DocumentData } from 'firebase/firestore';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, ArrowLeft, Check, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
+import { Loader2, ArrowLeft } from 'lucide-react';
+import { auth, db } from '@/lib/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
-interface PendingAdmin extends DocumentData {
-  uid: string;
-  id: string;
-  name: string;
-  surname: string;
-  email: string;
-  status: 'pending' | 'approved' | 'rejected';
-}
 
-export default function ApproveAdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [pendingAdmins, setPendingAdmins] = useState<PendingAdmin[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function AdminRegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [id, setId] = useState('');
+  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user: FirebaseUser | null) => {
-      if (user && sessionStorage.getItem('dpu-admin-auth') === 'true') {
-        setIsAuthenticated(true);
-        fetchPendingAdmins();
-      } else {
-        sessionStorage.removeItem('dpu-admin-auth');
-        router.push('/admin/login');
-      }
-    });
 
-    return () => unsubscribe();
-  }, [router]);
-
-  const fetchPendingAdmins = async () => {
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
+    
+    if (password.length < 6) {
+        toast({
+            title: 'Registration Failed',
+            description: 'Password should be at least 6 characters.',
+            variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+    }
+
     try {
-      const q = query(collection(db, 'admins'), where('status', '==', 'pending'));
-      const querySnapshot = await getDocs(q);
-      const admins = querySnapshot.docs.map(doc => ({ uid: doc.id, ...doc.data() } as PendingAdmin));
-      setPendingAdmins(admins);
-    } catch (error) {
-      console.error("Error fetching pending admins: ", error);
-      toast({
-        title: "Error",
-        description: "Could not fetch pending admins. Please try again later.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+        // We need to temporarily sign out the current admin to create a new user,
+        // then sign the admin back in. This is a Firebase limitation.
+        const currentAdmin = auth.currentUser;
+        if (!currentAdmin) {
+            throw new Error("No admin is currently signed in.");
+        }
+
+        // 1. Create user in Firebase Authentication
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // 2. Save additional user info to Firestore
+        await setDoc(doc(db, "admins", user.uid), {
+            id: id,
+            name: name,
+            surname: surname,
+            email: email,
+            role: 'admin',
+        });
+        
+        // 3. Re-authenticate the original admin user
+        // This part is tricky without storing credentials. A better approach for production
+        // would be to use Cloud Functions. For this demo, we'll just show success and let
+        // the admin log in again if needed. We will sign out the newly created user.
+        await auth.signOut();
+        // Ideally, re-sign in the admin here. For now, we will redirect.
+
+        // 4. Show success and redirect
+        toast({
+            title: 'Admin Created',
+            description: 'The new admin account has been created successfully.',
+        });
+        router.push('/admin');
+
+    } catch (error: any) {
+        let errorMessage = 'An unexpected error occurred.';
+        if (error.code) {
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              errorMessage = 'This email is already in use by another account.';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'The email address is not valid.';
+              break;
+            case 'auth/weak-password':
+              errorMessage = 'Password should be at least 6 characters.';
+              break;
+            default:
+              errorMessage = 'An error occurred during registration.';
+          }
+        }
+        console.error('Firebase Registration Error:', error);
+        toast({
+            title: 'Registration Failed',
+            description: errorMessage,
+            variant: 'destructive',
+        });
+        setIsLoading(false);
     }
   };
-
-  const handleUpdateStatus = async (uid: string, newStatus: 'approved' | 'rejected') => {
-    try {
-      const adminRef = doc(db, 'admins', uid);
-      await updateDoc(adminRef, { status: newStatus });
-      
-      setPendingAdmins(prevAdmins => prevAdmins.filter(admin => admin.uid !== uid));
-      
-      toast({
-        title: "Success",
-        description: `Admin has been ${newStatus}.`,
-      });
-    } catch (error) {
-      console.error(`Error updating admin status: `, error);
-      toast({
-        title: "Error",
-        description: `Could not update admin status. Please try again.`,
-        variant: "destructive",
-      });
-    }
-  };
-
-
-  if (!isAuthenticated && isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="ml-2">Verifying authentication...</p>
-      </div>
-    );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-4">
-            <Button asChild variant="ghost">
-                <Link href="/admin">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Dashboard
-                </Link>
-            </Button>
+    <div className="relative min-h-screen bg-gray-100 dark:bg-gray-900 py-12">
+        <Button asChild variant="ghost" className="absolute left-4 top-4">
+            <Link href="/admin">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+            </Link>
+        </Button>
+        <div className="flex min-h-full items-center justify-center">
+            <Card className="w-full max-w-md">
+                <CardHeader className="text-center">
+                    <div className="flex justify-center items-center gap-3 mb-2">
+                        <Image
+                            src="/Logo.jpg"
+                            alt="DPU Logo"
+                            width={40}
+                            height={40}
+                            className="h-10 w-10 rounded-full object-cover"
+                        />
+                        <CardTitle className="font-headline text-2xl">Create New Admin</CardTitle>
+                    </div>
+                <CardDescription>Create a new administrator account.</CardDescription>
+                </CardHeader>
+                <form onSubmit={handleRegister}>
+                <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="id">ID</Label>
+                    <Input 
+                        id="id" 
+                        type="text"
+                        placeholder="Admin's unique ID" 
+                        required 
+                        disabled={isLoading} 
+                        value={id} 
+                        onChange={(e) => setId(e.target.value.replace(/[^0-9]/g, ''))} 
+                    />
+                    </div>
+                    <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input id="name" placeholder="John" required disabled={isLoading} value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                    <Label htmlFor="surname">Surname</Label>
+                    <Input id="surname" placeholder="Doe" required disabled={isLoading} value={surname} onChange={(e) => setSurname(e.target.value)} />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} value={email} onChange={(e) => setEmail(e.target.value)} />
+                    </div>
+                    <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input id="password" type="password" required disabled={isLoading} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </div>
+                </CardContent>
+                <CardFooter className="flex flex-col gap-4">
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Create Admin Account
+                    </Button>
+                </CardFooter>
+                </form>
+            </Card>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Approve Admin Registrations</CardTitle>
-            <CardDescription>
-              Review and approve or reject new requests for administrator access.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="flex justify-center items-center h-40">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingAdmins.length > 0 ? (
-                    pendingAdmins.map((admin) => (
-                      <TableRow key={admin.uid}>
-                        <TableCell>{admin.id}</TableCell>
-                        <TableCell className="font-medium">{`${admin.name} ${admin.surname}`}</TableCell>
-                        <TableCell>{admin.email}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{admin.status}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Button size="icon" variant="outline" className="text-green-600 hover:text-green-700" onClick={() => handleUpdateStatus(admin.uid, 'approved')}>
-                            <Check className="h-4 w-4" />
-                            <span className="sr-only">Approve</span>
-                          </Button>
-                          <Button size="icon" variant="destructive" onClick={() => handleUpdateStatus(admin.uid, 'rejected')}>
-                            <X className="h-4 w-4" />
-                             <span className="sr-only">Reject</span>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5} className="text-center h-24">
-                        No pending admin registrations.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
