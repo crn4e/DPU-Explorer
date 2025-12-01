@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -235,44 +235,38 @@ function EditLocationSheet({
     }) : null);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!formData) return;
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
-    setUploadProgress(0);
+    setUploadProgress(50); // Indicate start
 
     const storageRef = ref(storage, `locations/${formData.id}/${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
 
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (error) => {
-        console.error("Upload failed:", error);
+    try {
+        // Use uploadBytes for simpler, non-resumable uploads which can be more stable
+        const snapshot = await uploadBytes(storageRef, file, { contentType: file.type });
+        const downloadURL = await getDownloadURL(snapshot.ref);
+
+        setFormData((prev) => prev ? ({ ...prev, image: downloadURL }) : null);
+        setUploadProgress(100);
         toast({
-          title: "Upload Failed",
-          description: "Could not upload the new image. Please try again.",
-          variant: "destructive",
-        });
-        setIsUploading(false);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setFormData((prev) => prev ? ({ ...prev, image: downloadURL }) : null);
-          setIsUploading(false);
-           toast({
             title: "Upload Successful",
             description: "New image is ready to be saved.",
-          });
         });
-      }
-    );
-  };
+    } catch (error) {
+        console.error("Upload failed:", error);
+        toast({
+            title: "Upload Failed",
+            description: "Could not upload image. Please check permissions and try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsUploading(false);
+    }
+};
 
   const handleSave = async () => {
     if (!formData) return;
@@ -321,7 +315,7 @@ function EditLocationSheet({
                         Uploading...
                     </Button>
                     <Progress value={uploadProgress} className="w-full" />
-                    <p className="text-xs text-muted-foreground">{Math.round(uploadProgress)}% complete</p>
+                    <p className="text-xs text-muted-foreground">{uploadProgress === 100 ? 'Finalizing...' : 'Uploading...'}</p>
                   </div>
                 ) : (
                   <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
@@ -716,3 +710,5 @@ export default function EditMapPage() {
     </SidebarProvider>
   );
 }
+
+    
