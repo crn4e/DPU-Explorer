@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, collection, writeBatch, getDocs } from "firebase/firestore";
+import { getFirestore, collection, writeBatch, getDocs, doc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { locations as initialLocations } from '@/lib/data';
 
@@ -31,7 +31,6 @@ async function seedInitialData() {
     console.log('Seeding initial location data...');
     const batch = writeBatch(db);
     initialLocations.forEach((location) => {
-      const docRef = collection(db, 'locations');
       // In Firestore, you don't set the ID like this. Firestore auto-generates it.
       // But for consistency with the existing app, we'll use the location.id as the document ID.
       const locationDoc = doc(locationsCollection, location.id);
