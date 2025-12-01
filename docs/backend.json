@@ -1,89 +1,270 @@
 {
   "entities": {
-    "adminUser": {
-      "title": "Admin User",
-      "description": "Schema for an admin user account.",
+    "Location": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Location",
       "type": "object",
+      "description": "Represents a specific location on the DPU campus.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "The admin's unique ID."
+          "description": "Unique identifier for the location."
         },
         "name": {
           "type": "string",
-          "description": "The admin's first name."
+          "description": "Name of the location (e.g., Building A, Cafeteria 1)."
         },
-        "surname": {
+        "description": {
           "type": "string",
-          "description": "The admin's last name."
+          "description": "Detailed description of the location."
         },
-        "email": {
+        "type": {
           "type": "string",
-          "format": "email",
-          "description": "The admin's email address."
+          "description": "Type of location (e.g., academic, food, sports)."
         },
-        "role": {
-          "type": "string",
-          "enum": ["admin"],
-          "description": "The user's role."
+        "latitude": {
+          "type": "number",
+          "description": "Latitude coordinate of the location."
         },
-        "status": {
+        "longitude": {
+          "type": "number",
+          "description": "Longitude coordinate of the location."
+        },
+        "openingHoursId": {
           "type": "string",
-          "enum": ["pending", "approved", "rejected"],
-          "description": "The approval status of the admin account."
+          "description": "Reference to OpeningHours. (Relationship: Location 1:1 OpeningHours)"
         }
       },
-      "required": ["id", "name", "surname", "email", "role", "status"]
+      "required": [
+        "id",
+        "name",
+        "description",
+        "type",
+        "latitude",
+        "longitude",
+        "openingHoursId"
+      ]
     },
-    "studentUser": {
-      "title": "Student User",
-      "description": "Schema for a student user account.",
+    "OpeningHours": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OpeningHours",
       "type": "object",
+      "description": "Represents the opening hours for a specific location.",
       "properties": {
-        "studentId": {
+        "id": {
           "type": "string",
-          "description": "The student's unique ID."
+          "description": "Unique identifier for the opening hours."
         },
-        "name": {
+        "monday": {
           "type": "string",
-          "description": "The student's first name."
+          "description": "Opening hours for Monday, in a format like '08:00-17:00' or 'Closed'."
         },
-        "surname": {
+        "tuesday": {
           "type": "string",
-          "description": "The student's last name."
+          "description": "Opening hours for Tuesday, in a format like '08:00-17:00' or 'Closed'."
         },
-        "email": {
+        "wednesday": {
           "type": "string",
-          "format": "email",
-          "description": "The student's email address."
+          "description": "Opening hours for Wednesday, in a format like '08:00-17:00' or 'Closed'."
         },
-        "role": {
+        "thursday": {
           "type": "string",
-          "enum": ["student"],
-          "description": "The user's role."
+          "description": "Opening hours for Thursday, in a format like '08:00-17:00' or 'Closed'."
+        },
+        "friday": {
+          "type": "string",
+          "description": "Opening hours for Friday, in a format like '08:00-17:00' or 'Closed'."
+        },
+        "saturday": {
+          "type": "string",
+          "description": "Opening hours for Saturday, in a format like '08:00-17:00' or 'Closed'."
+        },
+        "sunday": {
+          "type": "string",
+          "description": "Opening hours for Sunday, in a format like '08:00-17:00' or 'Closed'."
+        },
+        "locationId": {
+          "type": "string",
+          "description": "Reference to Location. (Relationship: Location 1:1 OpeningHours)"
         }
       },
-      "required": ["studentId", "name", "surname", "email", "role"]
+      "required": [
+        "id",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+        "locationId"
+      ]
+    },
+    "Announcement": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Announcement",
+      "type": "object",
+      "description": "Represents an announcement related to a specific location.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the announcement."
+        },
+        "locationId": {
+          "type": "string",
+          "description": "Reference to Location. (Relationship: Location 1:N Announcement)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the announcement."
+        },
+        "content": {
+          "type": "string",
+          "description": "Content of the announcement."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the announcement.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "locationId",
+        "title",
+        "content",
+        "date"
+      ]
+    },
+    "Image": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Image",
+      "type": "object",
+      "description": "Represents an image associated with a location.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the image."
+        },
+        "locationId": {
+          "type": "string",
+          "description": "Reference to Location. (Relationship: Location 1:N Image)"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL of the image.",
+          "format": "uri"
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternative text for the image."
+        }
+      },
+      "required": [
+        "id",
+        "locationId",
+        "url",
+        "altText"
+      ]
     }
   },
   "auth": {
-    "providers": ["email-password"]
+    "providers": [
+      "password",
+      "anonymous"
+    ]
   },
   "firestore": {
-    "'/admins/{adminId}'": {
-      "schema": {
-        "$ref": "#/entities/adminUser"
+    "structure": [
+      {
+        "path": "/locations/{locationId}",
+        "definition": {
+          "entityName": "Location",
+          "schema": {
+            "$ref": "#/backend/entities/Location"
+          },
+          "description": "Stores information about locations on the DPU campus.",
+          "params": [
+            {
+              "name": "locationId",
+              "description": "Unique identifier for the location."
+            }
+          ]
+        }
       },
-      "description": "Stores admin user profiles."
-    },
-    "'/students/{studentId}'": {
-      "schema": {
-        "$ref": "#/entities/studentUser"
+      {
+        "path": "/locations/{locationId}/announcements/{announcementId}",
+        "definition": {
+          "entityName": "Announcement",
+          "schema": {
+            "$ref": "#/backend/entities/Announcement"
+          },
+          "description": "Stores announcements related to a specific location.",
+          "params": [
+            {
+              "name": "locationId",
+              "description": "Unique identifier for the location."
+            },
+            {
+              "name": "announcementId",
+              "description": "Unique identifier for the announcement."
+            }
+          ]
+        }
       },
-      "description": "Stores student user profiles."
-    }
-  },
-  "storage": {
-    "rules": "storage.rules"
+      {
+        "path": "/locations/{locationId}/images/{imageId}",
+        "definition": {
+          "entityName": "Image",
+          "schema": {
+            "$ref": "#/backend/entities/Image"
+          },
+          "description": "Stores images associated with a specific location.",
+          "params": [
+            {
+              "name": "locationId",
+              "description": "Unique identifier for the location."
+            },
+            {
+              "name": "imageId",
+              "description": "Unique identifier for the image."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/openingHours/{openingHoursId}",
+        "definition": {
+          "entityName": "OpeningHours",
+          "schema": {
+            "$ref": "#/backend/entities/OpeningHours"
+          },
+          "description": "Stores opening hours for locations.",
+          "params": [
+            {
+              "name": "openingHoursId",
+              "description": "Unique identifier for the opening hours."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/admins/{userId}",
+        "definition": {
+          "entityName": "admin",
+          "schema": {
+            "$ref": "#/backend/entities/admin"
+          },
+          "description": "Marks a user as an admin. Existence of a document indicates admin privileges.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the DPU Explorer application, focusing on locations, their opening hours, announcements, and associated images. A flat collection for `locations` is created with subcollections for `announcements` and `images`, and a related collection for `openingHours`. This approach enables efficient querying and management of location-specific data.  Authorization Independence is achieved by denormalizing admin role information. An `admins` collection is used. The existence of a document in this collection indicates admin privileges for that user. The rule checks for document existence in the `/admins/{userId}` collection. This structure supports the required QAPs (Rules Are Not Filters) because the rules can efficiently check user roles against specific document paths without needing to filter data based on content."
   }
 }
