@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle } from 'lucide-react';
+import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle, Trash2 } from 'lucide-react';
 import { auth, storage, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -25,8 +25,19 @@ import {
   SheetFooter,
   SheetClose,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import { doc, setDoc, collection, getDocs, updateDoc, addDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
@@ -175,12 +186,14 @@ function AddLocationSheet({
 function EditLocationSheet({
   location,
   onSave,
+  onDelete,
   isOpen,
   onOpenChange,
   onEnterRepositionMode,
 }: {
   location: Location | null;
   onSave: (updatedLocation: Location) => void;
+  onDelete: (locationId: string, locationName: string) => void;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onEnterRepositionMode: () => void;
@@ -198,7 +211,7 @@ function EditLocationSheet({
     setIsUploading(false);
   }, [location]);
 
-  if (!formData) return null;
+  if (!formData || !location) return null;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -284,6 +297,12 @@ function EditLocationSheet({
         onOpenChange(false);
     }
   };
+
+  const handleDelete = () => {
+    if (!location) return;
+    onDelete(location.id, location.name);
+    onOpenChange(false);
+  }
   
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -344,14 +363,39 @@ function EditLocationSheet({
                 Editing opening hours is not available in this demo.
             </p>
         </div>
-        <SheetFooter>
-          <SheetClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </SheetClose>
-          <Button onClick={handleSave} disabled={isSaving || isUploading}>
-            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
-          </Button>
+        <SheetFooter className="justify-between">
+           <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">
+                <Trash2 className="mr-2 h-4 w-4" /> Delete Location
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the
+                  <span className="font-bold"> {location.name} </span>
+                  location from the database.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>
+                  Yes, delete it
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <div className="flex gap-2">
+            <SheetClose asChild>
+                <Button variant="outline">Cancel</Button>
+            </SheetClose>
+            <Button onClick={handleSave} disabled={isSaving || isUploading}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Changes
+            </Button>
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>
@@ -422,14 +466,32 @@ export default function EditMapPage() {
   
   const handleAddNewLocation = async (newLocationData: Omit<Location, 'id'>) => {
     try {
-        const docRef = doc(collection(db, 'locations'));
+        const docRef = await addDoc(collection(db, 'locations'), newLocationData);
         const newLocationWithId = { id: docRef.id, ...newLocationData };
-        await setDoc(docRef, newLocationData);
         setLocations(prev => [...prev, newLocationWithId]);
         setSelectedLocation(newLocationWithId);
     } catch (error) {
         console.error("Error adding new location: ", error);
         throw error;
+    }
+  };
+  
+  const handleDeleteLocation = async (locationId: string, locationName: string) => {
+    try {
+        await deleteDoc(doc(db, "locations", locationId));
+        setLocations(prev => prev.filter(loc => loc.id !== locationId));
+        setSelectedLocation(null);
+        toast({
+            title: "Location Deleted",
+            description: `${locationName} has been successfully deleted.`,
+        });
+    } catch (error) {
+        console.error("Error deleting location: ", error);
+        toast({
+            title: "Delete Failed",
+            description: `Could not delete ${locationName}. Please try again.`,
+            variant: "destructive",
+        });
     }
   };
 
@@ -638,6 +700,7 @@ export default function EditMapPage() {
         <EditLocationSheet
             location={selectedLocation}
             onSave={handleSaveLocation}
+            onDelete={handleDeleteLocation}
             isOpen={isSheetOpen}
             onOpenChange={setIsSheetOpen}
             onEnterRepositionMode={enterRepositionMode}
@@ -653,7 +716,3 @@ export default function EditMapPage() {
     </SidebarProvider>
   );
 }
-
-    
-
-    

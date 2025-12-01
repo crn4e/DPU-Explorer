@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { locations as initialLocations } from '@/lib/data';
 import type { Location } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
@@ -16,23 +15,22 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Map } from 'lucide-react';
+import { Loader2, User, Map, Trash2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, deleteDoc } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Tooltip,
@@ -48,129 +46,20 @@ interface AdminUser {
     email: string;
 }
 
-function EditLocationForm({
-  location,
-  onSave,
-}: {
-  location: Location;
-  onSave: (updatedLocation: Location) => void;
-}) {
-  const [formData, setFormData] = useState(location);
-  const [isSaving, setIsSaving] = useState(false);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ ...prev, [id]: value }));
-  };
-  
-  const handlePositionChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { id, value } = e.target;
-    setFormData((prev) => ({ 
-        ...prev, 
-        mapPosition: { 
-            ...prev.mapPosition, 
-            [id]: Number(value) 
-        } 
-    }));
-  };
-
-  const handleSave = () => {
-    setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      onSave(formData);
-      setIsSaving(false);
-    }, 1000);
-  };
-
-  return (
-    <DialogContent className="sm:max-w-[625px]">
-      <DialogHeader>
-        <DialogTitle>Edit: {location.name}</DialogTitle>
-      </DialogHeader>
-      <div className="grid max-h-[70vh] gap-4 overflow-y-auto p-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="name" className="text-right">
-            Name
-          </Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-start gap-4">
-          <Label htmlFor="description" className="pt-2 text-right">
-            Description
-          </Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={handleChange}
-            className="col-span-3"
-            rows={4}
-          />
-        </div>
-        <div className="grid grid-cols-4 items-start gap-4">
-          <Label htmlFor="announcement" className="pt-2 text-right">
-            Announcement
-          </Label>
-          <Textarea
-            id="announcement"
-            value={formData.announcement || ''}
-            onChange={handleChange}
-            className="col-span-3"
-            rows={2}
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Map Position</Label>
-            <div className="col-span-3 grid grid-cols-2 gap-2">
-                 <div className='flex items-center gap-2'>
-                    <Label htmlFor="x" className="text-sm">X:</Label>
-                    <Input id="x" type="number" value={formData.mapPosition.x} onChange={handlePositionChange} />
-                 </div>
-                 <div className='flex items-center gap-2'>
-                    <Label htmlFor="y" className="text-sm">Y:</Label>
-                    <Input id="y" type="number" value={formData.mapPosition.y} onChange={handlePositionChange} />
-                 </div>
-            </div>
-        </div>
-        <p className="text-center text-sm text-muted-foreground">
-          Editing opening hours is not available in this demo.
-        </p>
-      </div>
-      <DialogFooter>
-        <DialogClose asChild>
-          <Button variant="outline">Cancel</Button>
-        </DialogClose>
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Changes
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  );
-}
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [locations, setLocations] = useState(initialLocations);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const router = useRouter();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
         if (user && sessionStorage.getItem('dpu-admin-auth') === 'true') {
             setIsAuthenticated(true);
 
-            // Fetch admin details from Firestore
             const adminDocRef = doc(db, 'admins', user.uid);
             const adminDocSnap = await getDoc(adminDocRef);
 
@@ -198,17 +87,46 @@ export default function AdminPage() {
     return () => unsubscribe();
   }, [router]);
 
-  const handleSaveLocation = (updatedLocation: Location) => {
-    setLocations((prevLocations) =>
-      prevLocations.map((loc) =>
-        loc.id === updatedLocation.id ? updatedLocation : loc
-      )
-    );
-    toast({
-      title: 'Location Updated',
-      description: `${updatedLocation.name} has been saved successfully.`,
-    });
-    document.querySelector<HTMLElement>('[data-radix-dialog-content]')?.parentElement?.querySelector('button')?.click();
+  useEffect(() => {
+    const fetchLocations = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'locations'));
+        const locationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
+        setLocations(locationsData);
+      } catch (error) {
+        console.error("Error fetching locations: ", error);
+        toast({
+            title: "Error fetching locations",
+            description: "Could not fetch locations from the database.",
+            variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchLocations();
+    }
+  }, [isAuthenticated, toast]);
+  
+  const handleDeleteLocation = async (locationId: string, locationName: string) => {
+    try {
+        await deleteDoc(doc(db, "locations", locationId));
+        setLocations(prevLocations => prevLocations.filter(loc => loc.id !== locationId));
+        toast({
+            title: "Location Deleted",
+            description: `${locationName} has been successfully deleted.`,
+        });
+    } catch (error) {
+        console.error("Error deleting location: ", error);
+        toast({
+            title: "Delete Failed",
+            description: `Could not delete ${locationName}. Please try again.`,
+            variant: "destructive",
+        });
+    }
   };
   
   const handleLogout = async () => {
@@ -230,7 +148,7 @@ export default function AdminPage() {
     }
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -293,7 +211,7 @@ export default function AdminPage() {
             <CardHeader>
               <CardTitle>Manage Locations</CardTitle>
               <CardDescription>
-                Click "Edit" to update location details. Changes are saved for the current session.
+                View, edit, or delete campus locations. Changes are saved directly to the database.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -310,18 +228,36 @@ export default function AdminPage() {
                     <TableRow key={location.id}>
                       <TableCell className="font-medium">{location.name}</TableCell>
                       <TableCell>{location.category}</TableCell>
-                      <TableCell className="text-right">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              Edit
+                      <TableCell className="text-right space-x-2">
+                        <Button variant="ghost" size="sm" asChild>
+                            <Link href="/admin/edit-map">
+                                Edit
+                            </Link>
+                        </Button>
+                         <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive-outline" size="sm">
+                                <Trash2 className="mr-2 h-4 w-4"/>
+                                Delete
                             </Button>
-                          </DialogTrigger>
-                          <EditLocationForm
-                            location={location}
-                            onSave={handleSaveLocation}
-                          />
-                        </Dialog>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the
+                                <span className="font-bold"> {location.name} </span> 
+                                location.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteLocation(location.id, location.name)}>
+                                Continue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}
