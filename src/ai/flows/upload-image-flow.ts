@@ -11,6 +11,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
+import { app } from '@/lib/firebase'; // Import the initialized app
 
 const UploadImageInputSchema = z.object({
   fileName: z.string().describe('The name of the file to upload.'),
@@ -34,7 +35,7 @@ const uploadImageFlow = ai.defineFlow(
     outputSchema: UploadImageOutputSchema,
   },
   async ({ fileName, dataUri }) => {
-    const storage = getStorage();
+    const storage = getStorage(app); // Pass the initialized app to getStorage
     const storageRef = ref(storage, `locations/${Date.now()}_${fileName}`);
     
     // Extract MIME type and base64 data from data URI
