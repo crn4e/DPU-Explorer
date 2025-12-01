@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle, Trash2 } from 'lucide-react';
-import { auth, storage, db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
 import LocationCard from '@/components/location-card';
@@ -36,7 +36,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -48,6 +47,8 @@ import {
   SidebarFooter,
   SidebarInset,
 } from '@/components/ui/sidebar';
+import { uploadImage } from '@/ai/flows/upload-image-flow';
+
 
 const categories: (LocationCategory | 'All')[] = [
   'All',
@@ -241,31 +242,41 @@ function EditLocationSheet({
     if (!file) return;
 
     setIsUploading(true);
-    setUploadProgress(50); // Indicate start
+    setUploadProgress(0);
 
-    const storageRef = ref(storage, `locations/${formData.id}/${file.name}`);
-
-    try {
-        // Use uploadBytes for simpler, non-resumable uploads which can be more stable
-        const snapshot = await uploadBytes(storageRef, file, { contentType: file.type });
-        const downloadURL = await getDownloadURL(snapshot.ref);
-
-        setFormData((prev) => prev ? ({ ...prev, image: downloadURL }) : null);
-        setUploadProgress(100);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+        const dataUri = reader.result as string;
+        setUploadProgress(50);
+        try {
+            const result = await uploadImage({ fileName: file.name, dataUri });
+            setFormData((prev) => prev ? ({ ...prev, image: result.downloadUrl }) : null);
+            setUploadProgress(100);
+            toast({
+                title: "Upload Successful",
+                description: "New image is ready to be saved.",
+            });
+        } catch (error) {
+            console.error("Upload failed:", error);
+            toast({
+                title: "Upload Failed",
+                description: "Could not upload image. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+    reader.onerror = (error) => {
+        console.error("File reading error:", error);
         toast({
-            title: "Upload Successful",
-            description: "New image is ready to be saved.",
-        });
-    } catch (error) {
-        console.error("Upload failed:", error);
-        toast({
-            title: "Upload Failed",
-            description: "Could not upload image. Please check permissions and try again.",
+            title: "File Error",
+            description: "Could not read the selected file.",
             variant: "destructive",
         });
-    } finally {
         setIsUploading(false);
-    }
+    };
 };
 
   const handleSave = async () => {
@@ -315,7 +326,7 @@ function EditLocationSheet({
                         Uploading...
                     </Button>
                     <Progress value={uploadProgress} className="w-full" />
-                    <p className="text-xs text-muted-foreground">{uploadProgress === 100 ? 'Finalizing...' : 'Uploading...'}</p>
+                    <p className="text-xs text-muted-foreground">{uploadProgress === 100 ? 'Finalizing...' : `Uploading... ${uploadProgress}%`}</p>
                   </div>
                 ) : (
                   <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
