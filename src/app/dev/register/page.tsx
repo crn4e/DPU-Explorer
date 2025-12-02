@@ -21,6 +21,8 @@ import { auth, db, app } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function DevRegisterPage() {
   const router = useRouter();
@@ -68,18 +70,31 @@ export default function DevRegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
       const newUser = userCredential.user;
 
-      await setDoc(doc(db, "admins", newUser.uid), {
+      const devData = {
         id: id,
         name: name,
         surname: surname,
         email: email,
-      });
+      };
       
-      toast({
-        title: 'Dev Created',
-        description: 'The new dev account has been created successfully.',
-      });
-      router.push('/dev');
+      const docRef = doc(db, "admins", newUser.uid);
+
+      setDoc(docRef, devData)
+        .then(() => {
+          toast({
+            title: 'Dev Created',
+            description: 'The new dev account has been created successfully.',
+          });
+          router.push('/dev');
+        })
+        .catch((error) => {
+            const permissionError = new FirestorePermissionError({
+              path: docRef.path,
+              operation: 'create',
+              requestResourceData: devData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
 
     } catch (error: any) {
       let errorMessage = 'An unexpected error occurred.';
@@ -92,7 +107,7 @@ export default function DevRegisterPage() {
       } else {
         errorMessage = error.message || 'Could not create the dev account.';
       }
-      console.error('Firebase Registration Error:', error);
+      
       toast({
         title: 'Creation Failed',
         description: errorMessage,

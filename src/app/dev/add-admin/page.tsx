@@ -21,6 +21,8 @@ import { auth, db, app } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 export default function AddAdminPage() {
@@ -70,18 +72,31 @@ export default function AddAdminPage() {
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         const newUser = userCredential.user;
 
-        await setDoc(doc(db, "announcementAdmins", newUser.uid), {
-            id: id,
-            name: name,
-            surname: surname,
-            email: email
-        });
+        const adminData = {
+          id: id,
+          name: name,
+          surname: surname,
+          email: email
+        };
         
-        toast({
-            title: 'Admin Created',
-            description: 'The announcement admin account has been created successfully.',
-        });
-        router.push('/dev');
+        const docRef = doc(db, "announcementAdmins", newUser.uid);
+
+        setDoc(docRef, adminData)
+          .then(() => {
+              toast({
+                  title: 'Admin Created',
+                  description: 'The announcement admin account has been created successfully.',
+              });
+              router.push('/dev');
+          })
+          .catch((error) => {
+            const permissionError = new FirestorePermissionError({
+              path: docRef.path,
+              operation: 'create',
+              requestResourceData: adminData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+          });
 
     } catch (error: any) {
         let errorMessage = 'An unexpected error occurred.';
@@ -94,7 +109,7 @@ export default function AddAdminPage() {
         } else {
             errorMessage = error.message || 'Could not create the admin account.';
         }
-        console.error('Firebase Registration Error:', error);
+        
         toast({
             title: 'Creation Failed',
             description: errorMessage,
