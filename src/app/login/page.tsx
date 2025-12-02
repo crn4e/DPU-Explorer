@@ -21,8 +21,7 @@ import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
-
-export default function AdminLoginPage() {
+export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,25 +36,40 @@ export default function AdminLoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Check for Dev role
+      const devDocRef = doc(db, 'admins', user.uid);
+      const devDocSnap = await getDoc(devDocRef);
+      if (devDocSnap.exists()) {
+        sessionStorage.setItem('dpu-admin-auth', 'true'); // Keep session for dev
+        toast({
+          title: 'Login Successful',
+          description: 'Welcome back, Dev!',
+        });
+        router.push('/dev');
+        return;
+      }
+
+      // Check for Announcement Admin role
       const adminDocRef = doc(db, 'announcementAdmins', user.uid);
       const adminDocSnap = await getDoc(adminDocRef);
-
       if (adminDocSnap.exists()) {
-          sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
-          toast({
-            title: 'Login Successful',
-            description: 'Welcome back, Admin!',
-          });
-          router.push('/admin');
-      } else {
-        await auth.signOut();
+        sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
         toast({
-          title: 'Access Denied',
-          description: 'You do not have permission to access this admin dashboard.',
-          variant: 'destructive',
+          title: 'Login Successful',
+          description: 'Welcome back, Admin!',
         });
-        setIsLoading(false);
+        router.push('/admin');
+        return;
       }
+      
+      // Default to Student role
+      sessionStorage.setItem('dpu-student-auth', 'true');
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      });
+      router.push('/'); 
+
     } catch (error: any) {
       let errorMessage = 'An unexpected error occurred.';
       if (error.code) {
@@ -78,7 +92,8 @@ export default function AdminLoginPage() {
         description: errorMessage,
         variant: 'destructive',
       });
-      setIsLoading(false);
+    } finally {
+        setIsLoading(false);
     }
   };
 
@@ -90,7 +105,6 @@ export default function AdminLoginPage() {
           Back to Home
         </Link>
       </Button>
-      
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
             <div className="flex justify-center items-center gap-3 mb-2">
@@ -101,9 +115,9 @@ export default function AdminLoginPage() {
                     height={40}
                     className="h-10 w-10 rounded-full object-cover"
                 />
-                <CardTitle className="font-headline text-2xl">Admin Login</CardTitle>
+                <CardTitle className="font-headline text-2xl">Login</CardTitle>
             </div>
-          <CardDescription>Announcement Management</CardDescription>
+          <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
@@ -135,6 +149,11 @@ export default function AdminLoginPage() {
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
+            </Button>
+            <Button variant="link" size="sm" asChild>
+                <Link href="/register">
+                    Don't have an account? Register
+                </Link>
             </Button>
           </CardFooter>
         </form>

@@ -110,10 +110,10 @@ export default function Home() {
                     <DropdownMenuLabel>Student Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/student/login">Login</Link>
+                      <Link href="/login">Login</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href="/student/register">Register</Link>
+                      <Link href="/register">Register</Link>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
              </DropdownMenu>
@@ -154,18 +154,6 @@ export default function Home() {
           <div className="flex flex-col gap-2 p-2">
             <AiTourGuide />
             <AiChat />
-            <Button variant="outline" asChild>
-              <Link href="/admin/login">
-                <KeyRound className="mr-2 h-4 w-4" />
-                Admin Login
-              </Link>
-            </Button>
-            <Button variant="ghost" asChild>
-              <Link href="/dev/login">
-                <Wrench className="mr-2 h-4 w-4" />
-                Dev Login
-              </Link>
-            </Button>
           </div>
         </SidebarFooter>
       </Sidebar>

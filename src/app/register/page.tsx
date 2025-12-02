@@ -22,7 +22,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
 
-export default function StudentRegisterPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +54,7 @@ export default function StudentRegisterPage() {
             title: 'Registration Successful',
             description: 'Your account has been created.',
         });
-        router.push('/student/login');
+        router.push('/login');
 
     } catch (error: any) {
         let errorMessage = 'An unexpected error occurred.';
@@ -102,7 +102,7 @@ export default function StudentRegisterPage() {
                             height={40}
                             className="h-10 w-10 rounded-full object-cover"
                         />
-                        <CardTitle className="font-headline text-2xl">Student Registration</CardTitle>
+                        <CardTitle className="font-headline text-2xl">Create Account</CardTitle>
                     </div>
                 <CardDescription>Create a new student account.</CardDescription>
                 </CardHeader>
@@ -142,7 +142,7 @@ export default function StudentRegisterPage() {
                     Register
                     </Button>
                     <Button variant="link" size="sm" asChild disabled={isLoading}>
-                        <Link href="/student/login">
+                        <Link href="/login">
                             Already have an account? Login
                         </Link>
                     </Button>
