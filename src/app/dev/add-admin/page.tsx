@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, app } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 
 export default function AddAdminPage() {
@@ -26,6 +28,7 @@ export default function AddAdminPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
@@ -34,11 +37,11 @@ export default function AddAdminPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    if (!email || !id || !name || !surname) {
+    
+    if (password.length < 6) {
       toast({
-        title: 'Missing Fields',
-        description: 'Please fill out all fields.',
+        title: 'Registration Failed',
+        description: 'Password must be at least 6 characters.',
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -51,11 +54,16 @@ export default function AddAdminPage() {
             throw new Error("No dev is currently signed in.");
         }
 
-        // We are NOT creating an auth user here.
-        // We are just creating the user's record in Firestore.
-        // The user will need to be created in Firebase Auth console manually for now.
-        // Using email as the document ID for easy lookup.
-        await setDoc(doc(db, "announcementAdmins", email), {
+        // Create a temporary secondary app instance to create the new user
+        const secondaryApp = initializeApp(app.options, 'secondary-app-for-admin-creation' + Date.now()); // Unique name
+        const secondaryAuth = getAuth(secondaryApp);
+
+        // 1. Create user in Firebase Authentication using the secondary instance
+        const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+        const newUser = userCredential.user;
+
+        // 2. Save additional user info to Firestore 'announcementAdmins' collection
+        await setDoc(doc(db, "announcementAdmins", newUser.uid), {
             id: id,
             name: name,
             surname: surname,
@@ -63,16 +71,32 @@ export default function AddAdminPage() {
         });
         
         toast({
-            title: 'Admin Record Created',
-            description: 'The announcement admin record has been created in Firestore.',
+            title: 'Admin Created',
+            description: 'The announcement admin account has been created successfully.',
         });
         router.push('/dev');
 
     } catch (error: any) {
-        console.error('Firestore Error:', error);
+        let errorMessage = 'An unexpected error occurred.';
+        if (error.code) {
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              errorMessage = 'This email is already in use by another account.';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'The email address is not valid.';
+              break;
+            case 'auth/weak-password':
+              errorMessage = 'Password must be at least 6 characters.';
+              break;
+            default:
+              errorMessage = error.message || 'Could not create the admin account.';
+          }
+        }
+        console.error('Firebase Registration Error:', error);
         toast({
             title: 'Creation Failed',
-            description: error.message || 'Could not create the admin record.',
+            description: errorMessage,
             variant: 'destructive',
         });
     } finally {
@@ -101,7 +125,7 @@ export default function AddAdminPage() {
                         />
                         <CardTitle className="font-headline text-2xl">Create Announcement Admin</CardTitle>
                     </div>
-                <CardDescription>Create an admin record with permissions to edit announcements.</CardDescription>
+                <CardDescription>Create an admin account with permissions to edit announcements.</CardDescription>
                 </CardHeader>
                 <form onSubmit={handleRegister}>
                 <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -129,11 +153,15 @@ export default function AddAdminPage() {
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor="password">Password</Label>
+                      <Input id="password" type="password" placeholder="Min. 6 characters" required disabled={isLoading} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
                     <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Admin Record
+                    Create Admin Account
                     </Button>
                 </CardFooter>
                 </form>
