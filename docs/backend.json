@@ -175,13 +175,51 @@
       "title": "Admin",
       "type": "object",
       "description": "Represents a user with full developer privileges.",
-      "properties": {}
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Admin's unique ID number."
+        },
+        "name": {
+          "type": "string",
+          "description": "Admin's first name."
+        },
+        "surname": {
+          "type": "string",
+          "description": "Admin's last name."
+        },
+        "email": {
+          "type": "string",
+          "description": "Admin's email address.",
+          "format": "email"
+        }
+      },
+      "required": ["id", "name", "surname", "email"]
     },
     "AnnouncementAdmin": {
       "title": "Announcement Admin",
       "type": "object",
       "description": "Represents a user with privileges to manage announcements.",
-      "properties": {}
+      "properties": {
+         "id": {
+          "type": "string",
+          "description": "Admin's unique ID number."
+        },
+        "name": {
+          "type": "string",
+          "description": "Admin's first name."
+        },
+        "surname": {
+          "type": "string",
+          "description": "Admin's last name."
+        },
+        "email": {
+          "type": "string",
+          "description": "Admin's email address.",
+          "format": "email"
+        }
+      },
+      "required": ["id", "name", "surname", "email"]
     }
   },
   "auth": {

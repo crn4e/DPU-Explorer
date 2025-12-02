@@ -15,7 +15,7 @@
  *   - Developers (`isAdmin()`): Have full CUD (Create, Update, Delete) access to all data.
  *   - Announcement Admins (`isAnnouncementAdmin()`): Can only update the `announcement` field
  *     on existing `locations` documents. They cannot create, delete, or modify other fields.
- * - Role List Protection: The lists of administrators are not publicly readable.
+ * - Role List Protection: The lists of administrators are not publicly readable, except by other admins.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -35,44 +35,38 @@ service cloud.firestore {
     }
 
     match /locations/{locationId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isAdmin();
-      // Allow full update/delete for Devs
-      allow update, delete: if isAdmin();
+      allow get, list: if true;
+      allow create, delete: if isAdmin();
+      // Allow full update for Devs
+      allow update: if isAdmin();
       // Allow specific field update for Announcement Admins
       allow update: if isAnnouncementAdmin()
-                    && request.resource.data.keys().hasOnly(['announcement'])
-                    && request.resource.data.name == resource.data.name; // Cannot change name
+                    && request.resource.data.keys().hasOnly(['announcement']);
     }
 
     match /locations/{locationId}/announcements/{announcementId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
 
     match /locations/{locationId}/images/{imageId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
 
     match /openingHours/{openingHoursId} {
-      allow get: if true;
-      allow list: if true;
+      allow get, list: if true;
       allow create, update, delete: if isAdmin();
     }
     
+    // Admins can manage the list of other admins
     match /admins/{userId} {
       allow read, write: if isAdmin();
     }
     
+    // Admins can manage the list of announcement admins
     match /announcementAdmins/{userId} {
-      allow read: if isAdmin() || (isAnnouncementAdmin() && request.auth.uid == userId);
-      allow write: if isAdmin();
+      allow read, write: if isAdmin();
     }
   }
 }

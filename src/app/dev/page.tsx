@@ -173,7 +173,7 @@ export default function DevPage() {
               />
             <h1 className="font-headline text-3xl font-bold">Dev Dashboard</h1>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
               {adminUser ? (
                   <div className="text-right">
                       <p className="font-semibold">{`${adminUser.name} ${adminUser.surname}`}</p>
@@ -192,10 +192,10 @@ export default function DevPage() {
               </Avatar>
                <Tooltip>
                 <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" asChild>
+                    <Button variant="outline" asChild>
                         <Link href="/dev/register">
-                            <UserPlus className="h-5 w-5" />
-                            <span className="sr-only">Add New Dev</span>
+                            <UserPlus className="h-4 w-4 md:mr-2" />
+                            <span className="hidden md:inline">Add Dev</span>
                         </Link>
                     </Button>
                 </TooltipTrigger>
@@ -203,12 +203,25 @@ export default function DevPage() {
                     <p>Add New Dev</p>
                 </TooltipContent>
               </Tooltip>
+               <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="outline" asChild>
+                        <Link href="/dev/add-admin">
+                            <UserPlus className="h-4 w-4 md:mr-2" />
+                             <span className="hidden md:inline">Add Admin</span>
+                        </Link>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>Add Announcement Admin</p>
+                </TooltipContent>
+              </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" asChild>
+                  <Button variant="outline" asChild>
                     <Link href="/dev/edit-map">
-                      <Map className="h-5 w-5" />
-                      <span className="sr-only">Switch to Edit Map</span>
+                      <Map className="h-4 w-4 md:mr-2" />
+                      <span className="hidden md:inline">Edit Map</span>
                     </Link>
                   </Button>
                 </TooltipTrigger>
