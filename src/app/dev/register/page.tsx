@@ -53,7 +53,8 @@ export default function DevRegisterPage() {
       }
 
       // Create a temporary secondary app instance to create the new user
-      const secondaryApp = initializeApp(app.options, 'secondary-app-for-user-creation');
+      const secondaryAppName = 'secondary-app-for-dev-creation-' + Date.now();
+      const secondaryApp = initializeApp(app.options, secondaryAppName);
       const secondaryAuth = getAuth(secondaryApp);
 
       // 1. Create user in Firebase Authentication using the secondary instance

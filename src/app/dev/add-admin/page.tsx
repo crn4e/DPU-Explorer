@@ -55,7 +55,8 @@ export default function AddAdminPage() {
         }
 
         // Create a temporary secondary app instance to create the new user
-        const secondaryApp = initializeApp(app.options, 'secondary-app-for-admin-creation' + Date.now()); // Unique name
+        const secondaryAppName = 'secondary-app-for-admin-creation-' + Date.now();
+        const secondaryApp = initializeApp(app.options, secondaryAppName);
         const secondaryAuth = getAuth(secondaryApp);
 
         // 1. Create user in Firebase Authentication using the secondary instance
