@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -33,16 +33,22 @@ export default function RegisterPage() {
   const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const validatePassword = (password: string) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+    return regex.test(password);
+  };
 
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (password.length < 6) {
+    if (!validatePassword(password)) {
         toast({
             title: 'Registration Failed',
-            description: 'Password must be at least 6 characters.',
+            description: 'Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.',
             variant: 'destructive',
         });
         setIsLoading(false);
@@ -95,7 +101,7 @@ export default function RegisterPage() {
               errorMessage = 'The email address is not valid.';
               break;
             case 'auth/weak-password':
-              errorMessage = 'Password must be at least 6 characters.';
+              errorMessage = 'Password is too weak. Please choose a stronger password.';
               break;
             default:
               errorMessage = 'An error occurred during authentication.';
@@ -160,9 +166,26 @@ export default function RegisterPage() {
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required disabled={isLoading} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <div className="space-y-2 sm:col-span-2 relative">
+                        <Label htmlFor="password">Password</Label>
+                        <Input 
+                            id="password" 
+                            type={showPassword ? 'text' : 'password'} 
+                            required 
+                            disabled={isLoading} 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="pr-10"
+                        />
+                        <Button 
+                            type="button"
+                            variant="ghost" 
+                            size="icon"
+                            className="absolute right-1 top-6 h-7 w-7 text-muted-foreground"
+                            onClick={() => setShowPassword(!showPassword)}
+                        >
+                            {showPassword ? <EyeOff /> : <Eye />}
+                        </Button>
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">

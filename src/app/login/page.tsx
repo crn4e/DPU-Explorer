@@ -16,10 +16,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,30 +39,41 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      const devDocRef = doc(db, 'admins', user.uid);
-      const devDocSnap = await getDoc(devDocRef);
+      try {
+        const devDocRef = doc(db, 'admins', user.uid);
+        const devDocSnap = await getDoc(devDocRef);
 
-      const adminDocRef = doc(db, 'announcementAdmins', user.uid);
-      const adminDocSnap = await getDoc(adminDocRef);
+        const adminDocRef = doc(db, 'announcementAdmins', user.uid);
+        const adminDocSnap = await getDoc(adminDocRef);
 
-      if (devDocSnap.exists()) {
-        sessionStorage.setItem('dpu-admin-auth', 'true');
-        toast({
-          title: 'Login Successful',
-          description: 'Welcome back, Dev!',
-        });
-        router.push('/dev');
-        return;
-      }
-      
-      if (adminDocSnap.exists()) {
-        sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
-        toast({
-          title: 'Login Successful',
-          description: 'Welcome back, Admin!',
-        });
-        router.push('/admin');
-        return;
+        if (devDocSnap.exists()) {
+          sessionStorage.setItem('dpu-admin-auth', 'true');
+          toast({
+            title: 'Login Successful',
+            description: 'Welcome back, Dev!',
+          });
+          router.push('/dev');
+          return;
+        }
+        
+        if (adminDocSnap.exists()) {
+          sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
+          toast({
+            title: 'Login Successful',
+            description: 'Welcome back, Admin!',
+          });
+          router.push('/admin');
+          return;
+        }
+      } catch (firestoreError) {
+          // This is likely a permission error. We will emit it for debugging.
+          const permissionError = new FirestorePermissionError({
+            path: `admins/${user.uid} or announcementAdmins/${user.uid}`,
+            operation: 'get',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          // Fallback to student login, but show a warning in console
+          console.warn("Permission error checking admin status. Defaulting to student role.", firestoreError);
       }
       
       sessionStorage.setItem('dpu-student-auth', 'true');
@@ -132,16 +146,26 @@ export default function LoginPage() {
                 disabled={isLoading}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 relative">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
+                className="pr-10"
               />
+              <Button 
+                type="button"
+                variant="ghost" 
+                size="icon"
+                className="absolute right-1 top-6 h-7 w-7 text-muted-foreground"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff /> : <Eye />}
+              </Button>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">

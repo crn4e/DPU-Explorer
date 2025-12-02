@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { auth, db, app } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { initializeApp, deleteApp } from 'firebase/app';
@@ -34,16 +34,21 @@ export default function AddAdminPage() {
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
+  const validatePassword = (password: string) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+    return regex.test(password);
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    if (password.length < 6) {
+    if (!validatePassword(password)) {
       toast({
         title: 'Creation Failed',
-        description: 'Password must be at least 6 characters.',
+        description: 'Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.',
         variant: 'destructive',
       });
       setIsLoading(false);
@@ -83,14 +88,15 @@ export default function AddAdminPage() {
         
         const docRef = doc(db, "announcementAdmins", newUser.uid);
 
-        // Use .catch() for non-blocking error handling as per instructions
-        setDoc(docRef, adminData).then(() => {
+        setDoc(docRef, adminData)
+        .then(() => {
           toast({
             title: 'Admin Created',
             description: 'The announcement admin account has been created successfully.',
           });
           router.push('/dev');
-        }).catch((error) => {
+        })
+        .catch((error) => {
           console.error('Firestore setDoc error:', error);
            const permissionError = new FirestorePermissionError({
               path: docRef.path,
@@ -117,7 +123,7 @@ export default function AddAdminPage() {
               errorMessage = 'The email address is not valid.';
               break;
             case 'auth/weak-password':
-              errorMessage = 'Password must be at least 6 characters.';
+              errorMessage = 'Password is too weak. Please choose a stronger password.';
               break;
             default:
               errorMessage = error.message || 'Could not create the admin account.';
@@ -190,9 +196,27 @@ export default function AddAdminPage() {
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
-                      <Label htmlFor="password">Password</Label>
-                      <Input id="password" type="password" placeholder="Min. 6 characters" required disabled={isLoading} value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <div className="space-y-2 sm:col-span-2 relative">
+                        <Label htmlFor="password">Password</Label>
+                        <Input 
+                            id="password" 
+                            type={showPassword ? 'text' : 'password'} 
+                            placeholder="Min. 8 characters" 
+                            required 
+                            disabled={isLoading} 
+                            value={password} 
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="pr-10"
+                        />
+                         <Button 
+                            type="button"
+                            variant="ghost" 
+                            size="icon"
+                            className="absolute right-1 top-6 h-7 w-7 text-muted-foreground"
+                            onClick={() => setShowPassword(!showPassword)}
+                        >
+                            {showPassword ? <EyeOff /> : <Eye />}
+                        </Button>
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
