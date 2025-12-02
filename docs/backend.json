@@ -33,6 +33,10 @@
         "openingHoursId": {
           "type": "string",
           "description": "Reference to OpeningHours. (Relationship: Location 1:1 OpeningHours)"
+        },
+        "announcement": {
+          "type": "string",
+          "description": "An optional announcement for the location."
         }
       },
       "required": [
@@ -166,6 +170,18 @@
         "url",
         "altText"
       ]
+    },
+    "Admin": {
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents a user with full developer privileges.",
+      "properties": {}
+    },
+    "AnnouncementAdmin": {
+      "title": "Announcement Admin",
+      "type": "object",
+      "description": "Represents a user with privileges to manage announcements.",
+      "properties": {}
     }
   },
   "auth": {
@@ -251,11 +267,11 @@
       {
         "path": "/admins/{userId}",
         "definition": {
-          "entityName": "admin",
+          "entityName": "Admin",
           "schema": {
-            "$ref": "#/backend/entities/admin"
+            "$ref": "#/backend/entities/Admin"
           },
-          "description": "Marks a user as an admin. Existence of a document indicates admin privileges.",
+          "description": "Marks a user as a dev/admin. Existence of a document indicates dev privileges.",
           "params": [
             {
               "name": "userId",
@@ -263,8 +279,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/announcementAdmins/{userId}",
+        "definition": {
+            "entityName": "AnnouncementAdmin",
+            "schema": {
+                "$ref": "#/backend/entities/AnnouncementAdmin"
+            },
+            "description": "Marks a user as an announcement admin. Existence indicates announcement editing privileges.",
+            "params": [
+                {
+                    "name": "userId",
+                    "description": "Unique identifier for the user."
+                }
+            ]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the DPU Explorer application, focusing on locations, their opening hours, announcements, and associated images. A flat collection for `locations` is created with subcollections for `announcements` and `images`, and a related collection for `openingHours`. This approach enables efficient querying and management of location-specific data.  Authorization Independence is achieved by denormalizing admin role information. An `admins` collection is used. The existence of a document in this collection indicates admin privileges for that user. The rule checks for document existence in the `/admins/{userId}` collection. This structure supports the required QAPs (Rules Are Not Filters) because the rules can efficiently check user roles against specific document paths without needing to filter data based on content."
+    "reasoning": "The Firestore data structure is designed to support the DPU Explorer application, focusing on locations, their opening hours, announcements, and associated images. A flat collection for `locations` is created with subcollections for `announcements` and `images`, and a related collection for `openingHours`. This approach enables efficient querying and management of location-specific data. Authorization is achieved by denormalizing role information. `admins` and `announcementAdmins` collections are used. The existence of a document in these collections indicates specific privileges for that user. This structure supports the required QAPs (Rules Are Not Filters) because the rules can efficiently check user roles against specific document paths without needing to filter data based on content."
   }
 }

@@ -17,7 +17,7 @@ import LocationList from '@/components/location-list';
 import MapView from '@/components/map-view';
 import AiTourGuide from '@/components/ai-tour-guide';
 import type { Location, LocationCategory } from '@/lib/types';
-import { KeyRound, User, Loader2 } from 'lucide-react';
+import { KeyRound, User, Loader2, Wrench } from 'lucide-react';
 import AppHeader from '@/components/header';
 import AiChat from '@/components/ai-chat';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -154,10 +154,16 @@ export default function Home() {
           <div className="flex flex-col gap-2 p-2">
             <AiTourGuide />
             <AiChat />
-            <Button variant="ghost" asChild>
+            <Button variant="outline" asChild>
               <Link href="/admin/login">
                 <KeyRound className="mr-2 h-4 w-4" />
                 Admin Login
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild>
+              <Link href="/dev/login">
+                <Wrench className="mr-2 h-4 w-4" />
+                Dev Login
               </Link>
             </Button>
           </div>

@@ -26,11 +26,11 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Edit } from 'lucide-react';
+import { Loader2, User, Map, Trash2, UserPlus } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, getDocs, collection } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, deleteDoc } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   Tooltip,
@@ -47,7 +47,7 @@ interface AdminUser {
 }
 
 
-export default function AdminPage() {
+export default function DevPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [locations, setLocations] = useState<Location[]>([]);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
@@ -57,13 +57,12 @@ export default function AdminPage() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
-        if (user) {
-             const adminDocRef = doc(db, 'announcementAdmins', user.uid);
-             const adminDocSnap = await getDoc(adminDocRef);
+        if (user && sessionStorage.getItem('dpu-admin-auth') === 'true') {
+            const adminDocRef = doc(db, 'admins', user.uid);
+            const adminDocSnap = await getDoc(adminDocRef);
 
             if (adminDocSnap.exists()) {
                 setIsAuthenticated(true);
-                sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
                 const adminData = adminDocSnap.data() as Omit<AdminUser, 'email'>;
                 setAdminUser({
                     name: adminData.name,
@@ -71,14 +70,19 @@ export default function AdminPage() {
                     email: user.email || 'No email found',
                 });
             } else {
-                 setIsAuthenticated(false);
-                 sessionStorage.removeItem('dpu-announcement-admin-auth');
-                 router.push('/admin/login');
+                 setAdminUser({
+                    name: 'Dev',
+                    surname: '',
+                    email: user.email || 'No email found',
+                });
+                setIsAuthenticated(false);
+                sessionStorage.removeItem('dpu-admin-auth');
+                router.push('/dev/login');
             }
         } else {
             setIsAuthenticated(false);
-            sessionStorage.removeItem('dpu-announcement-admin-auth');
-            router.push('/admin/login');
+            sessionStorage.removeItem('dpu-admin-auth');
+            router.push('/dev/login');
         }
     });
 
@@ -108,16 +112,34 @@ export default function AdminPage() {
       fetchLocations();
     }
   }, [isAuthenticated, toast]);
-
+  
+  const handleDeleteLocation = async (locationId: string, locationName: string) => {
+    try {
+        await deleteDoc(doc(db, "locations", locationId));
+        setLocations(prevLocations => prevLocations.filter(loc => loc.id !== locationId));
+        toast({
+            title: "Location Deleted",
+            description: `${locationName} has been successfully deleted.`,
+        });
+    } catch (error) {
+        console.error("Error deleting location: ", error);
+        toast({
+            title: "Delete Failed",
+            description: `Could not delete ${locationName}. Please try again.`,
+            variant: "destructive",
+        });
+    }
+  };
+  
   const handleLogout = async () => {
     try {
         await auth.signOut();
-        sessionStorage.removeItem('dpu-announcement-admin-auth');
+        sessionStorage.removeItem('dpu-admin-auth');
         toast({
             title: 'Logged Out',
             description: 'You have been successfully logged out.',
         });
-        router.push('/admin/login');
+        router.push('/dev/login');
     } catch (error) {
         console.error('Logout Error:', error);
         toast({
@@ -149,7 +171,7 @@ export default function AdminPage() {
                 height={40}
                 className="h-10 w-10 rounded-full object-cover"
               />
-            <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
+            <h1 className="font-headline text-3xl font-bold">Dev Dashboard</h1>
           </div>
           <div className="flex items-center gap-4">
               {adminUser ? (
@@ -168,6 +190,32 @@ export default function AdminPage() {
                       <User />
                   </AvatarFallback>
               </Avatar>
+               <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" asChild>
+                        <Link href="/dev/register">
+                            <UserPlus className="h-5 w-5" />
+                            <span className="sr-only">Add New Dev</span>
+                        </Link>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>Add New Dev</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href="/dev/edit-map">
+                      <Map className="h-5 w-5" />
+                      <span className="sr-only">Switch to Edit Map</span>
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Map</p>
+                </TooltipContent>
+              </Tooltip>
               <Button variant="destructive" onClick={handleLogout}>
                   Logout
               </Button>
@@ -176,9 +224,9 @@ export default function AdminPage() {
         <main>
           <Card>
             <CardHeader>
-              <CardTitle>Manage Announcements</CardTitle>
+              <CardTitle>Manage Locations</CardTitle>
               <CardDescription>
-                Select a location to edit its announcement.
+                View, edit, or delete campus locations. Changes are saved directly to the database.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -186,7 +234,7 @@ export default function AdminPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Current Announcement</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -194,16 +242,37 @@ export default function AdminPage() {
                   {locations.map((location) => (
                     <TableRow key={location.id}>
                       <TableCell className="font-medium">{location.name}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-sm truncate">
-                        {location.announcement || 'No announcement set.'}
-                      </TableCell>
+                      <TableCell>{location.category}</TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/admin/edit-announcement?locationId=${location.id}`}>
-                                <Edit className="mr-2 h-4 w-4" />
+                            <Link href="/dev/edit-map">
                                 Edit
                             </Link>
                         </Button>
+                         <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive-outline" size="sm">
+                                <Trash2 className="mr-2 h-4 w-4"/>
+                                Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the
+                                <span className="font-bold"> {location.name} </span> 
+                                location.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteLocation(location.id, location.name)}>
+                                Continue
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}

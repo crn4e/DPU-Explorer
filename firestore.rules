@@ -1,132 +1,78 @@
 /**
  * Core Philosophy: This ruleset implements a Role-Based Access Control (RBAC) model.
- * A dedicated '/admins' collection dictates write privileges across the database.
- * Users whose UID exists in the '/admins' collection are granted administrative
- * permissions to create, update, and delete all campus data. All other users,
- * including unauthenticated visitors, are granted read-only access to browse
- * campus locations, announcements, and images.
+ * Access is dictated by roles defined in dedicated collections: `/admins` for developers
+ * with full control, and `/announcementAdmins` for users who can only manage announcements.
  *
  * Data Structure: The data is structured around a central '/locations' collection.
  * Each location document can contain '/announcements' and '/images' subcollections.
- * A top-level '/openingHours' collection is linked to locations. Administrative
- * roles are managed in a separate, top-level '/admins' collection for clear and
- * performant access checks.
+ * A top-level '/openingHours' collection is linked to locations.
  *
  * Key Security Decisions:
  * - Public Read-Only Access: All primary data collections ('/locations', '/openingHours',
  *   and their subcollections) are publicly readable to support the app's function
  *   as a campus explorer.
- * - Centralized Admin Writes: All write operations are exclusively controlled by the
- *   '/admins' collection. There is no concept of individual content ownership.
- * - Admin List Protection: The list of administrators in '/admins' is not publicly
- *   readable to prevent user enumeration. Only other administrators can view or
- *   modify the list.
- *
- * Denormalization for Authorization: The use of the '/admins/{userId}' collection is a
- * key denormalization strategy. Instead of checking a role field on a user profile,
- * we perform a simple and highly performant `exists()` check to determine admin
- * status. This avoids complex queries and keeps authorization logic clean.
+ * - Granular Write Controls:
+ *   - Developers (`isAdmin()`): Have full CUD (Create, Update, Delete) access to all data.
+ *   - Announcement Admins (`isAnnouncementAdmin()`): Can only update the `announcement` field
+ *     on existing `locations` documents. They cannot create, delete, or modify other fields.
+ * - Role List Protection: The lists of administrators are not publicly readable.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     // Helper functions to abstract and simplify rule logic.
-
-    /**
-     * Checks if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user is an administrator.
-     * Admin status is determined by the existence of a document for their UID
-     * in the /admins collection.
-     */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
+    
+    function isAnnouncementAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/announcementAdmins/$(request.auth.uid));
+    }
 
-    /**
-     * @description Stores information about locations on the DPU campus.
-     * @path /locations/{locationId}
-     * @allow (get) Any user, authenticated or not, can read a location's details.
-     * @allow (create) An admin user creates a new location document.
-     * @deny (create) A non-admin user attempts to create a new location.
-     * @principle Public read access for general information, with writes restricted to administrators.
-     */
     match /locations/{locationId} {
       allow get: if true;
       allow list: if true;
       allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-
-      /**
-       * @description Stores announcements related to a specific location.
-       * @path /locations/{locationId}/announcements/{announcementId}
-       * @allow (get) Any user can read an announcement for a location.
-       * @allow (create) An admin creates a new announcement, ensuring its `locationId` field matches the parent document.
-       * @deny (create) An admin creates an announcement with a mismatched `locationId` field.
-       * @principle Enforces relational integrity between a subcollection document and its parent.
-       */
-      match /announcements/{announcementId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if isAdmin() && request.resource.data.locationId == locationId;
-        allow update: if isAdmin() && resource != null && request.resource.data.locationId == resource.data.locationId;
-        allow delete: if isAdmin() && resource != null;
-      }
-
-      /**
-       * @description Stores images associated with a specific location.
-       * @path /locations/{locationId}/images/{imageId}
-       * @allow (list) Any user can list the images for a location.
-       * @allow (create) An admin uploads a new image, ensuring its `locationId` field matches the parent document.
-       * @deny (update) A non-admin user attempts to change an image document.
-       * @principle Enforces relational integrity and restricts modifications to administrators.
-       */
-      match /images/{imageId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if isAdmin() && request.resource.data.locationId == locationId;
-        allow update: if isAdmin() && resource != null && request.resource.data.locationId == resource.data.locationId;
-        allow delete: if isAdmin() && resource != null;
-      }
+      // Allow full update/delete for Devs
+      allow update, delete: if isAdmin();
+      // Allow specific field update for Announcement Admins
+      allow update: if isAnnouncementAdmin()
+                    && request.resource.data.keys().hasOnly(['announcement'])
+                    && request.resource.data.name == resource.data.name; // Cannot change name
     }
 
-    /**
-     * @description Stores opening hours for locations.
-     * @path /openingHours/{openingHoursId}
-     * @allow (get) Any user can read the opening hours for a location.
-     * @allow (create) An admin creates an opening hours document for a valid, existing location.
-     * @deny (create) An admin attempts to create opening hours for a non-existent location ID.
-     * @principle Ensures data integrity by linking opening hours only to existing locations.
-     */
+    match /locations/{locationId}/announcements/{announcementId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    match /locations/{locationId}/images/{imageId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
     match /openingHours/{openingHoursId} {
       allow get: if true;
       allow list: if true;
-      allow create: if isAdmin() && exists(/databases/$(database)/documents/locations/$(request.resource.data.locationId));
-      allow update: if isAdmin() && resource != null && request.resource.data.locationId == resource.data.locationId;
-      allow delete: if isAdmin() && resource != null;
+      allow create, update, delete: if isAdmin();
     }
-
-    /**
-     * @description Manages administrator privileges. The existence of a document indicates admin status.
-     * @path /admins/{userId}
-     * @allow (create) An existing admin adds another user as an admin.
-     * @deny (get) A non-admin user tries to read an admin document.
-     * @deny (list) A non-admin user tries to list all administrators.
-     * @principle Protects the list of administrators from enumeration and modification by non-admins.
-     */
+    
     match /admins/{userId} {
-      allow get: if isAdmin();
-      allow list: if isAdmin();
-      allow create: if isAdmin();
-      allow update: if false;
-      allow delete: if isAdmin() && resource != null;
+      allow read, write: if isAdmin();
+    }
+    
+    match /announcementAdmins/{userId} {
+      allow read: if isAdmin() || (isAnnouncementAdmin() && request.auth.uid == userId);
+      allow write: if isAdmin();
     }
   }
 }

@@ -22,7 +22,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 
 
-export default function AdminLoginPage() {
+export default function DevLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -37,21 +37,22 @@ export default function AdminLoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      const adminDocRef = doc(db, 'announcementAdmins', user.uid);
+      const adminDocRef = doc(db, 'admins', user.uid);
       const adminDocSnap = await getDoc(adminDocRef);
 
       if (adminDocSnap.exists()) {
-          sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
+          sessionStorage.setItem('dpu-admin-auth', 'true');
           toast({
             title: 'Login Successful',
-            description: 'Welcome back, Admin!',
+            description: 'Welcome back, Dev!',
           });
-          router.push('/admin');
+          router.push('/dev');
       } else {
+        // Not an admin, sign them out and show an error
         await auth.signOut();
         toast({
           title: 'Access Denied',
-          description: 'You do not have permission to access this admin dashboard.',
+          description: 'You do not have permission to access the dev dashboard.',
           variant: 'destructive',
         });
         setIsLoading(false);
@@ -101,9 +102,9 @@ export default function AdminLoginPage() {
                     height={40}
                     className="h-10 w-10 rounded-full object-cover"
                 />
-                <CardTitle className="font-headline text-2xl">Admin Login</CardTitle>
+                <CardTitle className="font-headline text-2xl">Dev Login</CardTitle>
             </div>
-          <CardDescription>Announcement Management</CardDescription>
+          <CardDescription>Enter your credentials to access the dashboard.</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
