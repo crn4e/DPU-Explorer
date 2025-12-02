@@ -39,6 +39,16 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
 
+    if (password.length < 6) {
+        toast({
+            title: 'Registration Failed',
+            description: 'Password must be at least 6 characters.',
+            variant: 'destructive',
+        });
+        setIsLoading(false);
+        return;
+    }
+
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
@@ -53,7 +63,6 @@ export default function RegisterPage() {
 
         const docRef = doc(db, "students", user.uid);
 
-        // Save additional user info to a 'students' collection in Firestore
         setDoc(docRef, studentData)
           .then(() => {
             toast({
@@ -69,7 +78,10 @@ export default function RegisterPage() {
               requestResourceData: studentData,
             });
             errorEmitter.emit('permission-error', permissionError);
-            setIsLoading(false); // Stop loading on permission error
+          })
+          .finally(() => {
+             // This may not be hit if an error is thrown, but good practice
+             // The main setIsLoading(false) is in the outer catch/finally
           });
 
     } catch (error: any) {
@@ -83,7 +95,7 @@ export default function RegisterPage() {
               errorMessage = 'The email address is not valid.';
               break;
             case 'auth/weak-password':
-              errorMessage = 'Password should be at least 6 characters.';
+              errorMessage = 'Password must be at least 6 characters.';
               break;
             default:
               errorMessage = 'An error occurred during authentication.';
@@ -95,6 +107,7 @@ export default function RegisterPage() {
             description: errorMessage,
             variant: 'destructive',
         });
+    } finally {
         setIsLoading(false);
     }
   };
