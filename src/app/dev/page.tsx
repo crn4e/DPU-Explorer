@@ -139,7 +139,7 @@ export default function DevPage() {
             title: 'Logged Out',
             description: 'You have been successfully logged out.',
         });
-        router.push('/dev/login');
+        router.push('/');
     } catch (error) {
         console.error('Logout Error:', error);
         toast({

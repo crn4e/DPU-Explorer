@@ -73,12 +73,12 @@ export default function AdminPage() {
             } else {
                  setIsAuthenticated(false);
                  sessionStorage.removeItem('dpu-announcement-admin-auth');
-                 router.push('/admin/login');
+                 router.push('/login');
             }
         } else {
             setIsAuthenticated(false);
             sessionStorage.removeItem('dpu-announcement-admin-auth');
-            router.push('/admin/login');
+            router.push('/login');
         }
     });
 
@@ -117,7 +117,7 @@ export default function AdminPage() {
             title: 'Logged Out',
             description: 'You have been successfully logged out.',
         });
-        router.push('/admin/login');
+        router.push('/');
     } catch (error) {
         console.error('Logout Error:', error);
         toast({
