@@ -84,7 +84,7 @@ export default function LocationCard({ location }: LocationCardProps) {
                 </div>
               </div>
 
-              <p className="mb-6 text-foreground/90">{location.description}</p>
+              <p className="mb-6 text-foreground/90 whitespace-pre-wrap">{location.description}</p>
               
               {location.announcement && (
                   <div className="mb-6 rounded-lg border border-accent/50 bg-accent/10 p-4">
@@ -126,7 +126,7 @@ export default function LocationCard({ location }: LocationCardProps) {
                         {(page.items || []).map((item, itemIndex) => (
                           <div key={itemIndex}>
                             <p className="font-semibold mb-0">{item.name}</p>
-                            <p className="text-muted-foreground mt-0">{item.details}</p>
+                            <p className="text-muted-foreground mt-0 whitespace-pre-wrap">{item.details}</p>
                           </div>
                         ))}
                     </div>
