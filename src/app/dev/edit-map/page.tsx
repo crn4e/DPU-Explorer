@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
