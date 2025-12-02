@@ -20,6 +20,8 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 export default function RegisterPage() {
@@ -41,20 +43,34 @@ export default function RegisterPage() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Save additional user info to a 'students' collection in Firestore
-        await setDoc(doc(db, "students", user.uid), {
+        const studentData = {
             studentId: studentId,
             name: name,
             surname: surname,
             email: email,
             role: 'student'
-        });
+        };
 
-        toast({
-            title: 'Registration Successful',
-            description: 'Your account has been created.',
-        });
-        router.push('/login');
+        const docRef = doc(db, "students", user.uid);
+
+        // Save additional user info to a 'students' collection in Firestore
+        setDoc(docRef, studentData)
+          .then(() => {
+            toast({
+                title: 'Registration Successful',
+                description: 'Your account has been created.',
+            });
+            router.push('/login');
+          })
+          .catch((error) => {
+            const permissionError = new FirestorePermissionError({
+              path: docRef.path,
+              operation: 'create',
+              requestResourceData: studentData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            setIsLoading(false); // Stop loading on permission error
+          });
 
     } catch (error: any) {
         let errorMessage = 'An unexpected error occurred.';
@@ -70,10 +86,10 @@ export default function RegisterPage() {
               errorMessage = 'Password should be at least 6 characters.';
               break;
             default:
-              errorMessage = 'Missing or insufficient permissions.';
+              errorMessage = 'An error occurred during authentication.';
           }
         }
-        console.error('Firebase Registration Error:', error);
+        console.error('Firebase Auth Error:', error);
         toast({
             title: 'Registration Failed',
             description: errorMessage,
