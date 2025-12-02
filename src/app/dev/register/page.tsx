@@ -18,7 +18,6 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 
 
@@ -27,7 +26,6 @@ export default function DevRegisterPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [id, setId] = useState('');
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
@@ -37,14 +35,14 @@ export default function DevRegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     
-    if (password.length < 6) {
-        toast({
-            title: 'Registration Failed',
-            description: 'Password should be at least 6 characters.',
-            variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
+    if (!email || !id || !name || !surname) {
+      toast({
+        title: 'Missing Fields',
+        description: 'Please fill out all fields.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
     }
 
     try {
@@ -53,53 +51,27 @@ export default function DevRegisterPage() {
             throw new Error("No dev is currently signed in.");
         }
 
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-
-        await setDoc(doc(db, "admins", user.uid), {
+        // We are NOT creating an auth user here.
+        // We are just creating the user's record in Firestore.
+        // Using email as the document ID for easy lookup.
+        await setDoc(doc(db, "admins", email), {
             id: id,
             name: name,
             surname: surname,
             email: email
         });
         
-        await signOut(auth);
-
-        // Re-sign in the original admin
-        // This is a simplified approach. In a real app, you might need a more secure way to handle this.
-        if (currentAdmin.email) {
-            // This is a placeholder for re-authentication logic.
-            // You might need to prompt the admin for their password again, or use a session token.
-            // For now, we assume the session is still valid for a redirect.
-        }
-        
         toast({
-            title: 'Dev Created',
-            description: 'The new dev account has been created successfully.',
+            title: 'Dev Record Created',
+            description: 'The new dev record has been created successfully in Firestore.',
         });
         router.push('/dev');
 
     } catch (error: any) {
-        let errorMessage = 'An unexpected error occurred.';
-        if (error.code) {
-          switch (error.code) {
-            case 'auth/email-already-in-use':
-              errorMessage = 'This email is already in use by another account.';
-              break;
-            case 'auth/invalid-email':
-              errorMessage = 'The email address is not valid.';
-              break;
-            case 'auth/weak-password':
-              errorMessage = 'Password should be at least 6 characters.';
-              break;
-            default:
-              errorMessage = 'An error occurred during registration.';
-          }
-        }
-        console.error('Firebase Registration Error:', error);
+        console.error('Firestore Error:', error);
         toast({
-            title: 'Registration Failed',
-            description: errorMessage,
+            title: 'Creation Failed',
+            description: error.message || 'Could not create the dev record.',
             variant: 'destructive',
         });
     } finally {
@@ -128,7 +100,7 @@ export default function DevRegisterPage() {
                         />
                         <CardTitle className="font-headline text-2xl">Create New Dev</CardTitle>
                     </div>
-                <CardDescription>Create a new developer account.</CardDescription>
+                <CardDescription>Create a new developer record.</CardDescription>
                 </CardHeader>
                 <form onSubmit={handleRegister}>
                 <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -156,15 +128,11 @@ export default function DevRegisterPage() {
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" placeholder="[email protected]" required disabled={isLoading} value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
-                    <div className="space-y-2 sm:col-span-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" required disabled={isLoading} value={password} onChange={(e) => setPassword(e.target.value)} />
-                    </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
                     <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Dev Account
+                    Create Dev Record
                     </Button>
                 </CardFooter>
                 </form>
