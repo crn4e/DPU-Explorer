@@ -15,7 +15,8 @@
  *   - Developers (`isAdmin()`): Have full CUD (Create, Update, Delete) access to all data.
  *   - Announcement Admins (`isAnnouncementAdmin()`): Can only update the `announcement` field
  *     on existing `locations` documents. They cannot create, delete, or modify other fields.
- * - Role List Protection: The lists of administrators are not publicly readable, except by other admins.
+ * - Role List Protection: The lists of administrators are protected, but users are allowed
+ *   to read their OWN role document to verify their permissions upon login.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -24,6 +25,10 @@ service cloud.firestore {
     // Helper functions to abstract and simplify rule logic.
     function isSignedIn() {
       return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
     function isAdmin() {
@@ -59,14 +64,16 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
     
-    // Admins can manage the list of other admins
+    // Admins can manage other admins, and users can read their own admin status.
     match /admins/{userId} {
-      allow read, write: if isAdmin();
+      allow get: if isSelf(userId) || isAdmin();
+      allow list, write: if isAdmin();
     }
     
-    // Admins can manage the list of announcement admins
+    // Admins can manage announcement admins, and users can read their own status.
     match /announcementAdmins/{userId} {
-      allow read, write: if isAdmin();
+      allow get: if isSelf(userId) || isAdmin();
+      allow list, write: if isAdmin();
     }
   }
 }
