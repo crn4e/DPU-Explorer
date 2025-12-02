@@ -36,11 +36,14 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Check for Dev role
       const devDocRef = doc(db, 'admins', user.uid);
       const devDocSnap = await getDoc(devDocRef);
+
+      const adminDocRef = doc(db, 'announcementAdmins', user.uid);
+      const adminDocSnap = await getDoc(adminDocRef);
+
       if (devDocSnap.exists()) {
-        sessionStorage.setItem('dpu-admin-auth', 'true'); // Keep session for dev
+        sessionStorage.setItem('dpu-admin-auth', 'true');
         toast({
           title: 'Login Successful',
           description: 'Welcome back, Dev!',
@@ -48,10 +51,7 @@ export default function LoginPage() {
         router.push('/dev');
         return;
       }
-
-      // Check for Announcement Admin role
-      const adminDocRef = doc(db, 'announcementAdmins', user.uid);
-      const adminDocSnap = await getDoc(adminDocRef);
+      
       if (adminDocSnap.exists()) {
         sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
         toast({
@@ -62,7 +62,6 @@ export default function LoginPage() {
         return;
       }
       
-      // Default to Student role
       sessionStorage.setItem('dpu-student-auth', 'true');
       toast({
         title: 'Login Successful',
