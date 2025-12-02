@@ -20,8 +20,6 @@ import { Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 
 export default function RegisterPage() {
@@ -98,12 +96,7 @@ export default function RegisterPage() {
               errorMessage = error.message || 'An error occurred during authentication.';
           }
         }
-        // Handle Firestore permission errors specifically if needed
-        else if (error instanceof FirestorePermissionError) {
-           errorMessage = 'You do not have permission to register.';
-           // The error is already emitted, so we just need a user-facing message.
-        }
-
+        
         console.error('Registration Error:', error);
         toast({
             title: 'Registration Failed',
