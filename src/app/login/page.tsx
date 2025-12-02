@@ -39,15 +39,14 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      const devDocRef = doc(db, 'admins', user.uid);
+      const adminDocRef = doc(db, 'announcementAdmins', user.uid);
+      const studentDocRef = doc(db, 'students', user.uid);
+
       try {
-        const devDocRef = doc(db, 'admins', user.uid);
         const devDocSnap = await getDoc(devDocRef);
-
-        const adminDocRef = doc(db, 'announcementAdmins', user.uid);
-        const adminDocSnap = await getDoc(adminDocRef);
-
         if (devDocSnap.exists()) {
-          sessionStorage.setItem('dpu-admin-auth', 'true');
+          sessionStorage.setItem('dpu-role', 'dev');
           toast({
             title: 'Login Successful',
             description: 'Welcome back, Dev!',
@@ -55,33 +54,54 @@ export default function LoginPage() {
           router.push('/dev');
           return;
         }
-        
-        if (adminDocSnap.exists()) {
-          sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
-          toast({
-            title: 'Login Successful',
-            description: 'Welcome back, Admin!',
-          });
-          router.push('/admin');
-          return;
-        }
-      } catch (firestoreError) {
-          // This is likely a permission error. We will emit it for debugging.
-          const permissionError = new FirestorePermissionError({
-            path: `admins/${user.uid} or announcementAdmins/${user.uid}`,
-            operation: 'get',
-          });
+      } catch (e) {
+          const permissionError = new FirestorePermissionError({ path: devDocRef.path, operation: 'get' });
           errorEmitter.emit('permission-error', permissionError);
-          // Fallback to student login, but show a warning in console
-          console.warn("Permission error checking admin status. Defaulting to student role.", firestoreError);
+          console.warn("Permission error checking dev status.", e);
       }
       
-      sessionStorage.setItem('dpu-student-auth', 'true');
+      try {
+          const adminDocSnap = await getDoc(adminDocRef);
+          if (adminDocSnap.exists()) {
+            sessionStorage.setItem('dpu-role', 'admin');
+            toast({
+              title: 'Login Successful',
+              description: 'Welcome back, Admin!',
+            });
+            router.push('/admin');
+            return;
+          }
+      } catch(e) {
+          const permissionError = new FirestorePermissionError({ path: adminDocRef.path, operation: 'get' });
+          errorEmitter.emit('permission-error', permissionError);
+          console.warn("Permission error checking admin status.", e);
+      }
+
+      try {
+        const studentDocSnap = await getDoc(studentDocRef);
+        if (studentDocSnap.exists()) {
+            sessionStorage.setItem('dpu-role', 'student');
+            toast({
+              title: 'Login Successful',
+              description: 'Welcome back!',
+            });
+            router.push('/'); 
+            return;
+        }
+      } catch (e) {
+          const permissionError = new FirestorePermissionError({ path: studentDocRef.path, operation: 'get' });
+          errorEmitter.emit('permission-error', permissionError);
+          console.warn("Permission error checking student status.", e);
+      }
+      
+      // Fallback if no doc is found in any collection
       toast({
-        title: 'Login Successful',
-        description: 'Welcome back!',
+        title: 'Login Failed',
+        description: 'Your user role could not be determined. Please contact support.',
+        variant: 'destructive',
       });
-      router.push('/'); 
+      await auth.signOut();
+
 
     } catch (error: any) {
       let errorMessage = 'An unexpected error occurred.';
@@ -164,7 +184,7 @@ export default function LoginPage() {
                 className="absolute right-1 top-6 h-7 w-7 text-muted-foreground"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff /> : <Eye />}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
           </CardContent>

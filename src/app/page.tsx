@@ -17,7 +17,7 @@ import LocationList from '@/components/location-list';
 import MapView from '@/components/map-view';
 import AiTourGuide from '@/components/ai-tour-guide';
 import type { Location, LocationCategory } from '@/lib/types';
-import { KeyRound, User, Loader2, Wrench } from 'lucide-react';
+import { KeyRound, User, Loader2, Wrench, LogOut } from 'lucide-react';
 import AppHeader from '@/components/header';
 import AiChat from '@/components/ai-chat';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -29,8 +29,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 
 const categories: (LocationCategory | 'All')[] = [
@@ -49,6 +52,10 @@ export default function Home() {
   );
   const [activeCategory, setActiveCategory] = useState<LocationCategory | 'All'>('All');
   const mapImageWrapperRef = React.useRef<HTMLDivElement>(null);
+  
+  const { userProfile, isProfileLoading } = useUserProfile();
+  const { toast } = useToast();
+  const router = useRouter();
 
 
   useEffect(() => {
@@ -68,6 +75,26 @@ export default function Home() {
 
     fetchLocations();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+        await auth.signOut();
+        sessionStorage.clear(); // Clear all session storage on logout
+        toast({
+            title: 'Logged Out',
+            description: 'You have been successfully logged out.',
+        });
+        // This will trigger the useEffect in useUserProfile to clear the profile
+        router.refresh();
+    } catch (error) {
+        console.error('Logout Error:', error);
+        toast({
+            title: 'Logout Failed',
+            description: 'An error occurred while logging out.',
+            variant: 'destructive',
+        });
+    }
+  }
 
   const filteredLocations =
     activeCategory === 'All'
@@ -101,26 +128,52 @@ export default function Home() {
                     <Button variant="ghost" className="h-10 w-10 rounded-full">
                         <Avatar>
                             <AvatarFallback>
-                                <User />
+                                {isProfileLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <User />
+                                )}
                             </AvatarFallback>
                         </Avatar>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Student Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/login">Login</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/register">Register</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel>Admin</DropdownMenuLabel>
-                     <DropdownMenuSeparator />
-                     <DropdownMenuItem asChild>
-                      <Link href="/login">Admin Login</Link>
-                    </DropdownMenuItem>
+                    {userProfile ? (
+                        <>
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none">
+                                        {userProfile.name} {userProfile.surname}
+                                    </p>
+                                    <p className="text-xs leading-none text-muted-foreground">
+                                        {userProfile.email}
+                                    </p>
+                                </div>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Logout
+                            </DropdownMenuItem>
+                        </>
+                    ) : (
+                        <>
+                           <DropdownMenuLabel>Student Account</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                              <Link href="/login">Login</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href="/register">Register</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>Admin</DropdownMenuLabel>
+                             <DropdownMenuSeparator />
+                             <DropdownMenuItem asChild>
+                              <Link href="/login">Admin Login</Link>
+                            </DropdownMenuItem>
+                        </>
+                    )}
                 </DropdownMenuContent>
              </DropdownMenu>
           </div>

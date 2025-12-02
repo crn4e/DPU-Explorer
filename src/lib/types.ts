@@ -25,3 +25,10 @@ export interface Location {
   mapPosition: { x: number; y: number };
   directoryInfo?: DirectoryPage[];
 }
+
+export interface StudentProfile {
+  name: string;
+  surname: string;
+  email: string;
+  studentId: string;
+}
