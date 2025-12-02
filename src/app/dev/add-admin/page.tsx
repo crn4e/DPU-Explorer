@@ -40,7 +40,7 @@ export default function AddAdminPage() {
     
     if (password.length < 6) {
       toast({
-        title: 'Registration Failed',
+        title: 'Creation Failed',
         description: 'Password must be at least 6 characters.',
         variant: 'destructive',
       });
@@ -85,20 +85,14 @@ export default function AddAdminPage() {
 
     } catch (error: any) {
         let errorMessage = 'An unexpected error occurred.';
-        if (error.code) {
-          switch (error.code) {
-            case 'auth/email-already-in-use':
-              errorMessage = 'This email is already in use by another account.';
-              break;
-            case 'auth/invalid-email':
-              errorMessage = 'The email address is not valid.';
-              break;
-            case 'auth/weak-password':
-              errorMessage = 'Password must be at least 6 characters.';
-              break;
-            default:
-              errorMessage = error.message || 'Could not create the admin account.';
-          }
+        if (error.code === 'auth/email-already-in-use') {
+            errorMessage = 'This email is already in use by another account.';
+        } else if (error.code === 'auth/invalid-email') {
+            errorMessage = 'The email address is not valid.';
+        } else if (error.code === 'auth/weak-password') {
+            errorMessage = 'Password must be at least 6 characters.';
+        } else {
+            errorMessage = error.message || 'Could not create the admin account.';
         }
         console.error('Firebase Registration Error:', error);
         toast({
@@ -109,7 +103,11 @@ export default function AddAdminPage() {
     } finally {
         setIsLoading(false);
         if (secondaryApp) {
-          await deleteApp(secondaryApp);
+          try {
+            await deleteApp(secondaryApp);
+          } catch (e) {
+            console.error("Error deleting secondary app:", e)
+          }
         }
     }
   };
