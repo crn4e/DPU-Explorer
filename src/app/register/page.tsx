@@ -69,26 +69,14 @@ export default function RegisterPage() {
 
         const docRef = doc(db, "students", user.uid);
 
-        setDoc(docRef, studentData)
-          .then(() => {
-            toast({
-                title: 'Registration Successful',
-                description: 'Your account has been created.',
-            });
-            router.push('/login');
-          })
-          .catch((error) => {
-            const permissionError = new FirestorePermissionError({
-              path: docRef.path,
-              operation: 'create',
-              requestResourceData: studentData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-          })
-          .finally(() => {
-             // This may not be hit if an error is thrown, but good practice
-             // The main setIsLoading(false) is in the outer catch/finally
-          });
+        await setDoc(docRef, studentData);
+
+        toast({
+            title: 'Registration Successful',
+            description: 'Your account has been created. Please log in.',
+        });
+        router.push('/login');
+
 
     } catch (error: any) {
         let errorMessage = 'An unexpected error occurred.';
@@ -103,11 +91,20 @@ export default function RegisterPage() {
             case 'auth/weak-password':
               errorMessage = 'Password is too weak. Please choose a stronger password.';
               break;
+            case 'auth/operation-not-allowed':
+               errorMessage = 'Email/password accounts are not enabled.';
+               break;
             default:
-              errorMessage = 'An error occurred during authentication.';
+              errorMessage = error.message || 'An error occurred during authentication.';
           }
         }
-        console.error('Firebase Auth Error:', error);
+        // Handle Firestore permission errors specifically if needed
+        else if (error instanceof FirestorePermissionError) {
+           errorMessage = 'You do not have permission to register.';
+           // The error is already emitted, so we just need a user-facing message.
+        }
+
+        console.error('Registration Error:', error);
         toast({
             title: 'Registration Failed',
             description: errorMessage,
