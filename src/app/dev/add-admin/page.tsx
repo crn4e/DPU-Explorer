@@ -64,6 +64,7 @@ export default function AddAdminPage() {
 
     const secondaryAppName = 'secondary-app-for-admin-creation-' + Date.now();
     let secondaryApp;
+    let newUserUid = 'new-user'; // for error reporting
 
     try {
         secondaryApp = initializeApp(app.options, secondaryAppName);
@@ -71,6 +72,7 @@ export default function AddAdminPage() {
 
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         const newUser = userCredential.user;
+        newUserUid = newUser.uid;
 
         const adminData = {
           id: id,
@@ -81,13 +83,28 @@ export default function AddAdminPage() {
         
         const docRef = doc(db, "announcementAdmins", newUser.uid);
 
-        await setDoc(docRef, adminData);
-
-        toast({
-          title: 'Admin Created',
-          description: 'The announcement admin account has been created successfully.',
+        // Use .catch() for non-blocking error handling as per instructions
+        setDoc(docRef, adminData).then(() => {
+          toast({
+            title: 'Admin Created',
+            description: 'The announcement admin account has been created successfully.',
+          });
+          router.push('/dev');
+        }).catch((error) => {
+          console.error('Firestore setDoc error:', error);
+           const permissionError = new FirestorePermissionError({
+              path: docRef.path,
+              operation: 'create',
+              requestResourceData: adminData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            // Also show a toast for immediate feedback
+            toast({
+              title: 'Creation Failed',
+              description: 'Could not save admin data. Check permissions.',
+              variant: 'destructive',
+            });
         });
-        router.push('/dev');
 
     } catch (error: any) {
         let errorMessage = 'An unexpected error occurred.';
@@ -102,15 +119,6 @@ export default function AddAdminPage() {
             case 'auth/weak-password':
               errorMessage = 'Password must be at least 6 characters.';
               break;
-             case 'permission-denied':
-             case 'storage/unauthorized':
-                  const permissionError = new FirestorePermissionError({
-                    path: `announcementAdmins/${(window as any).tempUidForError || 'new-user'}`,
-                    operation: 'create',
-                    requestResourceData: { id, name, surname, email },
-                  });
-                  errorEmitter.emit('permission-error', permissionError);
-                  return; // Stop execution
             default:
               errorMessage = error.message || 'Could not create the admin account.';
           }
