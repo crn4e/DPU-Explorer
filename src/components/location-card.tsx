@@ -34,7 +34,6 @@ export default function LocationCard({ location }: LocationCardProps) {
     const newStatus = checkOpenStatus(location);
     setStatus(newStatus);
     
-    // Set up an interval to re-check status every minute
     const intervalId = setInterval(() => {
       setStatus(checkOpenStatus(location));
     }, 60000);
@@ -42,9 +41,11 @@ export default function LocationCard({ location }: LocationCardProps) {
     return () => clearInterval(intervalId);
   }, [location]);
 
+  const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
+
   return (
     <Card className="overflow-hidden shadow-2xl transition-all duration-300 animate-in fade-in-0 zoom-in-95">
-      <Carousel className="w-full">
+      <Carousel className="w-full" opts={{ loop: hasDirectoryInfo }}>
         <CardHeader className="relative p-0">
           <Image
             src={location.image}
@@ -114,24 +115,26 @@ export default function LocationCard({ location }: LocationCardProps) {
 
             </CardContent>
           </CarouselItem>
-          {location.directoryInfo && (
-            <CarouselItem>
+          {location.directoryInfo?.map((page, index) => (
+            <CarouselItem key={index}>
                 <CardContent className="p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <BookUser className="h-5 w-5 text-primary" />
-                        <h3 className="font-bold font-headline text-lg text-primary">Directory Information</h3>
+                        <h3 className="font-bold font-headline text-lg text-primary">{page.title}</h3>
                     </div>
                     <div className="prose prose-sm dark:prose-invert max-h-60 overflow-y-auto">
-                        <Markdown>{location.directoryInfo}</Markdown>
+                        <Markdown>{page.content}</Markdown>
                     </div>
                 </CardContent>
             </CarouselItem>
-          )}
+          ))}
         </CarouselContent>
-        <CardFooter className="flex justify-center items-center py-2 gap-2">
-            <CarouselPrevious className="static translate-y-0" />
-            <CarouselNext className="static translate-y-0" />
-        </CardFooter>
+        {hasDirectoryInfo && (
+            <CardFooter className="flex justify-center items-center py-2 gap-2">
+                <CarouselPrevious className="static translate-y-0" />
+                <CarouselNext className="static translate-y-0" />
+            </CardFooter>
+        )}
       </Carousel>
     </Card>
   );

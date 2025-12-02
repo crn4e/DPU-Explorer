@@ -4,14 +4,14 @@ import { useEffect, useState, useRef, MouseEvent as ReactMouseEvent } from 'reac
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Location, LocationCategory } from '@/lib/types';
+import type { Location, LocationCategory, DirectoryPage } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, GripVertical } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -94,7 +94,6 @@ function AddLocationSheet({
                 category,
                 announcement,
                 mapPosition: newPosition,
-                // Default values for new locations
                 image: 'https://placehold.co/600x400.png',
                 imageHint: 'placeholder',
                 hours: {
@@ -106,6 +105,7 @@ function AddLocationSheet({
                     Saturday: null,
                     Sunday: null,
                 },
+                directoryInfo: [],
             };
             await onSave(newLocation);
             toast({
@@ -113,7 +113,6 @@ function AddLocationSheet({
                 description: `${name} has been added successfully.`,
             });
             onOpenChange(false);
-             // Reset form
             setName('');
             setDescription('');
             setCategory('Services');
@@ -205,35 +204,50 @@ function EditLocationSheet({
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [activePageIndex, setActivePageIndex] = useState(0);
 
   useEffect(() => {
     setFormData(location);
     setUploadProgress(0);
     setIsUploading(false);
+    setActivePageIndex(0); 
   }, [location]);
 
   if (!formData || !location) return null;
 
-  const handleChange = (
+  const handleFieldChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => prev ? ({ ...prev, [id]: value }) : null);
   };
+  
+  const handleDirectoryPageChange = (index: number, field: 'title' | 'content', value: string) => {
+    setFormData(prev => {
+      if (!prev) return null;
+      const newDirectoryInfo = [...(prev.directoryInfo || [])];
+      newDirectoryInfo[index] = { ...newDirectoryInfo[index], [field]: value };
+      return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  }
 
-  const handlePositionChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { id, value } = e.target;
-    const numValue = Number(value);
-     if (isNaN(numValue)) return;
-    setFormData((prev) => prev ? ({ 
-        ...prev, 
-        mapPosition: { 
-            ...prev.mapPosition, 
-            [id]: numValue, 
-        } 
-    }) : null);
+  const addDirectoryPage = () => {
+    setFormData(prev => {
+        if (!prev) return null;
+        const newPage: DirectoryPage = { title: 'New Page', content: '' };
+        const newDirectoryInfo = [...(prev.directoryInfo || []), newPage];
+        setActivePageIndex(newDirectoryInfo.length); // Switch to the new page
+        return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  };
+
+  const removeDirectoryPage = (index: number) => {
+    setFormData(prev => {
+        if (!prev) return null;
+        const newDirectoryInfo = (prev.directoryInfo || []).filter((_, i) => i !== index);
+        setActivePageIndex(Math.max(0, activePageIndex - 1)); // Go to previous or first page
+        return { ...prev, directoryInfo: newDirectoryInfo };
+    });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -311,64 +325,123 @@ function EditLocationSheet({
   
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent>
+      <SheetContent className="sm:max-w-[550px]">
         <SheetHeader>
           <SheetTitle>Edit: {location?.name}</SheetTitle>
         </SheetHeader>
-        <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
-            <div className="space-y-2">
-                <Label htmlFor="image">Image</Label>
-                <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
-                 {isUploading ? (
-                  <div className="space-y-2">
-                    <Button variant="outline" disabled>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Uploading...
-                    </Button>
-                    <Progress value={uploadProgress} className="w-full" />
-                    <p className="text-xs text-muted-foreground">{uploadProgress === 100 ? 'Finalizing...' : `Uploading... ${uploadProgress}%`}</p>
-                  </div>
-                ) : (
-                  <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                      <UploadCloud className="mr-2 h-4 w-4" />
-                      Change Image
-                  </Button>
-                )}
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" value={formData.name} onChange={handleChange} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" value={formData.description} onChange={handleChange} rows={4} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="announcement">Announcement</Label>
-                <Textarea id="announcement" value={formData.announcement || ''} onChange={handleChange} rows={2} />
-            </div>
-            <div className="space-y-2">
-                <Label>Map Position</Label>
-                 <Button variant="outline" onClick={onEnterRepositionMode} className='w-full'>
-                    <Move className="mr-2 h-4 w-4" />
-                    Set Position on Map
+
+        <div className="flex items-center gap-2 border-b border-border pb-2 mb-4 overflow-x-auto">
+            <Button
+              variant={activePageIndex === 0 ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActivePageIndex(0)}
+              className="shrink-0"
+            >
+              Page 1
+            </Button>
+            {formData.directoryInfo?.map((page, index) => (
+                <Button
+                    key={index}
+                    variant={activePageIndex === index + 1 ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setActivePageIndex(index + 1)}
+                    className="shrink-0"
+                >
+                    Page {index + 2}
                 </Button>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className='flex items-center gap-2'>
-                        <Label htmlFor="x" className="text-sm">X (%):</Label>
-                        <Input id="x" type="number" value={formData.mapPosition.x.toFixed(2)} onChange={handlePositionChange} />
-                    </div>
-                    <div className='flex items-center gap-2'>
-                        <Label htmlFor="y" className="text-sm">Y (%):</Label>
-                        <Input id="y" type="number" value={formData.mapPosition.y.toFixed(2)} onChange={handlePositionChange} />
-                    </div>
-                </div>
-            </div>
-            <p className="text-center text-sm text-muted-foreground">
-                Editing opening hours is not available in this demo.
-            </p>
+            ))}
+            <Button onClick={addDirectoryPage} variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                <PlusCircle className="h-4 w-4"/>
+            </Button>
         </div>
-        <SheetFooter className="justify-between">
+
+
+        <div className="grid max-h-[calc(100vh-220px)] gap-4 overflow-y-auto p-1">
+          {activePageIndex === 0 ? (
+            <>
+              <div className="space-y-2">
+                  <Label htmlFor="image">Image</Label>
+                  <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
+                  {isUploading ? (
+                    <div className="space-y-2">
+                      <Button variant="outline" disabled>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                      </Button>
+                      <Progress value={uploadProgress} className="w-full" />
+                      <p className="text-xs text-muted-foreground">{uploadProgress === 100 ? 'Finalizing...' : `Uploading... ${uploadProgress}%`}</p>
+                    </div>
+                  ) : (
+                    <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                        <UploadCloud className="mr-2 h-4 w-4" />
+                        Change Image
+                    </Button>
+                  )}
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" value={formData.name} onChange={handleFieldChange} />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="description">Description (Page 1)</Label>
+                  <Textarea id="description" value={formData.description} onChange={handleFieldChange} rows={4} />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="announcement">Announcement</Label>
+                  <Textarea id="announcement" value={formData.announcement || ''} onChange={handleFieldChange} rows={2} />
+              </div>
+              <div className="space-y-2">
+                  <Label>Map Position</Label>
+                  <Button variant="outline" onClick={onEnterRepositionMode} className='w-full'>
+                      <Move className="mr-2 h-4 w-4" />
+                      Set Position on Map
+                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                      <Input disabled value={`X: ${formData.mapPosition.x.toFixed(2)}%`} />
+                      <Input disabled value={`Y: ${formData.mapPosition.y.toFixed(2)}%`} />
+                  </div>
+              </div>
+              <p className="text-center text-sm text-muted-foreground">
+                  Editing opening hours is not available in this demo.
+              </p>
+            </>
+          ) : (
+            formData.directoryInfo && formData.directoryInfo[activePageIndex - 1] && (
+              <div className="space-y-4 animate-in fade-in-0">
+                 <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Editing Page {activePageIndex + 1}</h3>
+                     <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => removeDirectoryPage(activePageIndex - 1)}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`dir-title-${activePageIndex - 1}`}>Page Title</Label>
+                  <Input
+                    id={`dir-title-${activePageIndex - 1}`}
+                    value={formData.directoryInfo[activePageIndex - 1].title}
+                    onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'title', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`dir-content-${activePageIndex - 1}`}>Page Content (Markdown supported)</Label>
+                  <Textarea
+                    id={`dir-content-${activePageIndex - 1}`}
+                    value={formData.directoryInfo[activePageIndex - 1].content}
+                    onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'content', e.target.value)}
+                    rows={12}
+                  />
+                </div>
+              </div>
+            )
+          )}
+        </div>
+
+        <SheetFooter className="absolute bottom-0 right-0 w-full bg-background p-6 border-t justify-between">
            <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive">
@@ -540,13 +613,15 @@ export default function EditMapPage() {
           ...selectedLocation,
           mapPosition: { x: newXPercent, y: newYPercent },
         };
-        setSelectedLocation(updatedLocation);
+        // We only update the position in the local state.
+        // The final save is done in the sheet.
+        setFormData(updatedLocation);
         setLocations((prev) => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
         setIsRepositioning(false);
         setIsSheetOpen(true);
         toast({
             title: "Position Updated",
-            description: "Click 'Save Changes' to confirm the new location.",
+            description: "Click 'Save Changes' in the edit panel to confirm the new location.",
         });
     } else if (isAddingLocation) {
         setNewLocationPosition({ x: newXPercent, y: newYPercent });
@@ -575,6 +650,12 @@ export default function EditMapPage() {
           description: "Click on the map to place the new pin.",
       });
   }
+
+  // A bit of a hack to pass form data state down to the map click handler
+  const [formData, setFormData] = useState<Location | null>(selectedLocation);
+   useEffect(() => {
+    setFormData(selectedLocation);
+  }, [selectedLocation]);
 
 
   if (!isAuthenticated || isLoading) {

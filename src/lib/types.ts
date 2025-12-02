@@ -1,5 +1,10 @@
 export type LocationCategory = 'Academic' | 'Food' | 'Recreation' | 'Services';
 
+export interface DirectoryPage {
+  title: string;
+  content: string;
+}
+
 export interface Location {
   id: string;
   name: string;
@@ -13,5 +18,5 @@ export interface Location {
   };
   announcement?: string;
   mapPosition: { x: number; y: number };
-  directoryInfo?: string; // New field for page 2
+  directoryInfo?: DirectoryPage[];
 }
