@@ -7,12 +7,21 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Megaphone, CalendarDays } from 'lucide-react';
+import { Clock, Megaphone, CalendarDays, BookUser } from 'lucide-react';
 import { checkOpenStatus } from '@/lib/helpers';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
+import Markdown from 'react-markdown';
 
 interface LocationCardProps {
   location: Location;
@@ -35,71 +44,95 @@ export default function LocationCard({ location }: LocationCardProps) {
 
   return (
     <Card className="overflow-hidden shadow-2xl transition-all duration-300 animate-in fade-in-0 zoom-in-95">
-      <CardHeader className="relative p-0">
-        <Image
-          src={location.image}
-          alt={`Image of ${location.name}`}
-          width={600}
-          height={400}
-          className="aspect-video w-full object-cover"
-          data-ai-hint={location.imageHint}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-0 p-6">
-          <CardTitle className="font-headline text-2xl text-white">
-            {location.name}
-          </CardTitle>
-          <CardDescription className="text-primary-foreground/80">
-            {location.category}
-          </CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <Badge
-            variant={status.isOpen ? 'default' : 'destructive'}
-            className={cn("text-sm", !status.isOpen && "bg-red-700")}
-          >
-            {status.isOpen ? 'Open' : 'Closed'}
-          </Badge>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Clock className="h-4 w-4" />
-            <span>
-              {status.isOpen ? `Closes at ${status.closesAt}` : (status.opensAt ? `Opens at ${status.opensAt}` : 'Closed today')}
-            </span>
+      <Carousel className="w-full">
+        <CardHeader className="relative p-0">
+          <Image
+            src={location.image}
+            alt={`Image of ${location.name}`}
+            width={600}
+            height={400}
+            className="aspect-video w-full object-cover"
+            data-ai-hint={location.imageHint}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          <div className="absolute bottom-0 p-6">
+            <CardTitle className="font-headline text-2xl text-white">
+              {location.name}
+            </CardTitle>
+            <CardDescription className="text-primary-foreground/80">
+              {location.category}
+            </CardDescription>
           </div>
-        </div>
+        </CardHeader>
 
-        <p className="mb-6 text-foreground/90">{location.description}</p>
-        
-        {location.announcement && (
-            <div className="mb-6 rounded-lg border border-accent/50 bg-accent/10 p-4">
-                <div className="flex items-center gap-3">
-                    <Megaphone className="h-6 w-6 text-accent" />
-                    <div>
-                        <h3 className="font-bold text-accent-foreground">Announcement</h3>
-                        <p className="text-sm text-accent-foreground/80">{location.announcement}</p>
-                    </div>
+        <CarouselContent>
+          <CarouselItem>
+            <CardContent className="p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <Badge
+                  variant={status.isOpen ? 'default' : 'destructive'}
+                  className={cn("text-sm", !status.isOpen && "bg-red-700")}
+                >
+                  {status.isOpen ? 'Open' : 'Closed'}
+                </Badge>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>
+                    {status.isOpen ? `Closes at ${status.closesAt}` : (status.opensAt ? `Opens at ${status.opensAt}` : 'Closed today')}
+                  </span>
                 </div>
-            </div>
-        )}
+              </div>
 
-        <div>
-            <div className="flex items-center gap-2 mb-2">
-                <CalendarDays className="h-5 w-5 text-primary" />
-                <h3 className="font-bold font-headline text-lg text-primary">Opening Hours</h3>
-            </div>
-            <ul className="space-y-1 text-sm">
-                {Object.entries(location.hours).map(([day, hours]) => (
-                    <li key={day} className={`flex justify-between ${day === status.todayName ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
-                        <span>{day}</span>
-                        <span>{hours ? `${hours.open} - ${hours.close}` : 'Closed'}</span>
-                    </li>
-                ))}
-            </ul>
-        </div>
+              <p className="mb-6 text-foreground/90">{location.description}</p>
+              
+              {location.announcement && (
+                  <div className="mb-6 rounded-lg border border-accent/50 bg-accent/10 p-4">
+                      <div className="flex items-center gap-3">
+                          <Megaphone className="h-6 w-6 text-accent" />
+                          <div>
+                              <h3 className="font-bold text-accent-foreground">Announcement</h3>
+                              <p className="text-sm text-accent-foreground/80">{location.announcement}</p>
+                          </div>
+                      </div>
+                  </div>
+              )}
 
-      </CardContent>
+              <div>
+                  <div className="flex items-center gap-2 mb-2">
+                      <CalendarDays className="h-5 w-5 text-primary" />
+                      <h3 className="font-bold font-headline text-lg text-primary">Opening Hours</h3>
+                  </div>
+                  <ul className="space-y-1 text-sm">
+                      {Object.entries(location.hours).map(([day, hours]) => (
+                          <li key={day} className={`flex justify-between ${day === status.todayName ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
+                              <span>{day}</span>
+                              <span>{hours ? `${hours.open} - ${hours.close}` : 'Closed'}</span>
+                          </li>
+                      ))}
+                  </ul>
+              </div>
+
+            </CardContent>
+          </CarouselItem>
+          {location.directoryInfo && (
+            <CarouselItem>
+                <CardContent className="p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <BookUser className="h-5 w-5 text-primary" />
+                        <h3 className="font-bold font-headline text-lg text-primary">Directory Information</h3>
+                    </div>
+                    <div className="prose prose-sm dark:prose-invert max-h-60 overflow-y-auto">
+                        <Markdown>{location.directoryInfo}</Markdown>
+                    </div>
+                </CardContent>
+            </CarouselItem>
+          )}
+        </CarouselContent>
+        <CardFooter className="flex justify-center items-center py-2 gap-2">
+            <CarouselPrevious className="static translate-y-0" />
+            <CarouselNext className="static translate-y-0" />
+        </CardFooter>
+      </Carousel>
     </Card>
   );
 }

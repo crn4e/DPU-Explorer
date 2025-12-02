@@ -21,6 +21,7 @@ export const locations: Location[] = [
     imageHint: 'hotel lobby',
     hours: defaultHours,
     mapPosition: { x: 50, y: 28 },
+    directoryInfo: `**Guest Services:**\n- Front Desk: Floor 1\n- Conference Rooms: Floor 2\n- Guest Rooms: Floors 3-5`
   },
   {
     id: 'building-2',
@@ -36,6 +37,7 @@ export const locations: Location[] = [
       Sunday: null,
     },
     mapPosition: { x: 53.5, y: 25 },
+    directoryInfo: `**Key Offices:**\n- Office of the President: Floor 4\n- Human Resources: Floor 2\n- Finance Department: Floor 2`
   },
   {
     id: 'building-3',
@@ -69,6 +71,7 @@ export const locations: Location[] = [
     hours: defaultHours,
     announcement: 'Special workshop on AI in Game Development this Saturday.',
     mapPosition: { x: 71, y: 42 },
+    directoryInfo: `**ANT Faculty:**\n- Dr. Somchai Jaidee: Room 5-301 (Game Design)\n- Aj. Siriporn Yindee: Room 5-305 (Animation)\n\n**CA Faculty:**\n- Dr. Pongsak Vanich: Room 5-402 (Broadcasting)`
   },
   {
     id: 'building-6',
@@ -80,6 +83,7 @@ export const locations: Location[] = [
     imageHint: 'university building',
     hours: defaultHours,
     mapPosition: { x: 67, y: 46 },
+    directoryInfo: `**Faculty Offices:**\n- Faculty of Law: Floor 3\n- Faculty of Public Admin: Floor 4\n- Faculty of Business Admin: Floor 5 & 6`
   },
   {
     id: 'building-7',
@@ -176,6 +180,7 @@ export const locations: Location[] = [
       Sunday: { open: '09:00', close: '17:00' },
     },
     mapPosition: { x: 44, y: 70 },
+    directoryInfo: '**Library Services:**\n- Circulation Desk: Floor 1\n- Digital Media Zone: Floor 2\n- Quiet Study Area: Floor 3'
   },
   {
     id: 'food-court',

@@ -13,4 +13,5 @@ export interface Location {
   };
   announcement?: string;
   mapPosition: { x: number; y: number };
+  directoryInfo?: string; // New field for page 2
 }
