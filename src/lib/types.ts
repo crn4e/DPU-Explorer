@@ -1,8 +1,13 @@
 export type LocationCategory = 'Academic' | 'Food' | 'Recreation' | 'Services';
 
+export interface RoomItem {
+  name: string;
+  details: string;
+}
+
 export interface DirectoryPage {
   title: string;
-  content: string;
+  items: RoomItem[];
 }
 
 export interface Location {

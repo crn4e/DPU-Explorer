@@ -122,8 +122,13 @@ export default function LocationCard({ location }: LocationCardProps) {
                         <BookUser className="h-5 w-5 text-primary" />
                         <h3 className="font-bold font-headline text-lg text-primary">{page.title}</h3>
                     </div>
-                    <div className="prose prose-sm dark:prose-invert max-h-60 overflow-y-auto">
-                        <Markdown>{page.content}</Markdown>
+                    <div className="prose prose-sm dark:prose-invert max-h-60 space-y-2 overflow-y-auto">
+                        {(page.items || []).map((item, itemIndex) => (
+                          <div key={itemIndex}>
+                            <p className="font-semibold mb-0">{item.name}</p>
+                            <p className="text-muted-foreground mt-0">{item.details}</p>
+                          </div>
+                        ))}
                     </div>
                 </CardContent>
             </CarouselItem>
