@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { auth, db, app } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 
@@ -48,22 +48,28 @@ export default function AddAdminPage() {
       return;
     }
 
-    try {
-        const currentDev = auth.currentUser;
-        if (!currentDev) {
-            throw new Error("No dev is currently signed in.");
-        }
+    const currentDev = auth.currentUser;
+    if (!currentDev) {
+        toast({
+            title: 'Authentication Error',
+            description: 'No developer is currently signed in. Please log in again.',
+            variant: 'destructive',
+        });
+        setIsLoading(false);
+        router.push('/dev/login');
+        return;
+    }
 
-        // Create a temporary secondary app instance to create the new user
-        const secondaryAppName = 'secondary-app-for-admin-creation-' + Date.now();
-        const secondaryApp = initializeApp(app.options, secondaryAppName);
+    const secondaryAppName = 'secondary-app-for-admin-creation-' + Date.now();
+    let secondaryApp;
+
+    try {
+        secondaryApp = initializeApp(app.options, secondaryAppName);
         const secondaryAuth = getAuth(secondaryApp);
 
-        // 1. Create user in Firebase Authentication using the secondary instance
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
         const newUser = userCredential.user;
 
-        // 2. Save additional user info to Firestore 'announcementAdmins' collection
         await setDoc(doc(db, "announcementAdmins", newUser.uid), {
             id: id,
             name: name,
@@ -102,6 +108,9 @@ export default function AddAdminPage() {
         });
     } finally {
         setIsLoading(false);
+        if (secondaryApp) {
+          await deleteApp(secondaryApp);
+        }
     }
   };
 
