@@ -94,7 +94,7 @@ export default function MapView({
     <div 
         ref={mapContainerRef}
         className={cn(
-            "relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-white overflow-auto focus:outline-none",
+            "relative h-full min-h-[calc(100svh-3.5rem)] w-full md:min-h-screen bg-white overflow-auto focus:outline-none select-none",
             isDragging && "cursor-grabbing",
             isRepositioning ? "cursor-crosshair" : "cursor-grab"
         )}

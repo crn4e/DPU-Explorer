@@ -40,7 +40,7 @@ function LocationItem({ location, onSelect, isSelected }: { location: Location; 
     <button
       onClick={onSelect}
       className={cn(
-        'flex w-full items-center gap-4 rounded-lg p-3 text-left transition-colors',
+        'flex w-full items-center gap-4 rounded-lg p-3 text-left transition-colors select-none',
         isSelected
           ? 'bg-primary/10 text-primary'
           : 'hover:bg-accent/50'
