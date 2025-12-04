@@ -23,7 +23,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
-export default function LoginPage() {
+export default function DevLoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -39,75 +39,37 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      const adminDocRef = doc(db, 'announcementAdmins', user.uid);
-      const studentDocRef = doc(db, 'students', user.uid);
-      
-      // Try to log in as an announcement admin first
-      try {
-          const adminDocSnap = await getDoc(adminDocRef);
-          if (adminDocSnap.exists()) {
-            sessionStorage.setItem('dpu-role', 'admin');
-            sessionStorage.setItem('dpu-announcement-admin-auth', 'true');
-            toast({
-              title: 'Login Successful',
-              description: 'Welcome back, Admin!',
-            });
-            router.push('/admin');
-            return;
-          }
-      } catch(e) {
-          const permissionError = new FirestorePermissionError({ path: adminDocRef.path, operation: 'get' });
-          errorEmitter.emit('permission-error', permissionError);
-          console.warn("Permission error checking admin status.", e);
-      }
-
-      // If not an admin, try to log in as a student
-      try {
-        const studentDocSnap = await getDoc(studentDocRef);
-        if (studentDocSnap.exists()) {
-            sessionStorage.setItem('dpu-role', 'student');
-            toast({
-              title: 'Login Successful',
-              description: 'Welcome back!',
-            });
-            router.push('/'); 
-            return;
-        }
-      } catch (e) {
-          const permissionError = new FirestorePermissionError({ path: studentDocRef.path, operation: 'get' });
-          errorEmitter.emit('permission-error', permissionError);
-          console.warn("Permission error checking student status.", e);
-      }
-      
-      // If user exists in Auth but not in any recognized role collection.
-      // This could also be a dev trying to log into the general login page.
-      // We will check for dev role silently, but not redirect to /dev, just inform them.
       const devDocRef = doc(db, 'admins', user.uid);
-       try {
+
+      try {
         const devDocSnap = await getDoc(devDocRef);
         if (devDocSnap.exists()) {
-           toast({
-            title: 'Login Notice',
-            description: 'Please use the Developer Login page to access the dev dashboard.',
-            variant: 'default',
+          sessionStorage.setItem('dpu-admin-auth', 'true');
+          toast({
+            title: 'Login Successful',
+            description: 'Welcome back, Dev!',
           });
-          router.push('/dev/login');
-          return;
+          router.push('/dev');
+        } else {
+          // If the user exists in Auth but not in the 'admins' collection
+          toast({
+            title: 'Access Denied',
+            description: 'This account does not have developer privileges.',
+            variant: 'destructive',
+          });
+          await auth.signOut();
         }
       } catch (e) {
-        // Silently fail, as this page is not for devs.
+          const permissionError = new FirestorePermissionError({ path: devDocRef.path, operation: 'get' });
+          errorEmitter.emit('permission-error', permissionError);
+          // Also provide immediate user feedback
+           toast({
+            title: 'Login Error',
+            description: 'Could not verify developer status due to a permissions issue.',
+            variant: 'destructive',
+          });
+          await auth.signOut();
       }
-
-
-      // Fallback if no doc is found in any collection
-      toast({
-        title: 'Login Failed',
-        description: 'Your user role could not be determined. Please contact support.',
-        variant: 'destructive',
-      });
-      await auth.signOut();
-
-
     } catch (error: any) {
       let errorMessage = 'An unexpected error occurred.';
       if (error.code) {
@@ -153,9 +115,9 @@ export default function LoginPage() {
                     height={40}
                     className="h-10 w-10 rounded-full object-cover"
                 />
-                <CardTitle className="font-headline text-2xl">Login</CardTitle>
+                <CardTitle className="font-headline text-2xl">Dev Login</CardTitle>
             </div>
-          <CardDescription>Enter your credentials to access your account.</CardDescription>
+          <CardDescription>Enter your developer credentials to access the dev panel.</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
@@ -196,20 +158,8 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Login
+              Login as Dev
             </Button>
-            <div className="flex justify-between w-full">
-              <Button variant="link" size="sm" asChild>
-                  <Link href="/register">
-                      Don't have an account? Register
-                  </Link>
-              </Button>
-               <Button variant="link" size="sm" asChild>
-                  <Link href="/dev/login">
-                      Dev Login
-                  </Link>
-              </Button>
-            </div>
           </CardFooter>
         </form>
       </Card>
