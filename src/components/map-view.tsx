@@ -3,6 +3,7 @@ import type { Location } from '@/lib/types';
 import LocationCard from './location-card';
 import {
   MapPin,
+  Compass,
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRef, useState, MouseEvent as ReactMouseEvent, RefObject } from 'react';
@@ -146,6 +147,10 @@ export default function MapView({
             </div>
         </div>
 
+        <div className="absolute top-4 right-4 bg-white/70 backdrop-blur-sm rounded-full p-2 shadow-md">
+            <Compass className="h-8 w-8 text-gray-700" />
+        </div>
+
       <div
         className={`pointer-events-none absolute bottom-0 left-0 right-0 top-0 z-10 flex items-start justify-end p-4 transition-all duration-500 md:items-end ${
           selectedLocation && !isRepositioning ? 'opacity-100' : 'opacity-0'
@@ -160,5 +165,3 @@ export default function MapView({
     </div>
   );
 }
-
-    
