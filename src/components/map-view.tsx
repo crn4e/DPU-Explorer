@@ -146,12 +146,12 @@ export default function MapView({
             </div>
         </div>
 
-        <div className="absolute top-4 right-4 w-16 h-16">
+        <div className="absolute top-4 right-4 w-18 h-18">
             <Image
-                src="/compass.png"
+                src="/pngegg.png"
                 alt="Compass"
-                width={64}
-                height={64}
+                width={120}
+                height={120}
                 className="pointer-events-none"
             />
         </div>

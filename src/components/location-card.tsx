@@ -15,6 +15,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Megaphone, CalendarDays, BookUser } from 'lucide-react';
@@ -29,8 +30,15 @@ interface LocationCardProps {
 
 export default function LocationCard({ location }: LocationCardProps) {
   const [status, setStatus] = useState({ isOpen: false, closesAt: '', opensAt: '', todayName: '' });
+  const [api, setApi] = useState<CarouselApi>();
 
   useEffect(() => {
+    // When the location prop changes, reset the carousel to the first slide
+    if (api) {
+      api.scrollTo(0);
+    }
+    
+    // This logic handles checking and updating the open/closed status
     const newStatus = checkOpenStatus(location);
     setStatus(newStatus);
     
@@ -39,13 +47,17 @@ export default function LocationCard({ location }: LocationCardProps) {
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, [location]);
+  }, [location, api]);
 
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
 
   return (
     <Card className="overflow-hidden shadow-2xl transition-all duration-300 animate-in fade-in-0 zoom-in-95">
-      <Carousel className="w-full" opts={{ loop: hasDirectoryInfo }}>
+      <Carousel 
+        className="w-full" 
+        opts={{ loop: hasDirectoryInfo }}
+        setApi={setApi}
+      >
         <CardHeader className="relative p-0">
           <Image
             src={location.image}
@@ -120,7 +132,7 @@ export default function LocationCard({ location }: LocationCardProps) {
           {location.directoryInfo?.map((page, index) => (
             <CarouselItem key={index}>
                 <CardContent className="p-6 select-none">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-4">
                         <BookUser className="h-5 w-5 text-primary" />
                         <h3 className="font-bold font-headline text-lg text-primary">{page.title}</h3>
                     </div>
