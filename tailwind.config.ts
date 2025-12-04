@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Alegreya', 'serif'],
-        headline: ['Alegreya', 'serif'],
+        body: ['Sarabun', 'sans-serif'],
+        headline: ['Sarabun', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
