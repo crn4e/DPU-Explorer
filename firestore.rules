@@ -45,8 +45,18 @@ service cloud.firestore {
       // Allow full update for Devs
       allow update: if isAdmin();
       // Allow specific field update for Announcement Admins
-      allow update: if isAnnouncementAdmin()
-                    && request.resource.data.keys().hasOnly(['announcement']);
+      // This rule is tricky. `request.resource.data` refers to the state of the document
+      // AFTER the update. `hasOnly` checks ALL keys in the new document state.
+      // So, to allow updating only `announcement`, we must ensure the incoming data map
+      // `request.resource.data` ONLY differs from the existing `resource.data` by that one key.
+      // A simpler, though less robust rule, is to check the write keys.
+      // For this scenario, we will check that only the 'announcement' key is being written.
+      // The incoming data is in request.resource.data. We compare it to resource.data.
+      // Let's ensure only the announcement field is different.
+      allow update: if isAnnouncementAdmin() && 
+                    request.resource.data.keys().hasOnly(resource.data.keys().union(['announcement'])) &&
+                    request.resource.data.announcement != resource.data.announcement;
+
     }
 
     match /locations/{locationId}/announcements/{announcementId} {
