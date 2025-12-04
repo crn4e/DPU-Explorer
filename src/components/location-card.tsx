@@ -118,10 +118,13 @@ export default function LocationCard({ location }: LocationCardProps) {
           {location.directoryInfo?.map((page, index) => (
             <CarouselItem key={index}>
                 <CardContent className="p-6">
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
                         <BookUser className="h-5 w-5 text-primary" />
                         <h3 className="font-bold font-headline text-lg text-primary">{page.title}</h3>
                     </div>
+                    {page.description && (
+                        <p className="text-sm text-muted-foreground mb-4 whitespace-pre-wrap">{page.description}</p>
+                    )}
                     <div className="prose prose-sm dark:prose-invert max-h-60 space-y-2 overflow-y-auto">
                         {(page.items || []).map((item, itemIndex) => (
                           <div key={itemIndex}>

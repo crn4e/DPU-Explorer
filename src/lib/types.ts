@@ -7,6 +7,7 @@ export interface RoomItem {
 
 export interface DirectoryPage {
   title: string;
+  description?: string;
   items: RoomItem[];
 }
 
