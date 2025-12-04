@@ -71,8 +71,10 @@ export default function LocationCard({ location }: LocationCardProps) {
             <CardContent className="p-6">
               <div className="mb-4 flex items-center gap-3">
                 <Badge
-                  variant={status.isOpen ? 'default' : 'destructive'}
-                  className={cn("text-sm", !status.isOpen && "bg-red-700")}
+                  className={cn(
+                    "text-sm text-white",
+                    status.isOpen ? "bg-green-600" : "bg-red-600"
+                  )}
                 >
                   {status.isOpen ? 'Open' : 'Closed'}
                 </Badge>
