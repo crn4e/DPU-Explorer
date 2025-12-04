@@ -227,7 +227,7 @@ function EditLocationSheet({
     setFormData((prev) => prev ? ({ ...prev, [id]: value }) : null);
   };
   
-  const handleDirectoryPageChange = (index: number, field: 'title', value: string) => {
+  const handleDirectoryPageChange = (index: number, field: 'title' | 'description', value: string) => {
     setFormData(prev => {
       if (!prev) return null;
       const newDirectoryInfo = [...(prev.directoryInfo || [])];
@@ -460,6 +460,16 @@ function EditLocationSheet({
                     id={`dir-title-${activePageIndex - 1}`}
                     value={formData.directoryInfo[activePageIndex - 1].title}
                     onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'title', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`dir-desc-${activePageIndex - 1}`}>Description (Optional)</Label>
+                  <Textarea
+                    id={`dir-desc-${activePageIndex - 1}`}
+                    placeholder="A brief description for this page."
+                    value={formData.directoryInfo[activePageIndex - 1].description || ''}
+                    onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'description', e.target.value)}
+                    rows={3}
                   />
                 </div>
                 
