@@ -73,6 +73,8 @@ export default function AdminPage() {
             } else {
                  setIsAuthenticated(false);
                  sessionStorage.removeItem('dpu-announcement-admin-auth');
+                 // Don't just push to login, first sign out to clear state
+                 await auth.signOut();
                  router.push('/login');
             }
         } else {
