@@ -68,12 +68,12 @@ export default function LocationCard({ location }: LocationCardProps) {
 
         <CarouselContent>
           <CarouselItem>
-            <CardContent className="p-6">
+            <CardContent className="p-6 select-none">
               <div className="mb-4 flex items-center gap-3">
                 <Badge
                   className={cn(
-                    "text-sm text-white",
-                    status.isOpen ? "bg-green-600" : "bg-red-600"
+                    "text-sm",
+                    status.isOpen ? "bg-green-600 hover:bg-green-600/80 text-white" : "bg-red-600 hover:bg-red-600/80 text-white"
                   )}
                 >
                   {status.isOpen ? 'Open' : 'Closed'}
@@ -119,7 +119,7 @@ export default function LocationCard({ location }: LocationCardProps) {
           </CarouselItem>
           {location.directoryInfo?.map((page, index) => (
             <CarouselItem key={index}>
-                <CardContent className="p-6">
+                <CardContent className="p-6 select-none">
                     <div className="flex items-center gap-2 mb-2">
                         <BookUser className="h-5 w-5 text-primary" />
                         <h3 className="font-bold font-headline text-lg text-primary">{page.title}</h3>
