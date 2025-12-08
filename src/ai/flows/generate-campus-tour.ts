@@ -36,22 +36,13 @@ export type GenerateCampusTourOutput = z.infer<
   typeof GenerateCampusTourOutputSchema
 >;
 
-export async function generateCampusTour(
-  input: GenerateCampusTourInput
-): Promise<GenerateCampusTourOutput> {
-  return generateCampusTourFlow(input);
-}
-
-const generateCampusTourFlow = ai.defineFlow(
+const generateCampusTourPrompt = ai.definePrompt(
   {
-    name: 'generateCampusTourFlow',
-    inputSchema: GenerateCampusTourInputSchema,
-    outputSchema: GenerateCampusTourOutputSchema,
-  },
-  async (input) => {
-    const {output} = await ai.generate({
-      model: googleAI.model('gemini-1.5-flash-preview'),
-      prompt: `You are a helpful tour guide for Dhurakij Pundit University (DPU) in Thailand. You create personalized tour itineraries based on the user's stated interests and the current time. Your response must be in Thai.
+    name: 'generateCampusTourPrompt',
+    input: {schema: GenerateCampusTourInputSchema},
+    output: {schema: GenerateCampusTourOutputSchema},
+    model: googleAI.model('gemini-1.5-flash-preview'),
+    system: `You are a helpful tour guide for Dhurakij Pundit University (DPU) in Thailand. You create personalized tour itineraries based on the user's stated interests and the current time. Your response must be in Thai.
 
   You must only use the locations provided in the available locations list. Do not invent locations.
 
@@ -60,16 +51,26 @@ const generateCampusTourFlow = ai.defineFlow(
 
   Consider the current time when suggesting locations, and the opening hours of different locations. Only suggest places that are open right now. If no relevant places are open, inform the user politely in Thai.
 
-  If the user asks a question instead of stating an interest, politely redirect them to the "AI Chat" feature for questions and explain that your role is to create tour itineraries.
-
-  User's Interests: ${input.interests}
-  Current Time: ${input.currentTime}
-
-  Create a tour itinerary in Thai that is engaging and informative. Structure the output as a friendly message with a clear itinerary, possibly using bullet points.`,
-      output: {
-        schema: GenerateCampusTourOutputSchema,
-      },
+  If the user asks a question instead of stating an interest, politely redirect them to the "AI Chat" feature for questions and explain that your role is to create tour itineraries.`,
+    prompt: `User's Interests: {{{interests}}}
+  Current Time: {{{currentTime}}}
+  
+  Create a tour itinerary in Thai that is engaging and informative. Structure the output as a friendly message with a clear itinerary, possibly using bullet points.`
+  },
+  async (input) => {
+     const {output} = await ai.generate({
+      model: googleAI.model('gemini-1.5-flash-preview'),
+      prompt: `User's Interests: ${input.interests}
+Current Time: ${input.currentTime}`,
     });
-    return output!;
+    return { tourItinerary: output?.text || 'Could not generate a tour.' };
   }
 );
+
+
+export async function generateCampusTour(
+  input: GenerateCampusTourInput
+): Promise<GenerateCampusTourOutput> {
+  const result = await generateCampusTourPrompt(input);
+  return result;
+}
