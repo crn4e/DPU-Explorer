@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X } from 'lucide-react';
+import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -46,6 +46,7 @@ import {
   SidebarFooter,
   SidebarInset,
 } from '@/components/ui/sidebar';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const categories: (LocationCategory | 'All')[] = [
@@ -55,6 +56,8 @@ const categories: (LocationCategory | 'All')[] = [
   'Recreation',
   'Services',
 ];
+
+const daysOfWeek: (keyof Location['hours'])[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 
 function AddLocationSheet({
@@ -224,6 +227,35 @@ function EditLocationSheet({
     setFormData((prev) => prev ? ({ ...prev, category: value }) : null);
   };
 
+  const handleHoursChange = (day: keyof Location['hours'], field: 'open' | 'close', value: string) => {
+      setFormData(prev => {
+          if (!prev) return null;
+          const newHours = { ...prev.hours };
+          const dayHours = newHours[day];
+          if (dayHours) {
+              newHours[day] = { ...dayHours, [field]: value };
+          } else {
+              // If it was null (closed), initialize it
+              newHours[day] = { open: '00:00', close: '00:00', [field]: value };
+          }
+          return { ...prev, hours: newHours };
+      });
+  };
+
+  const handleClosedChange = (day: keyof Location['hours'], checked: boolean) => {
+      setFormData(prev => {
+          if (!prev) return null;
+          const newHours = { ...prev.hours };
+          if (checked) {
+              newHours[day] = null;
+          } else {
+              // If unchecking, set default hours
+              newHours[day] = { open: '08:00', close: '17:00' };
+          }
+          return { ...prev, hours: newHours };
+      });
+  };
+
   const handleDirectoryPageChange = (index: number, field: 'title' | 'description', value: string) => {
     setFormData(prev => {
       if (!prev) return null;
@@ -383,6 +415,43 @@ function EditLocationSheet({
                   <Label htmlFor="announcement">Announcement</Label>
                   <Textarea id="announcement" value={formData.announcement || ''} onChange={handleFieldChange} rows={2} />
               </div>
+
+               <div className="space-y-4 rounded-md border p-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" />
+                    <Label>Opening Hours</Label>
+                  </div>
+                  {daysOfWeek.map(day => (
+                      <div key={day} className="grid grid-cols-6 items-center gap-2">
+                          <Label htmlFor={`closed-${day}`} className="col-span-2 text-sm font-normal">{day}</Label>
+                          <div className="col-span-4 grid grid-cols-3 items-center gap-2">
+                              <Input
+                                  type="time"
+                                  value={formData.hours[day]?.open ?? ''}
+                                  onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                                  disabled={formData.hours[day] === null}
+                                  className="w-full"
+                              />
+                              <Input
+                                  type="time"
+                                  value={formData.hours[day]?.close ?? ''}
+                                  onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                                  disabled={formData.hours[day] === null}
+                                  className="w-full"
+                              />
+                              <div className="flex items-center space-x-2 justify-end">
+                                  <Checkbox
+                                      id={`closed-${day}`}
+                                      checked={formData.hours[day] === null}
+                                      onCheckedChange={(checked) => handleClosedChange(day, checked as boolean)}
+                                  />
+                                  <Label htmlFor={`closed-${day}`} className="text-xs font-light">Closed</Label>
+                              </div>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+              
               <div className="space-y-2">
                   <Label>Map Position</Label>
                   <Button variant="outline" onClick={onEnterRepositionMode} className='w-full'>
@@ -394,9 +463,6 @@ function EditLocationSheet({
                       <Input disabled value={`Y: ${formData.mapPosition.y.toFixed(2)}%`} />
                   </div>
               </div>
-              <p className="text-center text-sm text-muted-foreground">
-                  Editing opening hours is not available in this demo.
-              </p>
                <p className="text-center text-sm text-muted-foreground">
                   To change an image, edit `src/lib/placeholder-images.json`.
               </p>
