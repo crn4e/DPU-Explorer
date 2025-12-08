@@ -6,6 +6,11 @@ export function checkOpenStatus(location: Location): { isOpen: boolean; closesAt
   const now = new Date();
   const todayName = format(now, 'EEEE'); // 'Monday', 'Tuesday'...
 
+  // Add a check to ensure location.hours exists before trying to access it.
+  if (!location.hours) {
+    return { isOpen: false, closesAt: '', opensAt: '', todayName };
+  }
+
   const todaysHours = location.hours[todayName];
 
   if (!todaysHours) {
