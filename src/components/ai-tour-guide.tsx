@@ -55,10 +55,13 @@ export default function AiTourGuide() {
       });
       return;
     }
+    
+    // Ensure currentTime is set before submitting
+    const timeToSend = currentTime || format(new Date(), 'HH:mm');
 
     startTransition(async () => {
       try {
-        const result = await generateCampusTour({ interests, currentTime });
+        const result = await generateCampusTour({ interests, currentTime: timeToSend });
         setTourItinerary(result.tourItinerary);
       } catch (error) {
         console.error('Failed to generate tour:', error);
@@ -102,7 +105,7 @@ export default function AiTourGuide() {
                 rows={4}
               />
             </div>
-            <Button type="submit" disabled={isPending} className="w-full">
+            <Button type="submit" disabled={isPending || !currentTime} className="w-full">
               {isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
