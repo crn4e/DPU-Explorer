@@ -20,17 +20,8 @@ export interface Location {
   hours?: {
     // day name from 'EEEE' format of date-fns, e.g. "Monday"
     [day: string]: { open: string; close: string } | null;
-  };
+  } | null; // Allow hours to be null
   announcement?: string;
   mapPosition: { x: number; y: number };
   directoryInfo?: DirectoryPage[];
-  image: string;
-  imageHint: string;
-}
-
-export interface StudentProfile {
-  name: string;
-  surname: string;
-  email: string;
-  studentId: string;
 }

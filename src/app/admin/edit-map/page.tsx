@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc, deleteField } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
@@ -103,9 +103,6 @@ function AddLocationSheet({
                 category,
                 announcement,
                 mapPosition: newPosition,
-                // Default values for new locations
-                image: 'https://placehold.co/600x400.png',
-                imageHint: 'placeholder',
                 hours: {
                     Monday: { open: '08:00', close: '20:00' },
                     Tuesday: { open: '08:00', close: '20:00' },
@@ -349,7 +346,7 @@ function EditLocationSheet({
   };
 
   const handleClearAllHours = () => {
-    setFormData(prev => prev ? ({ ...prev, hours: undefined }) : null);
+    setFormData(prev => prev ? ({ ...prev, hours: null }) : null);
   };
 
   const handleAddHours = () => {
@@ -440,7 +437,12 @@ function EditLocationSheet({
     setIsSaving(true);
     try {
         const locationRef = doc(db, 'locations', formData.id);
-        await updateDoc(locationRef, { ...formData });
+        const dataToSave = { ...formData };
+        if (dataToSave.hours === null) {
+          (dataToSave as any).hours = deleteField();
+        }
+        
+        await updateDoc(locationRef, dataToSave);
         onSave(formData);
         toast({
             title: 'Location Updated',
@@ -510,7 +512,7 @@ function EditLocationSheet({
                 <Label htmlFor="image">Image</Label>
                 <div className='relative aspect-video w-full rounded-md overflow-hidden'>
                     <Image
-                        src={formData.image}
+                        src={formData.image || '/default.png'}
                         alt={formData.name}
                         fill
                         className="object-cover"
@@ -593,20 +595,20 @@ function EditLocationSheet({
                                     type="time"
                                     value={formData.hours?.[day]?.open ?? ''}
                                     onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
-                                    disabled={formData.hours?.[day] === null}
+                                    disabled={!formData.hours || formData.hours[day] === null}
                                     className="w-full"
                                 />
                                 <Input
                                     type="time"
                                     value={formData.hours?.[day]?.close ?? ''}
                                     onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
-                                    disabled={formData.hours?.[day] === null}
+                                    disabled={!formData.hours || formData.hours[day] === null}
                                     className="w-full"
                                 />
                                 <div className="flex items-center space-x-2 justify-end">
                                     <Checkbox
                                         id={`closed-${day}`}
-                                        checked={formData.hours?.[day] === null}
+                                        checked={!formData.hours || formData.hours[day] === null}
                                         onCheckedChange={(checked) => handleClosedChange(day, checked as boolean)}
                                     />
                                     <Label htmlFor={`closed-${day}`} className="text-xs font-light">Closed</Label>
