@@ -2,7 +2,7 @@
   "building-1": {
     "main": {
       "url": "/IMG_1804.jpg",
-      "hint": "hotel lobby"
+      "hint": "university building"
     },
     "directoryPages": {
       "building-1-guest-services": {
@@ -135,18 +135,6 @@
     "main": {
       "url": "/basketball-court.jpg",
       "hint": "basketball court"
-    }
-  },
-  "Building 20": {
-    "main": {
-      "url": "/Building 20.jpg",
-      "hint": "Building 20"
-    }
-  },
-  "Building21": {
-    "main": {
-      "url": "/Building21.jpg",
-      "hint": "Building21"
     }
   },
   "default": {

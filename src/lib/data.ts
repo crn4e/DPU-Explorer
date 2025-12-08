@@ -13,11 +13,19 @@ const defaultHours = {
 export const locations: Location[] = [
   {
     id: 'building-1',
-    name: 'Building 1 - DPU Place',
-    category: 'Services',
-    description:
-      'Known as DPU Place, this building serves as a hotel and training center, offering accommodation and conference facilities.',
-    hours: defaultHours,
+    name: 'อาคาร 1 - CIBA',
+    category: ['Services'],
+    description: 'คณะวิทยาลัยบริหารธุรกิจนวัตกรรมและการบัญชี (CIBA)',
+    announcement: 'Hello World',
+    hours: {
+      "Monday": "08:00-20:00",
+      "Tuesday": "08:00-20:00",
+      "Wednesday": "08:00-20:00",
+      "Thursday": "08:00-20:00",
+      "Friday": "08:00-18:00",
+      "Saturday": "09:00-16:00",
+      "Sunday": "Closed",
+    },
     mapPosition: { x: 50, y: 28 },
     directoryInfo: [
         { title: 'Guest Services', description: '**Guest Services:**\n- Front Desk: Floor 1\n- Conference Rooms: Floor 2\n- Guest Rooms: Floors 3-5', items: [], imageId: 'building-1-guest-services' }
@@ -26,7 +34,7 @@ export const locations: Location[] = [
   {
     id: 'building-2',
     name: 'Building 2 - Administration Office',
-    category: 'Services',
+    category: ['Services'],
     description:
       'The main administration building, housing key university offices including the Office of the President.',
     hours: {
@@ -42,7 +50,7 @@ export const locations: Location[] = [
   {
     id: 'building-3',
     name: 'Building 3 - Health and Wellness',
-    category: 'Academic',
+    category: ['Academic'],
     description:
       'Home to the College of Health and Wellness and the Faculty of Nursing, focusing on health sciences and medical education.',
     hours: defaultHours,
@@ -51,7 +59,7 @@ export const locations: Location[] = [
   {
     id: 'building-4',
     name: 'Building 4',
-    category: 'Academic',
+    category: ['Academic'],
     description: 'Houses various classrooms and faculty offices for general studies.',
     hours: defaultHours,
     mapPosition: { x: 57.55, y: 36 },
@@ -59,7 +67,7 @@ export const locations: Location[] = [
   {
     id: 'building-5',
     name: 'Building 5 - Communication Arts & ANT',
-    category: 'Academic',
+    category: ['Academic'],
     description:
       'Home to the College of Creative Design and Entertainment Technology (ANT) and the College of Communication Arts (CA), fostering innovation in digital content and communication.',
     hours: defaultHours,
@@ -72,7 +80,7 @@ export const locations: Location[] = [
   {
     id: 'building-6',
     name: 'Building 6 - Chalermprakiat',
-    category: 'Academic',
+    category: ['Academic'],
     description:
       'A central hub for various faculties including Law, Public Administration, and Business Administration. This building is a cornerstone of DPU\'s academic excellence.',
     hours: defaultHours,
@@ -84,7 +92,7 @@ export const locations: Location[] = [
   {
     id: 'building-7',
     name: 'Building 7 - Student Services Center',
-    category: 'Services',
+    category: ['Services'],
     description:
       'A one-stop service point for all student needs, including registration, academic advising, and administrative support.',
     hours: {
@@ -101,7 +109,7 @@ export const locations: Location[] = [
   {
     id: 'building-8',
     name: 'Building 8',
-    category: 'Academic',
+    category: ['Academic'],
     description: 'Part of the Engineering and Technology complex, with specialized labs and workshops.',
     hours: defaultHours,
     mapPosition: { x: 75, y: 63 },
@@ -109,7 +117,7 @@ export const locations: Location[] = [
   {
     id: 'building-9',
     name: 'Building 9 - International College',
-    category: 'Academic',
+    category: ['Academic'],
     description:
       'The hub for international students and programs, home to the DPU International College (DPUIC).',
     hours: defaultHours,
@@ -118,7 +126,7 @@ export const locations: Location[] = [
   {
     id: 'building-10',
     name: 'Building 10 - Tourism and Hospitality',
-    category: 'Academic',
+    category: ['Academic'],
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
     hours: defaultHours,
     mapPosition: { x: 32, y: 46 },
@@ -126,7 +134,7 @@ export const locations: Location[] = [
   {
     id: 'building-12',
     name: 'Building 12 - Sports Complex',
-    category: 'Recreation',
+    category: ['Recreation'],
     description:
       'Features an indoor gymnasium, basketball court, and other sports facilities. Also includes the main university football field.',
     hours: defaultHours,
@@ -135,7 +143,7 @@ export const locations: Location[] = [
   {
     id: 'โรงละคร',
     name: 'โรงละคร - Tourism and Hospitality',
-    category: 'Academic',
+    category: ['Academic'],
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
     hours: defaultHours,
     mapPosition: { x: 82, y: 50 },
@@ -143,7 +151,7 @@ export const locations: Location[] = [
   {
     id: 'building-15-17',
     name: 'Building 15-17 - Aviation Training',
-    category: 'Academic',
+    category: ['Academic'],
     description: 'The College of Aviation Development and Training (CADT), featuring advanced simulators and a full-size aircraft for hands-on learning.',
     hours: defaultHours,
     mapPosition: { x: 12, y: 36 },
@@ -151,7 +159,7 @@ export const locations: Location[] = [
   {
     id: 'library',
     name: 'DPU Library',
-    category: 'Services',
+    category: ['Services'],
     description:
       'The heart of knowledge and research at DPU. Provides a vast collection of books, digital resources, and quiet study areas for students and faculty.',
     hours: {
@@ -167,7 +175,7 @@ export const locations: Location[] = [
   {
     id: 'food-court',
     name: 'DPU Food Court',
-    category: 'Food',
+    category: ['Food'],
     description:
       'Offers a wide variety of delicious and affordable Thai and international food options in a lively atmosphere. A popular spot for students to eat and socialize.',
     hours: {
@@ -185,7 +193,7 @@ export const locations: Location[] = [
   {
     id: 'gym',
     name: 'DPU Fitness Center',
-    category: 'Recreation',
+    category: ['Recreation'],
     description:
       'A state-of-the-art facility with modern equipment, a swimming pool, and various fitness classes to promote a healthy lifestyle for the DPU community.',
     hours: {
@@ -202,7 +210,7 @@ export const locations: Location[] = [
   {
     id: 'swimming-pool',
     name: 'Swimming Pool',
-    category: 'Recreation',
+    category: ['Recreation'],
     description:
       'An outdoor swimming pool for leisure and exercise, located next to Building 10.',
     hours: {
@@ -219,44 +227,10 @@ export const locations: Location[] = [
   {
     id: 'basketball-court',
     name: 'Basketball Court',
-    category: 'Recreation',
+    category: ['Recreation'],
     description:
       'An indoor basketball court available for student use and university team practices, located in Building 10.',
     hours: defaultHours,
     mapPosition: { x: 27, y: 58 }, // Inside Building 10
-  },
-  {
-    id: 'Building 20',
-    name: 'Building 20',
-    category: 'Services',
-    description:
-      'Building 20.',
-    hours: {
-      Monday: { open: '10:00', close: '20:00' },
-      Tuesday: { open: '10:00', close: '20:00' },
-      Wednesday: { open: '10:00', close: '20:00' },
-      Thursday: { open: '10:00', close: '20:00' },
-      Friday: { open: '10:00', close: '20:00' },
-      Saturday: { open: '10:00', close: '19:00' },
-      Sunday: null,
-    },
-    mapPosition: { x: 49, y: 61 },
-  },
-  {
-    id: 'Building21',
-    name: 'Building21',
-    category: 'Services',
-    description:
-      ' Building 21.',
-    hours: {
-      Monday: { open: '10:00', close: '20:00' },
-      Tuesday: { open: '10:00', close: '20:00' },
-      Wednesday: { open: '10:00', close: '20:00' },
-      Thursday: { open: '10:00', close: '20:00' },
-      Friday: { open: '10:00', close: '20:00' },
-      Saturday: { open: '10:00', close: '19:00' },
-      Sunday: null,
-    },
-    mapPosition: { x: 56, y: 61 },
   },
 ];

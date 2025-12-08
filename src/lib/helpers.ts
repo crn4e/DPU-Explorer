@@ -1,19 +1,18 @@
 'use client';
 import { type Location } from '@/lib/types';
-import { format, getDay, isAfter, isBefore, parse } from 'date-fns';
+import { format, isAfter, isBefore, parse } from 'date-fns';
 
 export function checkOpenStatus(location: Location): { isOpen: boolean; closesAt: string; opensAt: string, todayName: string } {
   const now = new Date();
   const todayName = format(now, 'EEEE'); // 'Monday', 'Tuesday'...
 
-  // Add a check to ensure location.hours exists before trying to access it.
   if (!location.hours) {
     return { isOpen: false, closesAt: '', opensAt: '', todayName };
   }
 
   const todaysHours = location.hours[todayName];
 
-  if (!todaysHours) {
+  if (!todaysHours || typeof todaysHours !== 'object' || !todaysHours.open || !todaysHours.close) {
     return { isOpen: false, closesAt: '', opensAt: '', todayName };
   }
 
