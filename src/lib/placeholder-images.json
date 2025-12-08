@@ -1,152 +1,158 @@
 {
   "building-1": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/building-1.jpg",
       "hint": "hotel lobby"
     },
     "directoryPages": {
       "building-1-guest-services": {
-        "url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop",
+        "url": "/placeholder/building-1-guest-services.jpg",
         "hint": "reception desk"
       }
     }
   },
   "building-2": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1554672408-730436b60dde?q=80&w=1931&auto=format&fit=crop",
+      "url": "/placeholder/building-2.jpg",
       "hint": "office building"
     },
     "directoryPages": {
       "building-2-key-offices": {
-        "url": "https://images.unsplash.com/photo-1554672408-730436b60dde?q=80&w=1931&auto=format&fit=crop",
+        "url": "/placeholder/building-2-key-offices.jpg",
         "hint": "modern office"
       }
     }
   },
   "building-3": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1538945711740-014022da534b?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/building-3.jpg",
       "hint": "medical building"
     }
   },
   "building-4": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=2073&auto=format&fit=crop",
+      "url": "/placeholder/building-4.jpg",
       "hint": "modern building"
     }
   },
   "building-5": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/building-5.jpg",
       "hint": "modern building"
     },
     "directoryPages": {
       "building-5-faculty-directory": {
-        "url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop",
+        "url": "/placeholder/building-5-faculty-directory.jpg",
         "hint": "tech classroom"
       }
     }
   },
   "building-6": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1560421683-6856ea585c78?q=80&w=1974&auto=format&fit=crop",
+      "url": "/placeholder/building-6.jpg",
       "hint": "university building"
     },
     "directoryPages": {
       "building-6-faculty-offices": {
-        "url": "https://images.unsplash.com/photo-1560421683-6856ea585c78?q=80&w=1974&auto=format&fit=crop",
+        "url": "/placeholder/building-6-faculty-offices.jpg",
         "hint": "lecture hall"
       }
     }
   },
   "building-7": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1556742044-f5c2dcb02cb6?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/building-7.jpg",
       "hint": "information desk"
     }
   },
   "building-8": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1518152006812-edab29b069ac?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/building-8.jpg",
       "hint": "engineering lab"
     }
   },
   "building-9": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/building-9.jpg",
       "hint": "global flags"
     }
   },
   "building-10": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/building-10.jpg",
       "hint": "hotel reception"
     }
   },
   "building-12": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop",
+      "url": "/placeholder/building-12.jpg",
       "hint": "lecture hall"
     }
   },
   "โรงละคร": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1578932750294-f5075e85f4b5?q=80&w=1974&auto=format&fit=crop",
+      "url": "/placeholder/โรงละคร.jpg",
       "hint": "theater stage"
     }
   },
   "building-15-17": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1542296332-9a5732de3907?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/building-15-17.jpg",
       "hint": "airplane hangar"
     }
   },
   "library": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/library.jpg",
       "hint": "library interior"
     },
     "directoryPages": {
       "library-services": {
-        "url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070&auto=format&fit=crop",
+        "url": "/placeholder/library-services.jpg",
         "hint": "bookshelves"
       }
     }
   },
   "food-court": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1974&auto=format&fit=crop",
+      "url": "/placeholder/food-court.jpg",
       "hint": "food court"
     }
   },
   "gym": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=2070&auto=format&fit=crop",
+      "url": "/placeholder/gym.jpg",
       "hint": "gym equipment"
     }
   },
   "swimming-pool": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1550937213-33d362372562?q=80&w=1974&auto=format&fit=crop",
+      "url": "/placeholder/swimming-pool.jpg",
       "hint": "swimming pool"
     }
   },
   "basketball-court": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1515523110800-9415d13b84a8?q=80&w=1974&auto=format&fit=crop",
+      "url": "/placeholder/basketball-court.jpg",
       "hint": "basketball court"
     }
   },
   "Building 20": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2053&auto=format&fit=crop",
+      "url": "/placeholder/Building 20.jpg",
       "hint": "Building 20"
     }
   },
   "Building21": {
     "main": {
-      "url": "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2053&auto=format&fit=crop",
+      "url": "/placeholder/Building21.jpg",
       "hint": "Building21"
+    }
+  },
+  "default": {
+    "main": {
+      "url": "/placeholder/default.png",
+      "hint": "placeholder"
     }
   }
 }

@@ -51,12 +51,12 @@ export default function LocationCard({ location }: LocationCardProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const locationImages = images[location.id] || { main: { url: 'https://placehold.co/600x400.png', hint: 'placeholder' }};
+  const locationImages = images[location.id] || { main: { url: '/placeholder/default.png', hint: 'placeholder' }};
   const [currentImage, setCurrentImage] = useState(locationImages.main);
 
   useEffect(() => {
     if (api) {
-      api.scrollTo(0);
+      api.scrollTo(0); // Go to the first slide
       const handleSelect = () => {
         setCurrentSlide(api.selectedScrollSnap());
       };
@@ -65,13 +65,9 @@ export default function LocationCard({ location }: LocationCardProps) {
         api.off('select', handleSelect);
       };
     }
-  }, [api]);
+  }, [api, location]); // Add location to dependency array to re-init on location change
 
   useEffect(() => {
-    // When the location prop changes, reset everything.
-    setCurrentSlide(0);
-    setCurrentImage(locationImages.main);
-    
     // This logic handles checking and updating the open/closed status
     const newStatus = checkOpenStatus(location);
     setStatus(newStatus);
@@ -81,7 +77,7 @@ export default function LocationCard({ location }: LocationCardProps) {
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, [location, locationImages.main]);
+  }, [location]);
 
   useEffect(() => {
     // Effect to update the image based on the current slide
