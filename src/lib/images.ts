@@ -1,6 +1,6 @@
 import { StaticImageData } from 'next/image';
 
-import building1 from '../assets/images/IMG_1805.jpg';
+import building1 from '../assets/images/IMG_1804.jpg';
 import building1_guest_services from '../assets/images/building-1-guest-services.jpg';
 import building2 from '../assets/images/IMG_1805.jpg';
 import building2_key_offices from '../assets/images/building-2-key-offices.jpg';
