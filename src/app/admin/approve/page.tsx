@@ -115,7 +115,7 @@ export default function AdminRegisterPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-gray-100 dark:bg-gray-900 py-12">
+    <div className="relative min-h-screen bg-gray-100 dark:bg-gray-900 py-12 p-4">
         <Button asChild variant="ghost" className="absolute left-4 top-4">
             <Link href="/admin">
             <ArrowLeft className="mr-2 h-4 w-4" />
