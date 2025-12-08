@@ -184,28 +184,32 @@ export default function LocationCard({ location }: LocationCardProps) {
                       <CalendarDays className="h-5 w-5 text-primary" />
                       <h3 className="font-bold font-headline text-lg text-primary">Opening Hours</h3>
                   </div>
-                  <ul className="space-y-1 text-sm">
-                    {daysOfWeek.map((day) => (
-                      <li
-                        key={day}
-                        className={cn(
-                          'flex justify-between',
-                          day === status.todayName
-                            ? 'font-bold text-primary'
-                            : 'text-muted-foreground'
-                        )}
-                      >
-                        <span>{day}</span>
-                        <span>
-                          {location.hours[day]
-                            ? `${location.hours[day]!.open} - ${
-                                location.hours[day]!.close
-                              }`
-                            : 'Closed'}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                   {location.hours ? (
+                    <ul className="space-y-1 text-sm">
+                      {daysOfWeek.map((day) => (
+                        <li
+                          key={day}
+                          className={cn(
+                            'flex justify-between',
+                            day === status.todayName
+                              ? 'font-bold text-primary'
+                              : 'text-muted-foreground'
+                          )}
+                        >
+                          <span>{day}</span>
+                          <span>
+                            {location.hours && location.hours[day]
+                              ? `${location.hours[day]!.open} - ${
+                                  location.hours[day]!.close
+                                }`
+                              : 'Closed'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                   ) : (
+                    <p className="text-sm text-muted-foreground">No opening hours available.</p>
+                   )}
               </div>
 
             </CardContent>
