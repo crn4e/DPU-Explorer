@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock, GripVertical } from 'lucide-react';
+import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock, ArrowRight } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -48,7 +48,6 @@ import {
 } from '@/components/ui/sidebar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 
 
 const categories: LocationCategory[] = [
@@ -336,30 +335,19 @@ function EditLocationSheet({
     });
   };
 
-    const onDragEnd = (result: DropResult) => {
-    if (!result.destination || !formData?.directoryInfo) {
-      return;
-    }
-    const items = Array.from(formData.directoryInfo);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+  const moveDirectoryPage = (index: number, direction: 'left' | 'right') => {
+    setFormData(prev => {
+        if (!prev || !prev.directoryInfo) return null;
+        const newDirectoryInfo = [...prev.directoryInfo];
+        const newIndex = direction === 'left' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= newDirectoryInfo.length) return prev;
 
-    setFormData({ ...formData, directoryInfo: items });
-    // Adjust active page index if the dragged item was the active one
-    if (activePageIndex - 1 === result.source.index) {
-        setActivePageIndex(result.destination.index + 1);
-    } else {
-        // This logic handles the index shifting
-        const source = result.source.index;
-        const destination = result.destination.index;
-        const active = activePageIndex - 1;
-
-        if (source < active && destination >= active) {
-            setActivePageIndex(active); // active moved one left
-        } else if (source > active && destination <= active) {
-            setActivePageIndex(active + 2); // active moved one right
-        }
-    }
+        const [movedItem] = newDirectoryInfo.splice(index, 1);
+        newDirectoryInfo.splice(newIndex, 0, movedItem);
+        
+        setActivePageIndex(newIndex + 1);
+        return { ...prev, directoryInfo: newDirectoryInfo };
+    });
   };
 
 
@@ -409,42 +397,22 @@ function EditLocationSheet({
             >
               Page 1
             </Button>
-            <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId="directoryPages" direction="horizontal">
-                {(provided) => (
-                    <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="flex items-center gap-2"
+            {formData.directoryInfo?.map((page, index) => (
+                <div key={page.imageId || index} className="flex items-center gap-1 shrink-0">
+                    <Button
+                        variant={activePageIndex === index + 1 ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => setActivePageIndex(index + 1)}
+                        className="shrink-0"
                     >
-                    {formData.directoryInfo?.map((page, index) => (
-                        <Draggable key={page.imageId || index} draggableId={page.imageId || `page-${index}`} index={index}>
-                        {(provided, snapshot) => (
-                            <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                className={cn("flex items-center", snapshot.isDragging && "opacity-50")}
-                            >
-                                <div {...provided.dragHandleProps} className="pr-1 cursor-grab">
-                                    <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                                <Button
-                                    variant={activePageIndex === index + 1 ? 'secondary' : 'ghost'}
-                                    size="sm"
-                                    onClick={() => setActivePageIndex(index + 1)}
-                                    className="shrink-0"
-                                >
-                                    {page.title || `Page ${index + 2}`}
-                                </Button>
-                            </div>
-                        )}
-                        </Draggable>
-                    ))}
-                    {provided.placeholder}
+                        {page.title || `Page ${index + 2}`}
+                    </Button>
+                     <div className="flex flex-col">
+                        <button onClick={() => moveDirectoryPage(index, 'left')} disabled={index === 0} className="disabled:opacity-20"><ArrowLeft className="h-3 w-3" /></button>
+                        <button onClick={() => moveDirectoryPage(index, 'right')} disabled={index === formData.directoryInfo.length -1} className="disabled:opacity-20"><ArrowRight className="h-3 w-3" /></button>
                     </div>
-                )}
-                </Droppable>
-            </DragDropContext>
+                </div>
+            ))}
             <Button onClick={addDirectoryPage} variant="ghost" size="icon" className="shrink-0 h-8 w-8">
                 <PlusCircle className="h-4 w-4"/>
             </Button>
