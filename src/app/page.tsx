@@ -5,19 +5,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {
   Sidebar,
-  SidebarProvider,
   SidebarInset,
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import LocationList from '@/components/location-list';
 import MapView from '@/components/map-view';
 import AiTourGuide from '@/components/ai-tour-guide';
 import type { Location, LocationCategory } from '@/lib/types';
-import { KeyRound, User, Loader2, Wrench, LogOut } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import AppHeader from '@/components/header';
 import AiChat from '@/components/ai-chat';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -34,7 +32,6 @@ import { collection, getDocs } from 'firebase/firestore';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-
 
 const allCategories: (LocationCategory | 'All')[] = [
   'All',
@@ -105,7 +102,7 @@ export default function Home() {
         });
 
   return (
-    <SidebarProvider>
+    <div className="flex h-screen w-full">
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center justify-between p-2">
@@ -155,7 +152,6 @@ export default function Home() {
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                                <LogOut className="mr-2 h-4 w-4" />
                                 Logout
                             </DropdownMenuItem>
                         </>
@@ -228,6 +224,6 @@ export default function Home() {
           onSelectLocation={setSelectedLocation}
         />
       </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

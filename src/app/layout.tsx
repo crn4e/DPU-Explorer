@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'DPU Explorer',
@@ -27,8 +29,10 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-          {children}
-          <Toaster />
+        <SidebarProvider>
+          <FirebaseClientProvider>{children}</FirebaseClientProvider>
+        </SidebarProvider>
+        <Toaster />
       </body>
     </html>
   );
