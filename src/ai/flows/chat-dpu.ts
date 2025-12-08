@@ -55,7 +55,7 @@ const chatDpuFlow = ai.defineFlow(
     outputSchema: ChatDpuOutputSchema,
   },
   async ({ message, history }) => {
-    const model = googleAI.model('gemini-1.5-flash', { tools: [googleAI.googleSearch]});
+    const model = googleAI.model('googleai/gemini-1.5-flash', { tools: [googleAI.googleSearch]});
     const { text } = await ai.generate({
       model,
       history,

@@ -63,7 +63,7 @@ const generateCampusTourFlow = ai.defineFlow(
   async input => {
     const {output} = await ai.generate({
         prompt: prompt.compile({input: input}),
-        model: googleAI.model('gemini-1.5-flash'),
+        model: googleAI.model('googleai/gemini-1.5-flash'),
         output: {
             schema: GenerateCampusTourOutputSchema
         }
