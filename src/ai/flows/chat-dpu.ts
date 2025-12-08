@@ -62,7 +62,7 @@ const chatDpuFlow = ai.defineFlow(
     outputSchema: ChatDpuOutputSchema,
   },
   async ({message, history}) => {
-    const model = googleAI.model('gemini-1.5-pro-latest');
+    const model = googleAI.model('gemini-1.5-flash-preview');
     const {text} = await ai.generate({
       model,
       history,

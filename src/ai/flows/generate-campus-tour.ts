@@ -50,7 +50,7 @@ const generateCampusTourFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await ai.generate({
-      model: googleAI.model('gemini-1.5-pro-latest'),
+      model: googleAI.model('gemini-1.5-flash-preview'),
       prompt: `You are a helpful tour guide for Dhurakij Pundit University (DPU) in Thailand. You create personalized tour itineraries based on the user's stated interests and the current time. Your response must be in Thai.
 
   You must only use the locations provided in the available locations list. Do not invent locations.
