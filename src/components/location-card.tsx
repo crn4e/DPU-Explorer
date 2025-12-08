@@ -22,7 +22,6 @@ import { Clock, Megaphone, CalendarDays, BookUser } from 'lucide-react';
 import { checkOpenStatus } from '@/lib/helpers';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import Markdown from 'react-markdown';
 import placeholderImages from '@/lib/placeholder-images.json';
 
 interface LocationCardProps {
@@ -45,18 +44,19 @@ type ImagesData = {
 }
 
 const images: ImagesData = placeholderImages;
+const defaultImage = { url: '/default.png', hint: 'placeholder' };
 
 export default function LocationCard({ location }: LocationCardProps) {
   const [status, setStatus] = useState({ isOpen: false, closesAt: '', opensAt: '', todayName: '' });
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const locationImages = images[location.id] || { main: { url: '/placeholder/default.png', hint: 'placeholder' }};
+  const locationImages = images[location.id] || { main: defaultImage };
   const [currentImage, setCurrentImage] = useState(locationImages.main);
 
   useEffect(() => {
     if (api) {
-      api.scrollTo(0); // Go to the first slide
+      api.scrollTo(0);
       const handleSelect = () => {
         setCurrentSlide(api.selectedScrollSnap());
       };
@@ -65,10 +65,9 @@ export default function LocationCard({ location }: LocationCardProps) {
         api.off('select', handleSelect);
       };
     }
-  }, [api, location]); // Add location to dependency array to re-init on location change
+  }, [api, location]);
 
   useEffect(() => {
-    // This logic handles checking and updating the open/closed status
     const newStatus = checkOpenStatus(location);
     setStatus(newStatus);
     
@@ -78,9 +77,17 @@ export default function LocationCard({ location }: LocationCardProps) {
 
     return () => clearInterval(intervalId);
   }, [location]);
+  
+  useEffect(() => {
+    // Re-initialize image state when location changes
+    const newLocationImages = images[location.id] || { main: defaultImage };
+    setCurrentImage(newLocationImages.main);
+    setCurrentSlide(0);
+    api?.scrollTo(0);
+  }, [location, api]);
 
   useEffect(() => {
-    // Effect to update the image based on the current slide
+    const locationImages = images[location.id] || { main: defaultImage };
     if (currentSlide === 0) {
       setCurrentImage(locationImages.main);
     } else {
@@ -88,9 +95,9 @@ export default function LocationCard({ location }: LocationCardProps) {
       const directoryPage = location.directoryInfo?.[pageIndex];
       const pageImageId = directoryPage?.imageId;
       const pageImage = pageImageId ? locationImages.directoryPages?.[pageImageId] : null;
-      setCurrentImage(pageImage || locationImages.main);
+      setCurrentImage(pageImage || locationImages.main || defaultImage);
     }
-  }, [currentSlide, location, locationImages]);
+  }, [currentSlide, location, images]);
 
 
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
@@ -105,7 +112,7 @@ export default function LocationCard({ location }: LocationCardProps) {
         <CardHeader className="relative p-0">
            <div className="relative aspect-video w-full">
             <Image
-              key={currentImage.url} // Add key to force re-render on change
+              key={currentImage.url}
               src={currentImage.url}
               alt={`Image of ${location.name}`}
               width={600}
