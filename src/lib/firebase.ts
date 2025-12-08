@@ -4,6 +4,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore, collection, writeBatch, getDocs, doc } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { locations as initialLocations } from '@/lib/data';
+import placeholderImages from '@/lib/placeholder-images.json';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -30,11 +31,12 @@ async function seedInitialData() {
   if (snapshot.empty) {
     console.log('Seeding initial location data...');
     const batch = writeBatch(db);
-    initialLocations.forEach((location) => {
-      // In Firestore, you don't set the ID like this. Firestore auto-generates it.
-      // But for consistency with the existing app, we'll use the location.id as the document ID.
-      const locationDoc = doc(locationsCollection, location.id);
-      batch.set(locationDoc, location);
+    initialLocations.forEach((locationData) => {
+      const locationDoc = doc(locationsCollection, locationData.id);
+      
+      const locationToWrite = { ...locationData };
+
+      batch.set(locationDoc, locationToWrite);
     });
     await batch.commit();
     console.log('Initial location data has been seeded.');

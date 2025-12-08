@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, GripVertical } from 'lucide-react';
+import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -37,7 +37,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc, getDoc } from 'firebase/firestore';
-import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
   Sidebar,
@@ -47,7 +46,6 @@ import {
   SidebarFooter,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { uploadImage } from '@/ai/flows/upload-image-flow';
 
 
 const categories: (LocationCategory | 'All')[] = [
@@ -94,8 +92,7 @@ function AddLocationSheet({
                 category,
                 announcement,
                 mapPosition: newPosition,
-                image: 'https://placehold.co/600x400.png',
-                imageHint: 'placeholder',
+                // Default values for new locations
                 hours: {
                     Monday: { open: '08:00', close: '20:00' },
                     Tuesday: { open: '08:00', close: '20:00' },
@@ -113,6 +110,7 @@ function AddLocationSheet({
                 description: `${name} has been added successfully.`,
             });
             onOpenChange(false);
+             // Reset form
             setName('');
             setDescription('');
             setCategory('Services');
@@ -200,9 +198,6 @@ function EditLocationSheet({
 }) {
   const [formData, setFormData] = useState<Location | null>(location);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [activePageIndex, setActivePageIndex] = useState(0);
 
@@ -213,8 +208,6 @@ function EditLocationSheet({
         directoryInfo: location.directoryInfo || []
     } : null;
     setFormData(sanitizedLocation);
-    setUploadProgress(0);
-    setIsUploading(false);
     setActivePageIndex(0); 
   }, [location]);
 
@@ -285,48 +278,6 @@ function EditLocationSheet({
     });
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!formData) return;
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    setUploadProgress(0);
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-        const dataUri = reader.result as string;
-        setUploadProgress(50);
-        try {
-            const result = await uploadImage({ fileName: file.name, dataUri });
-            setFormData((prev) => prev ? ({ ...prev, image: result.downloadUrl }) : null);
-            setUploadProgress(100);
-            toast({
-                title: "Upload Successful",
-                description: "New image is ready to be saved.",
-            });
-        } catch (error) {
-            console.error("Upload failed:", error);
-            toast({
-                title: "Upload Failed",
-                description: "Could not upload image. Please try again.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsUploading(false);
-        }
-    };
-    reader.onerror = (error) => {
-        console.error("File reading error:", error);
-        toast({
-            title: "File Error",
-            description: "Could not read the selected file.",
-            variant: "destructive",
-        });
-        setIsUploading(false);
-    };
-};
 
   const handleSave = async () => {
     if (!formData) return;
@@ -395,25 +346,6 @@ function EditLocationSheet({
           {activePageIndex === 0 ? (
             <>
               <div className="space-y-2">
-                  <Label htmlFor="image">Image</Label>
-                  <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
-                  {isUploading ? (
-                    <div className="space-y-2">
-                      <Button variant="outline" disabled>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Uploading...
-                      </Button>
-                      <Progress value={uploadProgress} className="w-full" />
-                      <p className="text-xs text-muted-foreground">{uploadProgress === 100 ? 'Finalizing...' : `Uploading... ${uploadProgress}%`}</p>
-                    </div>
-                  ) : (
-                    <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                        <UploadCloud className="mr-2 h-4 w-4" />
-                        Change Image
-                    </Button>
-                  )}
-              </div>
-              <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <Input id="name" value={formData.name} onChange={handleFieldChange} />
               </div>
@@ -438,6 +370,9 @@ function EditLocationSheet({
               </div>
               <p className="text-center text-sm text-muted-foreground">
                   Editing opening hours is not available in this demo.
+              </p>
+               <p className="text-center text-sm text-muted-foreground">
+                  To change an image, edit `src/lib/placeholder-images.json`.
               </p>
             </>
           ) : (
@@ -545,7 +480,7 @@ function EditLocationSheet({
             <SheetClose asChild>
                 <Button variant="outline">Cancel</Button>
             </SheetClose>
-            <Button onClick={handleSave} disabled={isSaving || isUploading}>
+            <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
             </Button>

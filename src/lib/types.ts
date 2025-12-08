@@ -16,8 +16,6 @@ export interface Location {
   name: string;
   category: LocationCategory;
   description: string;
-  image: string;
-  imageHint: string;
   hours: {
     // day name from 'EEEE' format of date-fns, e.g. "Monday"
     [day: string]: { open: string; close: string } | null;

@@ -1,0 +1,82 @@
+{
+  "building-1": {
+    "url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop",
+    "hint": "hotel lobby"
+  },
+  "building-2": {
+    "url": "https://images.unsplash.com/photo-1554672408-730436b60dde?q=80&w=1931&auto=format&fit=crop",
+    "hint": "office building"
+  },
+  "building-3": {
+    "url": "https://images.unsplash.com/photo-1538945711740-014022da534b?q=80&w=2070&auto=format&fit=crop",
+    "hint": "medical building"
+  },
+  "building-4": {
+    "url": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=2073&auto=format&fit=crop",
+    "hint": "modern building"
+  },
+  "building-5": {
+    "url": "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop",
+    "hint": "modern building"
+  },
+  "building-6": {
+    "url": "https://images.unsplash.com/photo-1560421683-6856ea585c78?q=80&w=1974&auto=format&fit=crop",
+    "hint": "university building"
+  },
+  "building-7": {
+    "url": "https://images.unsplash.com/photo-1556742044-f5c2dcb02cb6?q=80&w=2070&auto=format&fit=crop",
+    "hint": "information desk"
+  },
+  "building-8": {
+    "url": "https://images.unsplash.com/photo-1518152006812-edab29b069ac?q=80&w=2070&auto=format&fit=crop",
+    "hint": "engineering lab"
+  },
+  "building-9": {
+    "url": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop",
+    "hint": "global flags"
+  },
+  "building-10": {
+    "url": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=2070&auto=format&fit=crop",
+    "hint": "hotel reception"
+  },
+  "building-12": {
+    "url": "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=2069&auto=format&fit=crop",
+    "hint": "lecture hall"
+  },
+  "โรงละคร": {
+    "url": "https://images.unsplash.com/photo-1578932750294-f5075e85f4b5?q=80&w=1974&auto=format&fit=crop",
+    "hint": "theater stage"
+  },
+  "building-15-17": {
+    "url": "https://images.unsplash.com/photo-1542296332-9a5732de3907?q=80&w=2070&auto=format&fit=crop",
+    "hint": "airplane hangar"
+  },
+  "library": {
+    "url": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070&auto=format&fit=crop",
+    "hint": "library interior"
+  },
+  "food-court": {
+    "url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1974&auto=format&fit=crop",
+    "hint": "food court"
+  },
+  "gym": {
+    "url": "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=2070&auto=format&fit=crop",
+    "hint": "gym equipment"
+  },
+  "swimming-pool": {
+    "url": "https://images.unsplash.com/photo-1550937213-33d362372562?q=80&w=1974&auto=format&fit=crop",
+    "hint": "swimming pool"
+  },
+  "basketball-court": {
+    "url": "https://images.unsplash.com/photo-1515523110800-9415d13b84a8?q=80&w=1974&auto=format&fit=crop",
+    "hint": "basketball court"
+  },
+  "Building 20": {
+    "url": "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2053&auto=format&fit=crop",
+    "hint": "Building 20"
+  },
+  "Building21": {
+    "url": "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2053&auto=format&fit=crop",
+    "hint": "Building21"
+  }
+}

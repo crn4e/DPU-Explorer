@@ -23,14 +23,26 @@ import { checkOpenStatus } from '@/lib/helpers';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import Markdown from 'react-markdown';
+import placeholderImages from '@/lib/placeholder-images.json';
 
 interface LocationCardProps {
   location: Location;
 }
 
+type ImagesData = {
+    [key: string]: {
+        url: string;
+        hint: string;
+    }
+}
+
+const images: ImagesData = placeholderImages;
+
 export default function LocationCard({ location }: LocationCardProps) {
   const [status, setStatus] = useState({ isOpen: false, closesAt: '', opensAt: '', todayName: '' });
   const [api, setApi] = useState<CarouselApi>();
+
+  const locationImage = images[location.id] || { url: 'https://placehold.co/600x400.png', hint: 'placeholder' };
 
   useEffect(() => {
     // When the location prop changes, reset the carousel to the first slide
@@ -60,12 +72,12 @@ export default function LocationCard({ location }: LocationCardProps) {
       >
         <CardHeader className="relative p-0">
           <Image
-            src={location.image}
+            src={locationImage.url}
             alt={`Image of ${location.name}`}
             width={600}
             height={400}
             className="aspect-video w-full object-cover"
-            data-ai-hint={location.imageHint}
+            data-ai-hint={locationImage.hint}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-0 p-6">
@@ -85,7 +97,7 @@ export default function LocationCard({ location }: LocationCardProps) {
                 <Badge
                   className={cn(
                     "text-sm",
-                    status.isOpen ? "bg-green-600 hover:bg-green-600/80 text-white" : "bg-red-600 hover:bg-red-600/80 text-white"
+                    status.isOpen ? "bg-green-600 hover:bg-green-600/80 text-white" : "bg-destructive hover:bg-destructive/80"
                   )}
                 >
                   {status.isOpen ? 'Open' : 'Closed'}

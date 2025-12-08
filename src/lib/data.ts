@@ -17,12 +17,10 @@ export const locations: Location[] = [
     category: 'Services',
     description:
       'Known as DPU Place, this building serves as a hotel and training center, offering accommodation and conference facilities.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'hotel lobby',
     hours: defaultHours,
     mapPosition: { x: 50, y: 28 },
     directoryInfo: [
-        { title: 'Guest Services', content: '**Guest Services:**\n- Front Desk: Floor 1\n- Conference Rooms: Floor 2\n- Guest Rooms: Floors 3-5' }
+        { title: 'Guest Services', description: '**Guest Services:**\n- Front Desk: Floor 1\n- Conference Rooms: Floor 2\n- Guest Rooms: Floors 3-5', items: [] }
     ]
   },
   {
@@ -31,8 +29,6 @@ export const locations: Location[] = [
     category: 'Services',
     description:
       'The main administration building, housing key university offices including the Office of the President.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'office building',
     hours: {
       ...defaultHours,
       Saturday: null,
@@ -40,7 +36,7 @@ export const locations: Location[] = [
     },
     mapPosition: { x: 53.5, y: 25 },
     directoryInfo: [
-        { title: 'Key Offices', content: '**Key Offices:**\n- Office of the President: Floor 4\n- Human Resources: Floor 2\n- Finance Department: Floor 2' }
+        { title: 'Key Offices', description: '**Key Offices:**\n- Office of the President: Floor 4\n- Human Resources: Floor 2\n- Finance Department: Floor 2', items: [] }
     ]
   },
   {
@@ -49,8 +45,6 @@ export const locations: Location[] = [
     category: 'Academic',
     description:
       'Home to the College of Health and Wellness and the Faculty of Nursing, focusing on health sciences and medical education.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'medical building',
     hours: defaultHours,
     mapPosition: { x: 63, y: 33 },
   },
@@ -59,8 +53,6 @@ export const locations: Location[] = [
     name: 'Building 4',
     category: 'Academic',
     description: 'Houses various classrooms and faculty offices for general studies.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'modern building',
     hours: defaultHours,
     mapPosition: { x: 57.55, y: 36 },
   },
@@ -70,13 +62,11 @@ export const locations: Location[] = [
     category: 'Academic',
     description:
       'Home to the College of Creative Design and Entertainment Technology (ANT) and the College of Communication Arts (CA), fostering innovation in digital content and communication.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'modern building',
     hours: defaultHours,
     announcement: 'Special workshop on AI in Game Development this Saturday.',
     mapPosition: { x: 71, y: 42 },
     directoryInfo: [
-        { title: 'Faculty Directory', content: '**ANT Faculty:**\n- Dr. Somchai Jaidee: Room 5-301 (Game Design)\n- Aj. Siriporn Yindee: Room 5-305 (Animation)\n\n**CA Faculty:**\n- Dr. Pongsak Vanich: Room 5-402 (Broadcasting)' }
+        { title: 'Faculty Directory', description: '**ANT Faculty:**\n- Dr. Somchai Jaidee: Room 5-301 (Game Design)\n- Aj. Siriporn Yindee: Room 5-305 (Animation)\n\n**CA Faculty:**\n- Dr. Pongsak Vanich: Room 5-402 (Broadcasting)', items: [] }
     ]
   },
   {
@@ -85,12 +75,10 @@ export const locations: Location[] = [
     category: 'Academic',
     description:
       'A central hub for various faculties including Law, Public Administration, and Business Administration. This building is a cornerstone of DPU\'s academic excellence.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'university building',
     hours: defaultHours,
     mapPosition: { x: 67, y: 46 },
     directoryInfo: [
-      { title: 'Faculty Offices', content: '**Faculty Offices:**\n- Faculty of Law: Floor 3\n- Faculty of Public Admin: Floor 4\n- Faculty of Business Admin: Floor 5 & 6' }
+      { title: 'Faculty Offices', description: '**Faculty Offices:**\n- Faculty of Law: Floor 3\n- Faculty of Public Admin: Floor 4\n- Faculty of Business Admin: Floor 5 & 6', items: [] }
     ]
   },
   {
@@ -99,8 +87,6 @@ export const locations: Location[] = [
     category: 'Services',
     description:
       'A one-stop service point for all student needs, including registration, academic advising, and administrative support.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'information desk',
     hours: {
       Monday: { open: '08:30', close: '16:30' },
       Tuesday: { open: '08:30', close: '16:30' },
@@ -117,8 +103,6 @@ export const locations: Location[] = [
     name: 'Building 8',
     category: 'Academic',
     description: 'Part of the Engineering and Technology complex, with specialized labs and workshops.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'engineering lab',
     hours: defaultHours,
     mapPosition: { x: 75, y: 63 },
   },
@@ -128,8 +112,6 @@ export const locations: Location[] = [
     category: 'Academic',
     description:
       'The hub for international students and programs, home to the DPU International College (DPUIC).',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'global flags',
     hours: defaultHours,
     mapPosition: { x: 73.5, y: 66 },
   },
@@ -138,8 +120,6 @@ export const locations: Location[] = [
     name: 'Building 10 - Tourism and Hospitality',
     category: 'Academic',
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'hotel reception',
     hours: defaultHours,
     mapPosition: { x: 32, y: 46 },
   },
@@ -149,8 +129,6 @@ export const locations: Location[] = [
     category: 'Recreation',
     description:
       'Features an indoor gymnasium, basketball court, and other sports facilities. Also includes the main university football field.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'lecture hall',
     hours: defaultHours,
     mapPosition: { x:82, y: 60 },
   },
@@ -159,8 +137,6 @@ export const locations: Location[] = [
     name: 'โรงละคร - Tourism and Hospitality',
     category: 'Academic',
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'hotel reception',
     hours: defaultHours,
     mapPosition: { x: 82, y: 50 },
   },
@@ -169,8 +145,6 @@ export const locations: Location[] = [
     name: 'Building 15-17 - Aviation Training',
     category: 'Academic',
     description: 'The College of Aviation Development and Training (CADT), featuring advanced simulators and a full-size aircraft for hands-on learning.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'airplane hangar',
     hours: defaultHours,
     mapPosition: { x: 12, y: 36 },
   },
@@ -180,8 +154,6 @@ export const locations: Location[] = [
     category: 'Services',
     description:
       'The heart of knowledge and research at DPU. Provides a vast collection of books, digital resources, and quiet study areas for students and faculty.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'library interior',
     hours: {
       ...defaultHours,
       Saturday: { open: '09:00', close: '17:00' },
@@ -189,7 +161,7 @@ export const locations: Location[] = [
     },
     mapPosition: { x: 44, y: 70 },
     directoryInfo: [
-        { title: 'Services', content: '**Library Services:**\n- Circulation Desk: Floor 1\n- Digital Media Zone: Floor 2\n- Quiet Study Area: Floor 3' }
+        { title: 'Services', description: '**Library Services:**\n- Circulation Desk: Floor 1\n- Digital Media Zone: Floor 2\n- Quiet Study Area: Floor 3', items: [] }
     ]
   },
   {
@@ -198,8 +170,6 @@ export const locations: Location[] = [
     category: 'Food',
     description:
       'Offers a wide variety of delicious and affordable Thai and international food options in a lively atmosphere. A popular spot for students to eat and socialize.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'food court',
     hours: {
       Monday: { open: '07:30', close: '18:00' },
       Tuesday: { open: '07:30', close: '18:00' },
@@ -218,8 +188,6 @@ export const locations: Location[] = [
     category: 'Recreation',
     description:
       'A state-of-the-art facility with modern equipment, a swimming pool, and various fitness classes to promote a healthy lifestyle for the DPU community.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'gym equipment',
     hours: {
       Monday: { open: '10:00', close: '21:00' },
       Tuesday: { open: '10:00', close: '21:00' },
@@ -237,8 +205,6 @@ export const locations: Location[] = [
     category: 'Recreation',
     description:
       'An outdoor swimming pool for leisure and exercise, located next to Building 10.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'swimming pool',
     hours: {
       Monday: { open: '10:00', close: '20:00' },
       Tuesday: { open: '10:00', close: '20:00' },
@@ -256,8 +222,6 @@ export const locations: Location[] = [
     category: 'Recreation',
     description:
       'An indoor basketball court available for student use and university team practices, located in Building 10.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'basketball court',
     hours: defaultHours,
     mapPosition: { x: 27, y: 58 }, // Inside Building 10
   },
@@ -267,8 +231,6 @@ export const locations: Location[] = [
     category: 'Services',
     description:
       'Building 20.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'Building 20',
     hours: {
       Monday: { open: '10:00', close: '20:00' },
       Tuesday: { open: '10:00', close: '20:00' },
@@ -286,8 +248,6 @@ export const locations: Location[] = [
     category: 'Services',
     description:
       ' Building 21.',
-    image: 'https://placehold.co/600x400.png',
-    imageHint: 'Building21',
     hours: {
       Monday: { open: '10:00', close: '20:00' },
       Tuesday: { open: '10:00', close: '20:00' },
