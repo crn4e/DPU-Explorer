@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import { googleAI } from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/google-genai';
 import {z} from 'genkit';
 import { locations } from '@/lib/data';
 
@@ -63,7 +63,7 @@ const generateCampusTourFlow = ai.defineFlow(
   async input => {
     const {output} = await ai.generate({
         prompt: prompt.compile({input: input}),
-        model: 'gemini-1.5-flash',
+        model: googleAI.model('gemini-1.5-flash'),
         output: {
             schema: GenerateCampusTourOutputSchema
         }
