@@ -34,7 +34,6 @@ import { collection, getDocs } from 'firebase/firestore';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { ThemeToggle } from '@/components/ThemeToggle';
 
 
 const allCategories: (LocationCategory | 'All')[] = [
@@ -228,9 +227,6 @@ export default function Home() {
           locations={filteredLocations}
           onSelectLocation={setSelectedLocation}
         />
-         <div className="absolute bottom-4 right-4 z-20">
-          <ThemeToggle />
-        </div>
       </SidebarInset>
     </SidebarProvider>
   );
