@@ -61,7 +61,7 @@ const allCategories: (LocationCategory | 'All')[] = [
   ...categories,
 ];
 
-const daysOfWeek: (keyof Location['hours'])[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const daysOfWeek: (keyof NonNullable<Location['hours']>)[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 
 function AddLocationSheet({
@@ -211,6 +211,16 @@ function EditLocationSheet({
   const [activePageIndex, setActivePageIndex] = useState(0);
   const [newCategory, setNewCategory] = useState<LocationCategory | ''>('');
 
+  const defaultHours = {
+      Monday: { open: '08:00', close: '17:00' },
+      Tuesday: { open: '08:00', close: '17:00' },
+      Wednesday: { open: '08:00', close: '17:00' },
+      Thursday: { open: '08:00', close: '17:00' },
+      Friday: { open: '08:00', close: '17:00' },
+      Saturday: null,
+      Sunday: null,
+  };
+
 
   useEffect(() => {
     // Ensure directoryInfo and category are always arrays
@@ -243,9 +253,9 @@ function EditLocationSheet({
       setFormData(prev => prev ? ({ ...prev, category: prev.category.filter(c => c !== categoryToRemove) }) : null);
   };
 
-  const handleHoursChange = (day: keyof Location['hours'], field: 'open' | 'close', value: string) => {
+  const handleHoursChange = (day: keyof NonNullable<Location['hours']>, field: 'open' | 'close', value: string) => {
       setFormData(prev => {
-          if (!prev) return null;
+          if (!prev || !prev.hours) return null;
           const newHours = { ...prev.hours };
           const dayHours = newHours[day];
           if (dayHours) {
@@ -258,9 +268,9 @@ function EditLocationSheet({
       });
   };
 
-  const handleClosedChange = (day: keyof Location['hours'], checked: boolean) => {
+  const handleClosedChange = (day: keyof NonNullable<Location['hours']>, checked: boolean) => {
       setFormData(prev => {
-          if (!prev) return null;
+          if (!prev || !prev.hours) return null;
           const newHours = { ...prev.hours };
           if (checked) {
               newHours[day] = null;
@@ -270,6 +280,14 @@ function EditLocationSheet({
           }
           return { ...prev, hours: newHours };
       });
+  };
+
+  const handleClearAllHours = () => {
+    setFormData(prev => prev ? ({ ...prev, hours: undefined }) : null);
+  };
+
+  const handleAddHours = () => {
+    setFormData(prev => prev ? ({ ...prev, hours: defaultHours }) : null);
   };
 
   const handleDirectoryPageChange = (index: number, field: 'title' | 'description', value: string) => {
@@ -462,39 +480,53 @@ function EditLocationSheet({
               </div>
 
                <div className="space-y-4 rounded-md border p-4">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <Label>Opening Hours</Label>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-primary" />
+                      <Label>Opening Hours</Label>
+                    </div>
+                     {formData.hours && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={handleClearAllHours}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                     )}
                   </div>
-                  {daysOfWeek.map(day => (
-                      <div key={day} className="grid grid-cols-6 items-center gap-2">
-                          <Label htmlFor={`closed-${day}`} className="col-span-2 text-sm font-normal">{day}</Label>
-                          <div className="col-span-4 grid grid-cols-3 items-center gap-2">
-                              <Input
-                                  type="time"
-                                  value={formData.hours[day]?.open ?? ''}
-                                  onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
-                                  disabled={formData.hours[day] === null}
-                                  className="w-full"
-                              />
-                              <Input
-                                  type="time"
-                                  value={formData.hours[day]?.close ?? ''}
-                                  onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
-                                  disabled={formData.hours[day] === null}
-                                  className="w-full"
-                              />
-                              <div className="flex items-center space-x-2 justify-end">
-                                  <Checkbox
-                                      id={`closed-${day}`}
-                                      checked={formData.hours[day] === null}
-                                      onCheckedChange={(checked) => handleClosedChange(day, checked as boolean)}
-                                  />
-                                  <Label htmlFor={`closed-${day}`} className="text-xs font-light">Closed</Label>
-                              </div>
-                          </div>
-                      </div>
-                  ))}
+                  {formData.hours ? (
+                    daysOfWeek.map(day => (
+                        <div key={day} className="grid grid-cols-6 items-center gap-2">
+                            <Label htmlFor={`closed-${day}`} className="col-span-2 text-sm font-normal">{day}</Label>
+                            <div className="col-span-4 grid grid-cols-3 items-center gap-2">
+                                <Input
+                                    type="time"
+                                    value={formData.hours?.[day]?.open ?? ''}
+                                    onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                                    disabled={formData.hours?.[day] === null}
+                                    className="w-full"
+                                />
+                                <Input
+                                    type="time"
+                                    value={formData.hours?.[day]?.close ?? ''}
+                                    onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                                    disabled={formData.hours?.[day] === null}
+                                    className="w-full"
+                                />
+                                <div className="flex items-center space-x-2 justify-end">
+                                    <Checkbox
+                                        id={`closed-${day}`}
+                                        checked={formData.hours?.[day] === null}
+                                        onCheckedChange={(checked) => handleClosedChange(day, checked as boolean)}
+                                    />
+                                    <Label htmlFor={`closed-${day}`} className="text-xs font-light">Closed</Label>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                  ) : (
+                    <Button variant="outline" onClick={handleAddHours} className="w-full">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Opening Hours
+                    </Button>
+                  )}
               </div>
               
               <div className="space-y-2">
