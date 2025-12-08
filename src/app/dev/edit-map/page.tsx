@@ -262,7 +262,19 @@ function EditLocationSheet({
   const addDirectoryPage = () => {
     setFormData(prev => {
         if (!prev) return null;
-        const newPage: DirectoryPage = { title: `Page ${ (prev.directoryInfo?.length || 0) + 2 }`, items: [] };
+        const newImageId = `${prev.id}-page-${Date.now()}`;
+        const newPage: DirectoryPage = { 
+          title: `Page ${ (prev.directoryInfo?.length || 0) + 2 }`, 
+          items: [],
+          imageId: newImageId,
+        };
+        // NOTE: This does not add the image to placeholder-images.json
+        // That must be done manually by the developer.
+        // We could create a flow for it, but for now this is simpler.
+        toast({
+          title: 'New Page Added',
+          description: `Remember to add an entry for imageId "${newImageId}" in placeholder-images.json`,
+        });
         const newDirectoryInfo = [...(prev.directoryInfo || []), newPage];
         setActivePageIndex(newDirectoryInfo.length); // Switch to the new page (index is length because of main page)
         return { ...prev, directoryInfo: newDirectoryInfo };
@@ -822,3 +834,4 @@ export default function EditMapPage() {
     </SidebarProvider>
   );
 }
+

@@ -9,6 +9,7 @@ export interface DirectoryPage {
   title: string;
   description?: string;
   items: RoomItem[];
+  imageId?: string; // Unique key to look up image in placeholder-images.json
 }
 
 export interface Location {

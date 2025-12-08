@@ -20,7 +20,7 @@ export const locations: Location[] = [
     hours: defaultHours,
     mapPosition: { x: 50, y: 28 },
     directoryInfo: [
-        { title: 'Guest Services', description: '**Guest Services:**\n- Front Desk: Floor 1\n- Conference Rooms: Floor 2\n- Guest Rooms: Floors 3-5', items: [] }
+        { title: 'Guest Services', description: '**Guest Services:**\n- Front Desk: Floor 1\n- Conference Rooms: Floor 2\n- Guest Rooms: Floors 3-5', items: [], imageId: 'building-1-guest-services' }
     ]
   },
   {
@@ -36,7 +36,7 @@ export const locations: Location[] = [
     },
     mapPosition: { x: 53.5, y: 25 },
     directoryInfo: [
-        { title: 'Key Offices', description: '**Key Offices:**\n- Office of the President: Floor 4\n- Human Resources: Floor 2\n- Finance Department: Floor 2', items: [] }
+        { title: 'Key Offices', description: '**Key Offices:**\n- Office of the President: Floor 4\n- Human Resources: Floor 2\n- Finance Department: Floor 2', items: [], imageId: 'building-2-key-offices' }
     ]
   },
   {
@@ -66,7 +66,7 @@ export const locations: Location[] = [
     announcement: 'Special workshop on AI in Game Development this Saturday.',
     mapPosition: { x: 71, y: 42 },
     directoryInfo: [
-        { title: 'Faculty Directory', description: '**ANT Faculty:**\n- Dr. Somchai Jaidee: Room 5-301 (Game Design)\n- Aj. Siriporn Yindee: Room 5-305 (Animation)\n\n**CA Faculty:**\n- Dr. Pongsak Vanich: Room 5-402 (Broadcasting)', items: [] }
+        { title: 'Faculty Directory', description: '**ANT Faculty:**\n- Dr. Somchai Jaidee: Room 5-301 (Game Design)\n- Aj. Siriporn Yindee: Room 5-305 (Animation)\n\n**CA Faculty:**\n- Dr. Pongsak Vanich: Room 5-402 (Broadcasting)', items: [], imageId: 'building-5-faculty-directory' }
     ]
   },
   {
@@ -78,7 +78,7 @@ export const locations: Location[] = [
     hours: defaultHours,
     mapPosition: { x: 67, y: 46 },
     directoryInfo: [
-      { title: 'Faculty Offices', description: '**Faculty Offices:**\n- Faculty of Law: Floor 3\n- Faculty of Public Admin: Floor 4\n- Faculty of Business Admin: Floor 5 & 6', items: [] }
+      { title: 'Faculty Offices', description: '**Faculty Offices:**\n- Faculty of Law: Floor 3\n- Faculty of Public Admin: Floor 4\n- Faculty of Business Admin: Floor 5 & 6', items: [], imageId: 'building-6-faculty-offices' }
     ]
   },
   {
@@ -161,7 +161,7 @@ export const locations: Location[] = [
     },
     mapPosition: { x: 44, y: 70 },
     directoryInfo: [
-        { title: 'Services', description: '**Library Services:**\n- Circulation Desk: Floor 1\n- Digital Media Zone: Floor 2\n- Quiet Study Area: Floor 3', items: [] }
+        { title: 'Services', description: '**Library Services:**\n- Circulation Desk: Floor 1\n- Digital Media Zone: Floor 2\n- Quiet Study Area: Floor 3', items: [], imageId: 'library-services' }
     ]
   },
   {

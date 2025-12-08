@@ -31,8 +31,16 @@ interface LocationCardProps {
 
 type ImagesData = {
     [key: string]: {
+      main: {
         url: string;
         hint: string;
+      },
+      directoryPages?: {
+        [key: string]: {
+          url: string;
+          hint: string;
+        }
+      }
     }
 }
 
@@ -41,14 +49,28 @@ const images: ImagesData = placeholderImages;
 export default function LocationCard({ location }: LocationCardProps) {
   const [status, setStatus] = useState({ isOpen: false, closesAt: '', opensAt: '', todayName: '' });
   const [api, setApi] = useState<CarouselApi>();
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const locationImage = images[location.id] || { url: 'https://placehold.co/600x400.png', hint: 'placeholder' };
+  const locationImages = images[location.id] || { main: { url: 'https://placehold.co/600x400.png', hint: 'placeholder' }};
+  const [currentImage, setCurrentImage] = useState(locationImages.main);
 
   useEffect(() => {
-    // When the location prop changes, reset the carousel to the first slide
     if (api) {
       api.scrollTo(0);
+      const handleSelect = () => {
+        setCurrentSlide(api.selectedScrollSnap());
+      };
+      api.on('select', handleSelect);
+      return () => {
+        api.off('select', handleSelect);
+      };
     }
+  }, [api]);
+
+  useEffect(() => {
+    // When the location prop changes, reset everything.
+    setCurrentSlide(0);
+    setCurrentImage(locationImages.main);
     
     // This logic handles checking and updating the open/closed status
     const newStatus = checkOpenStatus(location);
@@ -59,7 +81,21 @@ export default function LocationCard({ location }: LocationCardProps) {
     }, 60000);
 
     return () => clearInterval(intervalId);
-  }, [location, api]);
+  }, [location, locationImages.main]);
+
+  useEffect(() => {
+    // Effect to update the image based on the current slide
+    if (currentSlide === 0) {
+      setCurrentImage(locationImages.main);
+    } else {
+      const pageIndex = currentSlide - 1;
+      const directoryPage = location.directoryInfo?.[pageIndex];
+      const pageImageId = directoryPage?.imageId;
+      const pageImage = pageImageId ? locationImages.directoryPages?.[pageImageId] : null;
+      setCurrentImage(pageImage || locationImages.main);
+    }
+  }, [currentSlide, location, locationImages]);
+
 
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
 
@@ -71,14 +107,17 @@ export default function LocationCard({ location }: LocationCardProps) {
         setApi={setApi}
       >
         <CardHeader className="relative p-0">
-          <Image
-            src={locationImage.url}
-            alt={`Image of ${location.name}`}
-            width={600}
-            height={400}
-            className="aspect-video w-full object-cover"
-            data-ai-hint={locationImage.hint}
-          />
+           <div className="relative aspect-video w-full">
+            <Image
+              key={currentImage.url} // Add key to force re-render on change
+              src={currentImage.url}
+              alt={`Image of ${location.name}`}
+              width={600}
+              height={400}
+              className="aspect-video w-full object-cover transition-opacity duration-500 animate-in fade-in-0"
+              data-ai-hint={currentImage.hint}
+            />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           <div className="absolute bottom-0 p-6">
             <CardTitle className="font-headline text-2xl text-white">
@@ -97,7 +136,7 @@ export default function LocationCard({ location }: LocationCardProps) {
                 <Badge
                   className={cn(
                     "text-sm",
-                    status.isOpen ? "bg-green-600 hover:bg-green-600/80 text-white" : "bg-destructive hover:bg-destructive/80"
+                    status.isOpen ? "bg-green-600 text-white hover:bg-green-700" : "bg-destructive text-destructive-foreground"
                   )}
                 >
                   {status.isOpen ? 'Open' : 'Closed'}
