@@ -6,152 +6,152 @@
     },
     "directoryPages": {
       "building-1-guest-services": {
-        "url": "/placeholder/building-1-guest-services.jpg",
+        "url": "/building-1-guest-services.jpg",
         "hint": "reception desk"
       }
     }
   },
   "building-2": {
     "main": {
-      "url": "/placeholder/building-2.jpg",
+      "url": "/building-2.jpg",
       "hint": "office building"
     },
     "directoryPages": {
       "building-2-key-offices": {
-        "url": "/placeholder/building-2-key-offices.jpg",
+        "url": "/building-2-key-offices.jpg",
         "hint": "modern office"
       }
     }
   },
   "building-3": {
     "main": {
-      "url": "/placeholder/building-3.jpg",
+      "url": "/building-3.jpg",
       "hint": "medical building"
     }
   },
   "building-4": {
     "main": {
-      "url": "/placeholder/building-4.jpg",
+      "url": "/building-4.jpg",
       "hint": "modern building"
     }
   },
   "building-5": {
     "main": {
-      "url": "/placeholder/building-5.jpg",
+      "url": "/building-5.jpg",
       "hint": "modern building"
     },
     "directoryPages": {
       "building-5-faculty-directory": {
-        "url": "/placeholder/building-5-faculty-directory.jpg",
+        "url": "/building-5-faculty-directory.jpg",
         "hint": "tech classroom"
       }
     }
   },
   "building-6": {
     "main": {
-      "url": "/placeholder/building-6.jpg",
+      "url": "/building-6.jpg",
       "hint": "university building"
     },
     "directoryPages": {
       "building-6-faculty-offices": {
-        "url": "/placeholder/building-6-faculty-offices.jpg",
+        "url": "/building-6-faculty-offices.jpg",
         "hint": "lecture hall"
       }
     }
   },
   "building-7": {
     "main": {
-      "url": "/placeholder/building-7.jpg",
+      "url": "/building-7.jpg",
       "hint": "information desk"
     }
   },
   "building-8": {
     "main": {
-      "url": "/placeholder/building-8.jpg",
+      "url": "/building-8.jpg",
       "hint": "engineering lab"
     }
   },
   "building-9": {
     "main": {
-      "url": "/placeholder/building-9.jpg",
+      "url": "/building-9.jpg",
       "hint": "global flags"
     }
   },
   "building-10": {
     "main": {
-      "url": "/placeholder/building-10.jpg",
+      "url": "/building-10.jpg",
       "hint": "hotel reception"
     }
   },
   "building-12": {
     "main": {
-      "url": "/placeholder/building-12.jpg",
+      "url": "/building-12.jpg",
       "hint": "lecture hall"
     }
   },
   "โรงละคร": {
     "main": {
-      "url": "/placeholder/โรงละคร.jpg",
+      "url": "/โรงละคร.jpg",
       "hint": "theater stage"
     }
   },
   "building-15-17": {
     "main": {
-      "url": "/placeholder/building-15-17.jpg",
+      "url": "/building-15-17.jpg",
       "hint": "airplane hangar"
     }
   },
   "library": {
     "main": {
-      "url": "/placeholder/library.jpg",
+      "url": "/library.jpg",
       "hint": "library interior"
     },
     "directoryPages": {
       "library-services": {
-        "url": "/placeholder/library-services.jpg",
+        "url": "/library-services.jpg",
         "hint": "bookshelves"
       }
     }
   },
   "food-court": {
     "main": {
-      "url": "/placeholder/food-court.jpg",
+      "url": "/food-court.jpg",
       "hint": "food court"
     }
   },
   "gym": {
     "main": {
-      "url": "/placeholder/gym.jpg",
+      "url": "/gym.jpg",
       "hint": "gym equipment"
     }
   },
   "swimming-pool": {
     "main": {
-      "url": "/placeholder/swimming-pool.jpg",
+      "url": "/swimming-pool.jpg",
       "hint": "swimming pool"
     }
   },
   "basketball-court": {
     "main": {
-      "url": "/placeholder/basketball-court.jpg",
+      "url": "/basketball-court.jpg",
       "hint": "basketball court"
     }
   },
   "Building 20": {
     "main": {
-      "url": "/placeholder/Building 20.jpg",
+      "url": "/Building 20.jpg",
       "hint": "Building 20"
     }
   },
   "Building21": {
     "main": {
-      "url": "/placeholder/Building21.jpg",
+      "url": "/Building21.jpg",
       "hint": "Building21"
     }
   },
   "default": {
     "main": {
-      "url": "/placeholder/default.png",
+      "url": "/default.png",
       "hint": "placeholder"
     }
   }
