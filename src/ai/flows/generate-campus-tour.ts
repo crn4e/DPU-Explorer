@@ -61,7 +61,13 @@ const generateCampusTourFlow = ai.defineFlow(
     outputSchema: GenerateCampusTourOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const {output} = await ai.generate({
+        prompt: prompt.compile({input: input}),
+        model: 'gemini-1.5-flash',
+        output: {
+            schema: GenerateCampusTourOutputSchema
+        }
+    });
     return output!;
   }
 );
