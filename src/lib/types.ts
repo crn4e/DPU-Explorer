@@ -19,7 +19,7 @@ export interface Location {
   description: string;
   hours?: {
     // day name from 'EEEE' format of date-fns, e.g. "Monday"
-    [day: string]: { open: string; close: string } | string | null;
+    [day: string]: { open: string; close: string } | null;
   } | null; // Allow hours to be null
   announcement?: string;
   mapPosition: { x: number; y: number };

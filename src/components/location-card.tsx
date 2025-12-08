@@ -57,7 +57,7 @@ const daysOfWeek = [
 ];
 
 export default function LocationCard({ location }: LocationCardProps) {
-  const [status, setStatus] = useState({ isOpen: false, closesAt: '', opensAt: '', todayName: '' });
+  const [status, setStatus] = useState<{ isOpen: boolean | null; closesAt: string; opensAt: string, todayName: string }>({ isOpen: null, closesAt: '', opensAt: '', todayName: '' });
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -148,22 +148,24 @@ export default function LocationCard({ location }: LocationCardProps) {
         <CarouselContent>
           <CarouselItem>
             <CardContent className="p-6 select-none">
-              <div className="mb-4 flex items-center gap-3">
-                <Badge
-                  className={cn(
-                    "text-sm",
-                    status.isOpen ? "bg-green-600 text-white hover:bg-green-700" : "bg-destructive text-destructive-foreground"
-                  )}
-                >
-                  {status.isOpen ? 'Open' : 'Closed'}
-                </Badge>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span>
-                    {status.isOpen ? `Closes at ${status.closesAt}` : (status.opensAt ? `Opens at ${status.opensAt}` : 'Closed today')}
-                  </span>
+              {status.isOpen !== null ? (
+                <div className="mb-4 flex items-center gap-3">
+                  <Badge
+                    className={cn(
+                      "text-sm",
+                      status.isOpen ? "bg-green-600 text-white hover:bg-green-700" : "bg-destructive text-destructive-foreground"
+                    )}
+                  >
+                    {status.isOpen ? 'Open' : 'Closed'}
+                  </Badge>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>
+                      {status.isOpen ? `Closes at ${status.closesAt}` : (status.opensAt ? `Opens at ${status.opensAt}` : 'Closed today')}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              ) : <div className="h-6 mb-4" /> }
 
               <p className="mb-6 text-foreground/90 whitespace-pre-wrap">{location.description}</p>
               
@@ -198,9 +200,9 @@ export default function LocationCard({ location }: LocationCardProps) {
                         >
                           <span>{day}</span>
                           <span>
-                            {location.hours && location.hours[day]
-                              ? `${location.hours[day]!.open} - ${
-                                  location.hours[day]!.close
+                            {location.hours && location.hours[day] && typeof location.hours[day] === 'object'
+                              ? `${(location.hours[day] as { open: string; close: string }).open} - ${
+                                  (location.hours[day] as { open: string; close: string }).close
                                 }`
                               : 'Closed'}
                           </span>
