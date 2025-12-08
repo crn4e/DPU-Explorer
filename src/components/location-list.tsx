@@ -27,11 +27,11 @@ const categoryIcons: Record<LocationCategory, React.ElementType> = {
 };
 
 function LocationItem({ location, onSelect, isSelected }: { location: Location; onSelect: () => void; isSelected: boolean }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [status, setStatus] = useState<{isOpen: boolean | null}>({ isOpen: null });
 
   useEffect(() => {
-    // Check status on client to use current time
-    setIsOpen(checkOpenStatus(location).isOpen);
+    // Check status on client to use current time and avoid hydration mismatch
+    setStatus(checkOpenStatus(location));
   }, [location]);
 
   const Icon = categoryIcons[location.category[0]] || Briefcase;
@@ -57,8 +57,12 @@ function LocationItem({ location, onSelect, isSelected }: { location: Location; 
       <div className="flex-1 overflow-hidden">
         <p className="truncate font-semibold">{location.name}</p>
         <div className="flex items-center text-sm text-muted-foreground">
-           <Dot className={cn("mr-1 h-6 w-6", isOpen ? "text-green-500" : "text-red-500")} />
-          <span>{isOpen ? 'Open' : 'Closed'}</span>
+          {status.isOpen !== null && (
+            <>
+              <Dot className={cn("mr-1 h-6 w-6", status.isOpen ? "text-green-500" : "text-red-500")} />
+              <span>{status.isOpen ? 'Open' : 'Closed'}</span>
+            </>
+          )}
         </div>
       </div>
     </button>
