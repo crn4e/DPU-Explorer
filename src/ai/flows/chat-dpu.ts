@@ -7,7 +7,6 @@
  * - ChatDpuInput - The input type for the chatDpu function.
  * - ChatDpuOutput - The return type for the chatDpu function.
  */
-
 import {genkit, z} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
 
@@ -63,7 +62,7 @@ const chatDpuFlow = ai.defineFlow(
     outputSchema: ChatDpuOutputSchema,
   },
   async ({message, history}) => {
-    const model = googleAI.model('gemini-1.5-flash');
+    const model = googleAI.model('gemini-1.5-pro-latest');
     const {text} = await ai.generate({
       model,
       history,
