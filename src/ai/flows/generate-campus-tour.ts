@@ -9,6 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import {z} from 'genkit';
 import { locations } from '@/lib/data';
 
@@ -50,6 +51,7 @@ const prompt = ai.definePrompt({
   Current Time: {{{currentTime}}}
 
   Create a tour itinerary in Thai that is engaging and informative. Structure the output as a friendly message with a clear itinerary, possibly using bullet points.`,
+  
 });
 
 const generateCampusTourFlow = ai.defineFlow(
