@@ -220,6 +220,10 @@ function EditLocationSheet({
     setFormData((prev) => prev ? ({ ...prev, [id]: value }) : null);
   };
   
+  const handleCategoryChange = (value: LocationCategory) => {
+    setFormData((prev) => prev ? ({ ...prev, category: value }) : null);
+  };
+
   const handleDirectoryPageChange = (index: number, field: 'title' | 'description', value: string) => {
     setFormData(prev => {
       if (!prev) return null;
@@ -268,9 +272,6 @@ function EditLocationSheet({
           items: [],
           imageId: newImageId,
         };
-        // NOTE: This does not add the image to placeholder-images.json
-        // That must be done manually by the developer.
-        // We could create a flow for it, but for now this is simpler.
         toast({
           title: 'New Page Added',
           description: `Remember to add an entry for imageId "${newImageId}" in placeholder-images.json`,
@@ -360,6 +361,19 @@ function EditLocationSheet({
               <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <Input id="name" value={formData.name} onChange={handleFieldChange} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={formData.category} onValueChange={handleCategoryChange}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.filter(c => c !== 'All').map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                   <Label htmlFor="description">Description (Page 1)</Label>
@@ -834,4 +848,3 @@ export default function EditMapPage() {
     </SidebarProvider>
   );
 }
-
