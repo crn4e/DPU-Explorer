@@ -74,5 +74,14 @@ service cloud.firestore {
       allow get: if isSelf(userId) || isAdmin();
       allow list, write: if isAdmin();
     }
+    
+    // Student collection rules
+    match /students/{userId} {
+      allow create: if true; // Allow anyone to create a student document (for registration)
+      allow get: if isSelf(userId) || isAdmin();
+      allow update: if isSelf(userId) || isAdmin();
+      allow delete: if isAdmin();
+      allow list: if isAdmin();
+    }
   }
 }
