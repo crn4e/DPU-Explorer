@@ -11,11 +11,20 @@
 import {genkit, z} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
 
+const ai = genkit({
+  plugins: [googleAI()],
+});
+
+
 const ChatDpuInputSchema = z.object({
-  history: z.array(z.object({
-    role: z.enum(['user', 'model']),
-    content: z.string(),
-  })).describe('The chat history.'),
+  history: z
+    .array(
+      z.object({
+        role: z.enum(['user', 'model']),
+        content: z.string(),
+      })
+    )
+    .describe('The chat history.'),
   message: z.string().describe('The latest user message.'),
 });
 export type ChatDpuInput = z.infer<typeof ChatDpuInputSchema>;
@@ -43,10 +52,6 @@ Example Interaction:
 User: "ตึก ANT ไปทางไหนครับ" (Which way to the ANT building?)
 You: "ตึก ANT หรือชื่อเต็มๆ คือ วิทยาลัยครีเอทีฟดีไซน์ & เอ็นเตอร์เทนเมนต์เทคโนโลยี จะอยู่ที่อาคาร 5 ครับ จากตรงกลางมหาวิทยาลัย ให้เดินไปทางทิศตะวันออกเฉียงเหนือ ตึกจะอยู่ถัดจากอาคาร 4 ครับ! ที่นั่นมีห้องปฏิบัติการคอมพิวเตอร์และสตูดิโอที่ทันสมัยมากๆ เลยครับ สนใจให้แนะนำอะไรเกี่ยวกับตึก ANT เพิ่มเติมไหมครับ" (The ANT building, or the College of Creative Design & Entertainment Technology, is in Building 5. From the center of the university, walk northeast, and it's right next to Building 4! It has very modern computer labs and studios. Would you like to know anything else about the ANT building?)`;
 
-const ai = genkit({
-  plugins: [googleAI()],
-});
-
 export async function chatDpu(input: ChatDpuInput): Promise<ChatDpuOutput> {
   return chatDpuFlow(input);
 }
@@ -57,9 +62,9 @@ const chatDpuFlow = ai.defineFlow(
     inputSchema: ChatDpuInputSchema,
     outputSchema: ChatDpuOutputSchema,
   },
-  async ({ message, history }) => {
+  async ({message, history}) => {
     const model = googleAI.model('gemini-1.5-flash');
-    const { text } = await ai.generate({
+    const {text} = await ai.generate({
       model,
       history,
       system: systemPrompt,
@@ -67,9 +72,8 @@ const chatDpuFlow = ai.defineFlow(
       config: {
         temperature: 0.2,
       },
-      tools: [googleAI.googleSearch],
     });
 
-    return { response: text };
+    return {response: text};
   }
 );

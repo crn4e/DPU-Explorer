@@ -4,14 +4,14 @@ import { useEffect, useState, useRef, MouseEvent as ReactMouseEvent } from 'reac
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Location, LocationCategory } from '@/lib/types';
+import type { Location, LocationCategory, DirectoryPage, RoomItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, Edit, UploadCloud, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -48,6 +48,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { uploadImage } from '@/ai/flows/upload-image-flow';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 const categories: (LocationCategory | 'All')[] = [
@@ -57,6 +58,8 @@ const categories: (LocationCategory | 'All')[] = [
   'Recreation',
   'Services',
 ];
+
+const daysOfWeek: (keyof Location['hours'])[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 
 function AddLocationSheet({
@@ -106,6 +109,7 @@ function AddLocationSheet({
                     Saturday: null,
                     Sunday: null,
                 },
+                directoryInfo: [],
             };
             await onSave(newLocation);
             toast({
@@ -205,11 +209,16 @@ function EditLocationSheet({
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [activePageIndex, setActivePageIndex] = useState(0);
 
   useEffect(() => {
-    setFormData(location);
-    setUploadProgress(0);
-    setIsUploading(false);
+    // Ensure directoryInfo is always an array
+    const sanitizedLocation = location ? {
+        ...location,
+        directoryInfo: location.directoryInfo || []
+    } : null;
+    setFormData(sanitizedLocation);
+    setActivePageIndex(0); 
   }, [location]);
 
   if (!formData || !location) return null;
@@ -219,6 +228,10 @@ function EditLocationSheet({
   ) => {
     const { id, value } = e.target;
     setFormData((prev) => prev ? ({ ...prev, [id]: value }) : null);
+  };
+  
+  const handleCategoryChange = (value: LocationCategory) => {
+    setFormData((prev) => prev ? ({ ...prev, category: value }) : null);
   };
 
   const handlePositionChange = (
@@ -279,6 +292,103 @@ function EditLocationSheet({
     };
 };
 
+  const handleHoursChange = (day: keyof Location['hours'], field: 'open' | 'close', value: string) => {
+      setFormData(prev => {
+          if (!prev) return null;
+          const newHours = { ...prev.hours };
+          const dayHours = newHours[day];
+          if (dayHours) {
+              newHours[day] = { ...dayHours, [field]: value };
+          } else {
+              // If it was null (closed), initialize it
+              newHours[day] = { open: '00:00', close: '00:00', [field]: value };
+          }
+          return { ...prev, hours: newHours };
+      });
+  };
+
+  const handleClosedChange = (day: keyof Location['hours'], checked: boolean) => {
+      setFormData(prev => {
+          if (!prev) return null;
+          const newHours = { ...prev.hours };
+          if (checked) {
+              newHours[day] = null;
+          } else {
+              // If unchecking, set default hours
+              newHours[day] = { open: '08:00', close: '17:00' };
+          }
+          return { ...prev, hours: newHours };
+      });
+  };
+
+  const handleDirectoryPageChange = (index: number, field: 'title' | 'description', value: string) => {
+    setFormData(prev => {
+      if (!prev) return null;
+      const newDirectoryInfo = [...(prev.directoryInfo || [])];
+      newDirectoryInfo[index] = { ...newDirectoryInfo[index], [field]: value, items: newDirectoryInfo[index].items || [] };
+      return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  }
+
+  const handleRoomItemChange = (pageIndex: number, itemIndex: number, field: 'name' | 'details', value: string) => {
+      setFormData(prev => {
+        if (!prev) return null;
+        const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
+        newDirectoryInfo[pageIndex].items[itemIndex][field] = value;
+        return { ...prev, directoryInfo: newDirectoryInfo };
+      });
+  }
+
+  const addRoomItem = (pageIndex: number) => {
+      setFormData(prev => {
+          if (!prev) return null;
+          const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
+          if (!newDirectoryInfo[pageIndex].items) {
+              newDirectoryInfo[pageIndex].items = [];
+          }
+          newDirectoryInfo[pageIndex].items.push({ name: '', details: '' });
+          return { ...prev, directoryInfo: newDirectoryInfo };
+      });
+  }
+
+  const removeRoomItem = (pageIndex: number, itemIndex: number) => {
+      setFormData(prev => {
+          if (!prev) return null;
+          const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
+          newDirectoryInfo[pageIndex].items.splice(itemIndex, 1);
+          return { ...prev, directoryInfo: newDirectoryInfo };
+      });
+  }
+
+  const addDirectoryPage = () => {
+    setFormData(prev => {
+        if (!prev) return null;
+        const newImageId = `${prev.id}-page-${Date.now()}`;
+        const newPage: DirectoryPage = { 
+          title: `Page ${ (prev.directoryInfo?.length || 0) + 2 }`, 
+          items: [],
+          imageId: newImageId,
+        };
+        toast({
+          title: 'New Page Added',
+          description: `Remember to add an entry for imageId "${newImageId}" in placeholder-images.json`,
+        });
+        const newDirectoryInfo = [...(prev.directoryInfo || []), newPage];
+        setActivePageIndex(newDirectoryInfo.length); // Switch to the new page (index is length because of main page)
+        return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  };
+
+  const removeDirectoryPage = (index: number) => {
+    setFormData(prev => {
+        if (!prev) return null;
+        const newDirectoryInfo = (prev.directoryInfo || []).filter((_, i) => i !== index);
+        setActivePageIndex(Math.max(0, activePageIndex - 1)); // Go to previous or first page
+        return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  };
+
+
   const handleSave = async () => {
     if (!formData) return;
     setIsSaving(true);
@@ -311,13 +421,50 @@ function EditLocationSheet({
   
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent>
+      <SheetContent className="sm:max-w-[550px]">
         <SheetHeader>
           <SheetTitle>Edit: {location?.name}</SheetTitle>
         </SheetHeader>
-        <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
-            <div className="space-y-2">
+
+        <div className="flex items-center gap-2 border-b border-border pb-2 mb-4 overflow-x-auto">
+            <Button
+              variant={activePageIndex === 0 ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setActivePageIndex(0)}
+              className="shrink-0"
+            >
+              Page 1
+            </Button>
+            {formData.directoryInfo?.map((page, index) => (
+                <Button
+                    key={index}
+                    variant={activePageIndex === index + 1 ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setActivePageIndex(index + 1)}
+                    className="shrink-0"
+                >
+                    {page.title || `Page ${index + 2}`}
+                </Button>
+            ))}
+            <Button onClick={addDirectoryPage} variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                <PlusCircle className="h-4 w-4"/>
+            </Button>
+        </div>
+
+
+        <div className="grid max-h-[calc(100vh-220px)] gap-4 overflow-y-auto p-1">
+          {activePageIndex === 0 ? (
+            <>
+              <div className="space-y-2">
                 <Label htmlFor="image">Image</Label>
+                <div className='relative aspect-video w-full rounded-md overflow-hidden'>
+                    <Image
+                        src={formData.image}
+                        alt={formData.name}
+                        fill
+                        className="object-cover"
+                    />
+                </div>
                 <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
                  {isUploading ? (
                   <div className="space-y-2">
@@ -335,40 +482,158 @@ function EditLocationSheet({
                   </Button>
                 )}
             </div>
-            <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" value={formData.name} onChange={handleChange} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" value={formData.description} onChange={handleChange} rows={4} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="announcement">Announcement</Label>
-                <Textarea id="announcement" value={formData.announcement || ''} onChange={handleChange} rows={2} />
-            </div>
-            <div className="space-y-2">
-                <Label>Map Position</Label>
-                 <Button variant="outline" onClick={onEnterRepositionMode} className='w-full'>
-                    <Move className="mr-2 h-4 w-4" />
-                    Set Position on Map
-                </Button>
-                <div className="grid grid-cols-2 gap-2">
-                    <div className='flex items-center gap-2'>
-                        <Label htmlFor="x" className="text-sm">X (%):</Label>
-                        <Input id="x" type="number" value={formData.mapPosition.x.toFixed(2)} onChange={handlePositionChange} />
-                    </div>
-                    <div className='flex items-center gap-2'>
-                        <Label htmlFor="y" className="text-sm">Y (%):</Label>
-                        <Input id="y" type="number" value={formData.mapPosition.y.toFixed(2)} onChange={handlePositionChange} />
-                    </div>
+              <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input id="name" value={formData.name} onChange={handleChange} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={formData.category} onValueChange={handleCategoryChange}>
+                  <SelectTrigger id="category">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.filter(c => c !== 'All').map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="description">Description (Page 1)</Label>
+                  <Textarea id="description" value={formData.description} onChange={handleChange} rows={4} />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="announcement">Announcement</Label>
+                  <Textarea id="announcement" value={formData.announcement || ''} onChange={handleChange} rows={2} />
+              </div>
+
+               <div className="space-y-4 rounded-md border p-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" />
+                    <Label>Opening Hours</Label>
+                  </div>
+                  {daysOfWeek.map(day => (
+                      <div key={day} className="grid grid-cols-6 items-center gap-2">
+                          <Label htmlFor={`closed-${day}`} className="col-span-2 text-sm font-normal">{day}</Label>
+                          <div className="col-span-4 grid grid-cols-3 items-center gap-2">
+                              <Input
+                                  type="time"
+                                  value={formData.hours[day]?.open ?? ''}
+                                  onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                                  disabled={formData.hours[day] === null}
+                                  className="w-full"
+                              />
+                              <Input
+                                  type="time"
+                                  value={formData.hours[day]?.close ?? ''}
+                                  onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                                  disabled={formData.hours[day] === null}
+                                  className="w-full"
+                              />
+                              <div className="flex items-center space-x-2 justify-end">
+                                  <Checkbox
+                                      id={`closed-${day}`}
+                                      checked={formData.hours[day] === null}
+                                      onCheckedChange={(checked) => handleClosedChange(day, checked as boolean)}
+                                  />
+                                  <Label htmlFor={`closed-${day}`} className="text-xs font-light">Closed</Label>
+                              </div>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+              
+              <div className="space-y-2">
+                  <Label>Map Position</Label>
+                  <Button variant="outline" onClick={onEnterRepositionMode} className='w-full'>
+                      <Move className="mr-2 h-4 w-4" />
+                      Set Position on Map
+                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                      <Input disabled value={`X: ${formData.mapPosition.x.toFixed(2)}%`} />
+                      <Input disabled value={`Y: ${formData.mapPosition.y.toFixed(2)}%`} />
+                  </div>
+              </div>
+            </>
+          ) : (
+            formData.directoryInfo && formData.directoryInfo[activePageIndex - 1] && (
+              <div className="space-y-4 animate-in fade-in-0">
+                 <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Editing Page: {formData.directoryInfo[activePageIndex - 1].title}</h3>
+                     <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => removeDirectoryPage(activePageIndex - 1)}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
                 </div>
-            </div>
-            <p className="text-center text-sm text-muted-foreground">
-                Editing opening hours is not available in this demo.
-            </p>
+                <div className="space-y-2">
+                  <Label htmlFor={`dir-title-${activePageIndex - 1}`}>Page Title</Label>
+                  <Input
+                    id={`dir-title-${activePageIndex - 1}`}
+                    value={formData.directoryInfo[activePageIndex - 1].title}
+                    onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'title', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`dir-desc-${activePageIndex - 1}`}>Description (Optional)</Label>
+                  <Textarea
+                    id={`dir-desc-${activePageIndex - 1}`}
+                    placeholder="A brief description for this page."
+                    value={formData.directoryInfo[activePageIndex - 1].description || ''}
+                    onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'description', e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="space-y-4">
+                  <Label>Items</Label>
+                  {(formData.directoryInfo[activePageIndex - 1].items || []).map((item, itemIndex) => (
+                    <div key={itemIndex} className="relative space-y-2 rounded-md border bg-muted/50 p-4">
+                        <div className="space-y-1">
+                           <Label htmlFor={`item-name-${itemIndex}`} className="text-xs">ชื่อรายการ</Label>
+                           <Input 
+                                id={`item-name-${itemIndex}`}
+                                placeholder="เช่น ห้อง 10522, โต๊ะ อ.สมชาย"
+                                value={item.name}
+                                onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'name', e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor={`item-details-${itemIndex}`} className="text-xs">รายละเอียด</Label>
+                           <Textarea 
+                                id={`item-details-${itemIndex}`}
+                                placeholder="เช่น รายละเอียดเพิ่มเติมเกี่ยวกับอาจารย์ หรือห้อง"
+                                value={item.details}
+                                onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'details', e.target.value)}
+                                rows={2}
+                            />
+                        </div>
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="absolute top-1 right-1 h-6 w-6 text-destructive"
+                            onClick={() => removeRoomItem(activePageIndex - 1, itemIndex)}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                  ))}
+                  <Button variant="outline" onClick={() => addRoomItem(activePageIndex - 1)} className="w-full">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    เพิ่มรายการ +
+                  </Button>
+                </div>
+
+              </div>
+            )
+          )}
         </div>
-        <SheetFooter className="justify-between">
+
+        <SheetFooter className="absolute bottom-0 right-0 w-full bg-background p-6 border-t justify-between">
            <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive">
@@ -427,11 +692,20 @@ export default function EditMapPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
         if (user && sessionStorage.getItem('dpu-admin-auth') === 'true') {
-            setIsAuthenticated(true);
+            const adminDocRef = doc(db, 'admins', user.uid);
+            const adminDocSnap = await getDoc(adminDocRef);
+
+            if (adminDocSnap.exists()) {
+                setIsAuthenticated(true);
+            } else {
+                setIsAuthenticated(false);
+                sessionStorage.removeItem('dpu-admin-auth');
+                router.push('/dev/login');
+            }
         } else {
             setIsAuthenticated(false);
             sessionStorage.removeItem('dpu-admin-auth');
-            router.push('/admin/login');
+            router.push('/dev/login');
         }
     });
     return () => unsubscribe();
@@ -531,13 +805,15 @@ export default function EditMapPage() {
           ...selectedLocation,
           mapPosition: { x: newXPercent, y: newYPercent },
         };
-        setSelectedLocation(updatedLocation);
+        // We only update the position in the local state.
+        // The final save is done in the sheet.
+        setFormData(updatedLocation);
         setLocations((prev) => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
         setIsRepositioning(false);
         setIsSheetOpen(true);
         toast({
             title: "Position Updated",
-            description: "Click 'Save Changes' to confirm the new location.",
+            description: "Click 'Save Changes' in the edit panel to confirm the new location.",
         });
     } else if (isAddingLocation) {
         setNewLocationPosition({ x: newXPercent, y: newYPercent });
@@ -567,6 +843,12 @@ export default function EditMapPage() {
       });
   }
 
+  // A bit of a hack to pass form data state down to the map click handler
+  const [formData, setFormData] = useState<Location | null>(selectedLocation);
+   useEffect(() => {
+    setFormData(selectedLocation);
+  }, [selectedLocation]);
+
 
   if (!isAuthenticated || isLoading) {
     return (
@@ -595,7 +877,7 @@ export default function EditMapPage() {
                   Edit Map
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                  Admin Panel
+                  Dev Panel
                 </p>
               </div>
             </div>
@@ -642,7 +924,7 @@ export default function EditMapPage() {
         <SidebarFooter>
           <div className="flex flex-col gap-2 p-2">
             <Button variant="ghost" asChild>
-              <Link href="/admin">
+              <Link href="/dev">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Dashboard
               </Link>
@@ -721,5 +1003,3 @@ export default function EditMapPage() {
     </SidebarProvider>
   );
 }
-
-    

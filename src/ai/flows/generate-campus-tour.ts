@@ -12,6 +12,10 @@ import {genkit, z} from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { locations } from '@/lib/data';
 
+const ai = genkit({
+  plugins: [googleAI()],
+});
+
 const GenerateCampusTourInputSchema = z.object({
   interests: z
     .string()
@@ -27,10 +31,6 @@ const GenerateCampusTourOutputSchema = z.object({
 });
 export type GenerateCampusTourOutput = z.infer<typeof GenerateCampusTourOutputSchema>;
 
-const ai = genkit({
-  plugins: [googleAI()],
-});
-
 export async function generateCampusTour(input: GenerateCampusTourInput): Promise<GenerateCampusTourOutput> {
   return generateCampusTourFlow(input);
 }
@@ -43,7 +43,7 @@ const generateCampusTourFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await ai.generate({
-      model: googleAI.model('gemini-1.5-flash'),
+      model: googleAI.model('googleai/gemini-1.5-flash'),
       prompt: `You are a helpful tour guide for Dhurakij Pundit University (DPU) in Thailand. You create personalized tour itineraries based on the user's stated interests and the current time. Your response must be in Thai.
 
   You must only use the locations provided in the available locations list. Do not invent locations.
