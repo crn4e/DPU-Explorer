@@ -46,6 +46,16 @@ type ImagesData = {
 const images: ImagesData = placeholderImages;
 const defaultImage = { url: '/default.png', hint: 'placeholder' };
 
+const daysOfWeek = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+];
+
 export default function LocationCard({ location }: LocationCardProps) {
   const [status, setStatus] = useState({ isOpen: false, closesAt: '', opensAt: '', todayName: '' });
   const [api, setApi] = useState<CarouselApi>();
@@ -172,12 +182,26 @@ export default function LocationCard({ location }: LocationCardProps) {
                       <h3 className="font-bold font-headline text-lg text-primary">Opening Hours</h3>
                   </div>
                   <ul className="space-y-1 text-sm">
-                      {Object.entries(location.hours).map(([day, hours]) => (
-                          <li key={day} className={`flex justify-between ${day === status.todayName ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
-                              <span>{day}</span>
-                              <span>{hours ? `${hours.open} - ${hours.close}` : 'Closed'}</span>
-                          </li>
-                      ))}
+                    {daysOfWeek.map((day) => (
+                      <li
+                        key={day}
+                        className={cn(
+                          'flex justify-between',
+                          day === status.todayName
+                            ? 'font-bold text-primary'
+                            : 'text-muted-foreground'
+                        )}
+                      >
+                        <span>{day}</span>
+                        <span>
+                          {location.hours[day]
+                            ? `${location.hours[day]!.open} - ${
+                                location.hours[day]!.close
+                              }`
+                            : 'Closed'}
+                        </span>
+                      </li>
+                    ))}
                   </ul>
               </div>
 
