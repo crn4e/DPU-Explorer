@@ -8,9 +8,8 @@
  * - ChatDpuOutput - The return type for the chatDpu function.
  */
 
-import {ai} from '@/ai/genkit';
+import {genkit, z} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
-import {z} from 'genkit';
 
 const ChatDpuInputSchema = z.object({
   history: z.array(z.object({
@@ -25,10 +24,6 @@ const ChatDpuOutputSchema = z.object({
   response: z.string().describe('The AI response.'),
 });
 export type ChatDpuOutput = z.infer<typeof ChatDpuOutputSchema>;
-
-export async function chatDpu(input: ChatDpuInput): Promise<ChatDpuOutput> {
-  return chatDpuFlow(input);
-}
 
 const systemPrompt = `You are a helpful and enthusiastic university assistant for Dhurakij Pundit University (DPU) in Thailand. Your main role is to provide comprehensive and accurate information about the university to students, prospective students, and visitors. You must answer in Thai.
 
@@ -48,6 +43,14 @@ Example Interaction:
 User: "ตึก ANT ไปทางไหนครับ" (Which way to the ANT building?)
 You: "ตึก ANT หรือชื่อเต็มๆ คือ วิทยาลัยครีเอทีฟดีไซน์ & เอ็นเตอร์เทนเมนต์เทคโนโลยี จะอยู่ที่อาคาร 5 ครับ จากตรงกลางมหาวิทยาลัย ให้เดินไปทางทิศตะวันออกเฉียงเหนือ ตึกจะอยู่ถัดจากอาคาร 4 ครับ! ที่นั่นมีห้องปฏิบัติการคอมพิวเตอร์และสตูดิโอที่ทันสมัยมากๆ เลยครับ สนใจให้แนะนำอะไรเกี่ยวกับตึก ANT เพิ่มเติมไหมครับ" (The ANT building, or the College of Creative Design & Entertainment Technology, is in Building 5. From the center of the university, walk northeast, and it's right next to Building 4! It has very modern computer labs and studios. Would you like to know anything else about the ANT building?)`;
 
+const ai = genkit({
+  plugins: [googleAI()],
+});
+
+export async function chatDpu(input: ChatDpuInput): Promise<ChatDpuOutput> {
+  return chatDpuFlow(input);
+}
+
 const chatDpuFlow = ai.defineFlow(
   {
     name: 'chatDpuFlow',
@@ -55,7 +58,7 @@ const chatDpuFlow = ai.defineFlow(
     outputSchema: ChatDpuOutputSchema,
   },
   async ({ message, history }) => {
-    const model = googleAI.model('googleai/gemini-1.5-flash', { tools: [googleAI.googleSearch]});
+    const model = googleAI.model('gemini-1.5-flash');
     const { text } = await ai.generate({
       model,
       history,
@@ -64,6 +67,7 @@ const chatDpuFlow = ai.defineFlow(
       config: {
         temperature: 0.2,
       },
+      tools: [googleAI.googleSearch],
     });
 
     return { response: text };
