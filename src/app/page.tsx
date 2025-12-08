@@ -34,9 +34,10 @@ import { collection, getDocs } from 'firebase/firestore';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 
-const categories: (LocationCategory | 'All')[] = [
+const allCategories: (LocationCategory | 'All')[] = [
   'All',
   'Academic',
   'Food',
@@ -99,7 +100,10 @@ export default function Home() {
   const filteredLocations =
     activeCategory === 'All'
       ? allLocations
-      : allLocations.filter((loc) => loc.category === activeCategory);
+      : allLocations.filter((loc) => {
+          const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
+          return locCategories.includes(activeCategory);
+        });
 
   return (
     <SidebarProvider>
@@ -184,7 +188,7 @@ export default function Home() {
               Categories
             </h2>
             <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
+              {allCategories.map((category) => (
                 <Button
                   key={category}
                   variant={activeCategory === category ? 'default' : 'outline'}
@@ -224,6 +228,9 @@ export default function Home() {
           locations={filteredLocations}
           onSelectLocation={setSelectedLocation}
         />
+         <div className="absolute bottom-4 right-4 z-20">
+          <ThemeToggle />
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

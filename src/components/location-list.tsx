@@ -34,7 +34,7 @@ function LocationItem({ location, onSelect, isSelected }: { location: Location; 
     setIsOpen(checkOpenStatus(location).isOpen);
   }, [location]);
 
-  const Icon = categoryIcons[location.category];
+  const Icon = categoryIcons[location.category[0]] || Briefcase;
 
   return (
     <button

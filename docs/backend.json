@@ -18,9 +18,13 @@
           "type": "string",
           "description": "Detailed description of the location."
         },
-        "type": {
-          "type": "string",
-          "description": "Type of location (e.g., academic, food, sports)."
+        "category": {
+          "type": "array",
+          "description": "Categories of the location (e.g., academic, food, sports).",
+          "items": {
+            "type": "string",
+            "enum": ["Academic", "Food", "Recreation", "Services"]
+          }
         },
         "latitude": {
           "type": "number",
@@ -43,7 +47,7 @@
         "id",
         "name",
         "description",
-        "type",
+        "category",
         "latitude",
         "longitude",
         "openingHoursId"

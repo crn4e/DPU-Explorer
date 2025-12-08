@@ -47,14 +47,18 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 
-const categories: (LocationCategory | 'All')[] = [
-  'All',
+const categories: LocationCategory[] = [
   'Academic',
   'Food',
   'Recreation',
   'Services',
+];
+const allCategories: (LocationCategory | 'All')[] = [
+  'All',
+  ...categories,
 ];
 
 const daysOfWeek: (keyof Location['hours'])[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -73,7 +77,7 @@ function AddLocationSheet({
 }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
-    const [category, setCategory] = useState<LocationCategory>('Services');
+    const [category, setCategory] = useState<LocationCategory[]>(['Services']);
     const [announcement, setAnnouncement] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const { toast } = useToast();
@@ -89,7 +93,7 @@ function AddLocationSheet({
         }
         setIsSaving(true);
         try {
-            const newLocation: Omit<Location, 'id'> = {
+            const newLocation: Omit<Location, 'id' | 'image' | 'imageHint'> = {
                 name,
                 description,
                 category,
@@ -107,7 +111,7 @@ function AddLocationSheet({
                 },
                 directoryInfo: [],
             };
-            await onSave(newLocation);
+            await onSave(newLocation as any);
             toast({
                 title: 'Location Added',
                 description: `${name} has been added successfully.`,
@@ -116,7 +120,7 @@ function AddLocationSheet({
              // Reset form
             setName('');
             setDescription('');
-            setCategory('Services');
+            setCategory(['Services']);
             setAnnouncement('');
         } catch (error) {
             console.error("Error saving new location:", error);
@@ -149,13 +153,15 @@ function AddLocationSheet({
                         <Input id="new-name" value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="new-category">Category</Label>
-                        <Select value={category} onValueChange={(value: LocationCategory) => setCategory(value)}>
+                        <Label>Category</Label>
+                        <p className="text-xs text-muted-foreground">Select one or more categories.</p>
+                        {/* Replace Select with multi-select logic later */}
+                        <Select value={category[0]} onValueChange={(value: LocationCategory) => setCategory([value])}>
                             <SelectTrigger id="new-category">
                                 <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
                             <SelectContent>
-                                {categories.filter(c => c !== 'All').map(cat => (
+                                {categories.map(cat => (
                                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -203,11 +209,14 @@ function EditLocationSheet({
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const [activePageIndex, setActivePageIndex] = useState(0);
+  const [newCategory, setNewCategory] = useState<LocationCategory | ''>('');
+
 
   useEffect(() => {
-    // Ensure directoryInfo is always an array
+    // Ensure directoryInfo and category are always arrays
     const sanitizedLocation = location ? {
         ...location,
+        category: Array.isArray(location.category) ? location.category : [location.category as unknown as LocationCategory],
         directoryInfo: location.directoryInfo || []
     } : null;
     setFormData(sanitizedLocation);
@@ -223,8 +232,15 @@ function EditLocationSheet({
     setFormData((prev) => prev ? ({ ...prev, [id]: value }) : null);
   };
   
-  const handleCategoryChange = (value: LocationCategory) => {
-    setFormData((prev) => prev ? ({ ...prev, category: value }) : null);
+  const addCategory = () => {
+    if (newCategory && formData && !formData.category.includes(newCategory)) {
+        setFormData(prev => prev ? ({ ...prev, category: [...prev.category, newCategory] }) : null);
+        setNewCategory('');
+    }
+  };
+
+  const removeCategory = (categoryToRemove: LocationCategory) => {
+      setFormData(prev => prev ? ({ ...prev, category: prev.category.filter(c => c !== categoryToRemove) }) : null);
   };
 
   const handleHoursChange = (day: keyof Location['hours'], field: 'open' | 'close', value: string) => {
@@ -396,16 +412,29 @@ function EditLocationSheet({
               </div>
                <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={handleCategoryChange}>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.filter(c => c !== 'All').map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.category.map(cat => (
+                        <Badge key={cat} variant="secondary" className="flex items-center gap-1">
+                            {cat}
+                            <button onClick={() => removeCategory(cat)} className="rounded-full hover:bg-muted-foreground/20">
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
                     ))}
-                  </SelectContent>
-                </Select>
+                </div>
+                <div className="flex gap-2">
+                    <Select value={newCategory} onValueChange={(v) => setNewCategory(v as LocationCategory)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a category to add" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categories.filter(c => !formData.category.includes(c)).map(cat => (
+                                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Button onClick={addCategory} type="button">เพิ่มรายการ</Button>
+                </div>
               </div>
               <div className="space-y-2">
                   <Label htmlFor="description">Description (Page 1)</Label>
@@ -688,7 +717,7 @@ export default function EditMapPage() {
   const filteredLocations =
     activeCategory === 'All'
       ? locations
-      : locations.filter((loc) => loc.category === activeCategory);
+      : locations.filter((loc) => loc.category.includes(activeCategory));
 
   const handleSelectLocation = (location: Location | null) => {
     if (isRepositioning || isAddingLocation) return;
@@ -805,7 +834,7 @@ export default function EditMapPage() {
                 Categories
               </h2>
               <div className="flex flex-wrap gap-2">
-                {categories.map((category) => (
+                {allCategories.map((category) => (
                   <Button
                     key={category}
                     variant={activeCategory === category ? 'default' : 'outline'}

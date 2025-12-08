@@ -111,6 +111,7 @@ export default function LocationCard({ location }: LocationCardProps) {
 
 
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
+  const categories = Array.isArray(location.category) ? location.category : [location.category];
 
   return (
     <Card className="overflow-hidden shadow-2xl transition-all duration-300 animate-in fade-in-0 zoom-in-95">
@@ -136,9 +137,11 @@ export default function LocationCard({ location }: LocationCardProps) {
             <CardTitle className="font-headline text-2xl text-white">
               {location.name}
             </CardTitle>
-            <CardDescription className="text-primary-foreground/80">
-              {location.category}
-            </CardDescription>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {categories.map(cat => (
+                <Badge key={cat} variant="secondary" className="text-xs">{cat}</Badge>
+              ))}
+            </div>
           </div>
         </CardHeader>
 

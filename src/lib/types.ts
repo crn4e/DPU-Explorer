@@ -15,7 +15,7 @@ export interface DirectoryPage {
 export interface Location {
   id: string;
   name: string;
-  category: LocationCategory;
+  category: LocationCategory[];
   description: string;
   hours: {
     // day name from 'EEEE' format of date-fns, e.g. "Monday"
