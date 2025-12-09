@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import LocationList from '@/components/location-list';
 import MapView from '@/components/map-view';
 import type { Location, LocationCategory } from '@/lib/types';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, Megaphone } from 'lucide-react';
 import AppHeader from '@/components/header';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -31,6 +31,7 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import AiChat from '@/components/ai-chat';
+import { cn } from '@/lib/utils';
 
 const allCategories: (LocationCategory | 'All')[] = [
   'All',
@@ -47,6 +48,7 @@ export default function Home() {
     null
   );
   const [activeCategory, setActiveCategory] = useState<LocationCategory | 'All'>('All');
+  const [isAnnouncementView, setIsAnnouncementView] = useState(false);
   const mapImageWrapperRef = React.useRef<HTMLDivElement>(null);
   
   const { userProfile, isProfileLoading } = useUserProfile();
@@ -92,14 +94,26 @@ export default function Home() {
     }
   }
 
+  const handleAnnouncementToggle = () => {
+    setIsAnnouncementView(!isAnnouncementView);
+    setSelectedLocation(null); // Deselect any location when toggling view
+    if (!isAnnouncementView) {
+      setActiveCategory('All'); // Reset category when entering announcement view
+    }
+  };
+
   const filteredLocations = (
-    activeCategory === 'All'
-      ? allLocations.filter(loc => !loc.isDeleted)
-      : allLocations.filter((loc) => {
-          if (loc.isDeleted) return false;
-          const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
-          return locCategories.includes(activeCategory);
-        })
+    isAnnouncementView
+      ? allLocations.filter(loc => !loc.isDeleted && loc.announcement)
+      : (
+          activeCategory === 'All'
+            ? allLocations.filter(loc => !loc.isDeleted)
+            : allLocations.filter((loc) => {
+                if (loc.isDeleted) return false;
+                const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
+                return locCategories.includes(activeCategory);
+              })
+        )
   ).sort((a, b) => a.name.localeCompare(b.name, 'th', { numeric: true }));
 
   return (
@@ -190,7 +204,11 @@ export default function Home() {
                   variant={activeCategory === category ? 'default' : 'outline'}
                   size="sm"
                   className="rounded-full"
-                  onClick={() => setActiveCategory(category)}
+                  onClick={() => {
+                    setActiveCategory(category);
+                    setIsAnnouncementView(false); // Disable announcement view when a category is clicked
+                  }}
+                  disabled={isAnnouncementView}
                 >
                   {category}
                 </Button>
@@ -222,6 +240,17 @@ export default function Home() {
                 locations={filteredLocations}
                 onSelectLocation={setSelectedLocation}
             />
+            <div className="absolute top-4 left-4 z-20">
+                <Button 
+                    variant={isAnnouncementView ? 'default' : 'secondary'}
+                    size="icon" 
+                    className="h-12 w-12 rounded-full shadow-lg"
+                    onClick={handleAnnouncementToggle}
+                    title={isAnnouncementView ? 'Show All Locations' : 'Show Announcements'}
+                >
+                    <Megaphone className={cn("h-6 w-6", isAnnouncementView && "animate-pulse")} />
+                </Button>
+            </div>
             <div className="absolute bottom-4 right-4 z-20">
                 <AiChat />
             </div>

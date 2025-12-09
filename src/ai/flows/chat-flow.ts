@@ -75,7 +75,7 @@ const chatDpuFlow = ai.defineFlow(
   },
   async ({ message, history }) => {
     const llmResponse = await ai.generate({
-      model: googleAI.model('gemini-1.5-flash'),
+      model: googleAI.model('gemini-2.5-flash'),
       system: systemPrompt,
       history: history,
       prompt: message,
