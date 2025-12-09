@@ -278,7 +278,7 @@ export const locations: Location[] = [
       Saturday: { open: '10:00', close: '19:00' },
       Sunday: null,
     },
-    mapPosition: { x: 25, y: 62 }, // The gym is inside Building 10
+    mapPosition: { x: 25, y: 62 }, 
   },
   {
     id: 'swimming-pool',
@@ -306,7 +306,7 @@ export const locations: Location[] = [
       'An indoor basketball court available for student use and university team practices, located in Building 10.',
     image: '/basketball-court.jpg',
     hours: defaultHours,
-    mapPosition: { x: 27, y: 58 }, // Inside Building 10
+    mapPosition: { x: 27, y: 58 },
   },
   {
     id: 'building-37-1',
