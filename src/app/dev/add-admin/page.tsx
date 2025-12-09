@@ -17,9 +17,9 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { auth, db, app } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { initializeApp, deleteApp } from 'firebase/app';
+import { initializeApp, deleteApp, getApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -72,7 +72,8 @@ export default function AddAdminPage() {
     let newUserUid = 'new-user'; // for error reporting
 
     try {
-        secondaryApp = initializeApp(app.options, secondaryAppName);
+        const mainApp = getApp();
+        secondaryApp = initializeApp(mainApp.options, secondaryAppName);
         const secondaryAuth = getAuth(secondaryApp);
 
         const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);

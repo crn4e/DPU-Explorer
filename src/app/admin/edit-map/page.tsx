@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc, deleteField, getDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
@@ -60,12 +60,6 @@ const categories: LocationCategory[] = [
   'Recreation',
   'Services',
 ];
-
-const allCategories: (LocationCategory | 'All')[] = [
-  'All',
-  ...categories,
-];
-
 
 const daysOfWeek: (keyof NonNullable<Location['hours']>)[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -986,6 +980,11 @@ export default function EditMapPage() {
     );
   }
 
+  const allCategoriesList: (LocationCategory | 'All')[] = [
+    'All',
+    ...categories,
+  ];
+
   return (
     <SidebarProvider>
        <Sidebar>
@@ -1021,7 +1020,7 @@ export default function EditMapPage() {
                 Categories
               </h2>
               <div className="flex flex-wrap gap-2">
-                {allCategories.map((category) => (
+                {allCategoriesList.map((category) => (
                   <Button
                     key={category}
                     variant={activeCategory === category ? 'default' : 'outline'}
