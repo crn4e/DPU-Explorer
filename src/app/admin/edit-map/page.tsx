@@ -51,6 +51,7 @@ import { uploadImage } from '@/ai/flows/upload-image-flow';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import placeholderImages from '@/lib/placeholder-images.json';
+import { v4 as uuidv4 } from 'uuid';
 
 
 const categories: LocationCategory[] = [
@@ -444,22 +445,20 @@ function EditLocationSheet({
     setIsSaving(true);
     try {
         const locationRef = doc(db, 'locations', formData.id);
-        const dataToSave = { ...formData };
-        if (dataToSave.hours === null) {
-          (dataToSave as any).hours = deleteField();
-        }
         
-        await updateDoc(locationRef, dataToSave);
+        // Use setDoc with merge:true to either create or update the document.
+        await setDoc(locationRef, formData, { merge: true });
+
         onSave(formData);
         toast({
-            title: 'Location Updated',
+            title: 'Location Saved',
             description: `${formData.name} has been saved successfully.`,
         });
     } catch (error) {
         console.error("Error saving location:", error);
         toast({
             title: "Save Failed",
-            description: "Could not save the location. Please try again.",
+            description: "Could not save the location. Please check console for errors.",
             variant: "destructive",
         });
     } finally {
@@ -866,8 +865,10 @@ export default function EditMapPage() {
   
   const handleAddNewLocation = async (newLocationData: Omit<Location, 'id'>) => {
     try {
-        const docRef = await addDoc(collection(db, 'locations'), newLocationData);
-        const newLocationWithId = { id: docRef.id, ...newLocationData } as Location;
+        const newDocRef = doc(collection(db, 'locations')); // Create a ref with a new auto-generated ID
+        const newLocationWithId: Location = { id: newDocRef.id, ...newLocationData } as Location;
+        await setDoc(newDocRef, newLocationWithId); // Use setDoc to create the new document
+        
         setAllLocations(prev => [...prev, newLocationWithId]);
         setSelectedLocation(newLocationWithId);
     } catch (error) {
