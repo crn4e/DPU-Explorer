@@ -129,7 +129,9 @@ export default function AiChat() {
                   )}
                 >
                   <ReactMarkdown
-                    className="prose prose-sm dark:prose-invert"
+                    className={cn(
+                      message.role === 'model' ? 'prose prose-sm dark:prose-invert' : ''
+                    )}
                     components={{
                       p: ({ node, ...props }) => <p className="my-2 first:mt-0 last:mb-0" {...props} />,
                     }}
