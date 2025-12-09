@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { doc, collection, getDocs, updateDoc, addDoc, deleteDoc, getDoc, deleteField } from 'firebase/firestore';
+import { doc, collection, getDocs, updateDoc, addDoc, getDoc, deleteField } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import {
   Sidebar,
@@ -109,6 +109,7 @@ function AddLocationSheet({
                     Saturday: null,
                     Sunday: null,
                 },
+                 isDeleted: false,
             };
             await onSave(newLocation as any);
             toast({
@@ -444,22 +445,20 @@ function EditLocationSheet({
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                 <Button variant="destructive" type="button">
-                    <Trash2 className="mr-2 h-4 w-4" /> Delete Location
+                    <Trash2 className="mr-2 h-4 w-4" /> Move to Trash
                 </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete the
-                    <span className="font-bold"> {location.name} </span>
-                    location from the database.
+                      This will move <span className="font-bold">{location.name}</span> to the trash. You can restore it later from the Dev Dashboard.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDelete}>
-                    Yes, delete it
+                      Yes, move to trash
                     </AlertDialogAction>
                 </AlertDialogFooter>
                 </AlertDialogContent>
@@ -483,7 +482,7 @@ function EditLocationSheet({
 
 export default function EditMapPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [allLocations, setAllLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -525,7 +524,7 @@ export default function EditMapPage() {
       try {
         const querySnapshot = await getDocs(collection(db, 'locations'));
         const locationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
-        setLocations(locationsData);
+        setAllLocations(locationsData);
       } catch (error) {
         console.error("Error fetching locations: ", error);
         toast({
@@ -543,7 +542,7 @@ export default function EditMapPage() {
   }, [isAuthenticated, toast]);
 
   const handleSaveLocation = (updatedLocation: Location) => {
-    setLocations((prevLocations) =>
+    setAllLocations((prevLocations) =>
       prevLocations.map((loc) =>
         loc.id === updatedLocation.id ? updatedLocation : loc
       )
@@ -555,7 +554,7 @@ export default function EditMapPage() {
     try {
         const docRef = await addDoc(collection(db, 'locations'), newLocationData);
         const newLocationWithId = { id: docRef.id, ...newLocationData } as Location;
-        setLocations(prev => [...prev, newLocationWithId]);
+        setAllLocations(prev => [...prev, newLocationWithId]);
         setSelectedLocation(newLocationWithId);
     } catch (error) {
         console.error("Error adding new location: ", error);
@@ -563,20 +562,20 @@ export default function EditMapPage() {
     }
   };
   
-  const handleDeleteLocation = async (locationId: string, locationName: string) => {
+  const handleSoftDeleteLocation = async (locationId: string, locationName: string) => {
     try {
-        await deleteDoc(doc(db, "locations", locationId));
-        setLocations(prev => prev.filter(loc => loc.id !== locationId));
-        setSelectedLocation(null);
+        await updateDoc(doc(db, "locations", locationId), { isDeleted: true });
+        setAllLocations(prev => prev.map(loc => loc.id === locationId ? { ...loc, isDeleted: true } : loc));
+        setSelectedLocation(null); // Deselect after deleting
         toast({
-            title: "Location Deleted",
-            description: `${locationName} has been successfully deleted.`,
+            title: "Location Moved to Trash",
+            description: `${locationName} has been moved to the trash.`,
         });
     } catch (error) {
         console.error("Error deleting location: ", error);
         toast({
             title: "Delete Failed",
-            description: `Could not delete ${locationName}. Please try again.`,
+            description: `Could not move ${locationName} to trash. Please try again.`,
             variant: "destructive",
         });
     }
@@ -584,8 +583,12 @@ export default function EditMapPage() {
 
   const filteredLocations = (
     activeCategory === 'All'
-      ? locations
-      : locations.filter((loc) => loc.category.includes(activeCategory))
+      ? allLocations.filter(loc => !loc.isDeleted)
+      : allLocations.filter((loc) => {
+          if (loc.isDeleted) return false;
+          const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
+          return locCategories.includes(activeCategory);
+        })
   ).sort((a, b) => a.name.localeCompare(b.name, 'th', { numeric: true }));
 
   const handleSelectLocation = (location: Location | null) => {
@@ -617,7 +620,7 @@ export default function EditMapPage() {
         // We only update the position in the local state.
         // The final save is done in the sheet.
         setFormData(updatedLocation);
-        setLocations((prev) => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
+        setAllLocations((prev) => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
         setIsRepositioning(false);
         setIsSheetOpen(true);
         toast({
@@ -796,7 +799,7 @@ export default function EditMapPage() {
         <EditLocationSheet
             location={selectedLocation}
             onSave={handleSaveLocation}
-            onDelete={handleDeleteLocation}
+            onDelete={handleSoftDeleteLocation}
             isOpen={isSheetOpen}
             onOpenChange={setIsSheetOpen}
             onEnterRepositionMode={enterRepositionMode}

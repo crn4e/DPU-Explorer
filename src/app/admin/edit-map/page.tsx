@@ -757,22 +757,22 @@ function EditLocationSheet({
            <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" type="button">
-                <Trash2 className="mr-2 h-4 w-4" /> Delete Location
+                <Trash2 className="mr-2 h-4 w-4" /> Move to Trash
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the
+                  This action will move the
                   <span className="font-bold"> {location.name} </span>
-                  location from the database.
+                  location to the trash. You can restore it later.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete}>
-                  Yes, delete it
+                  Yes, move to trash
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -903,7 +903,7 @@ export default function EditMapPage() {
           const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
           return locCategories.includes(activeCategory);
         })
-  ).sort((a, b) => a.name.localeCompare(b.name, 'th'));
+  ).sort((a, b) => a.name.localeCompare(b.name, 'th', { numeric: true }));
 
   const handleSelectLocation = (location: Location | null) => {
     if (isRepositioning || isAddingLocation) return;
