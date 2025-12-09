@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { db, auth } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -60,7 +60,8 @@ export default function Home() {
     const fetchLocations = async () => {
       setIsLoading(true);
       try {
-        const querySnapshot = await getDocs(collection(db, 'locations'));
+        const q = query(collection(db, "locations"), where("isDeleted", "!=", true));
+        const querySnapshot = await getDocs(q);
         const locationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
         setAllLocations(locationsData);
       } catch (error) {
@@ -104,12 +105,11 @@ export default function Home() {
 
   const filteredLocations = (
     isAnnouncementView
-      ? allLocations.filter(loc => !loc.isDeleted && loc.announcement)
+      ? allLocations.filter(loc => loc.announcement)
       : (
           activeCategory === 'All'
-            ? allLocations.filter(loc => !loc.isDeleted)
+            ? allLocations
             : allLocations.filter((loc) => {
-                if (loc.isDeleted) return false;
                 const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
                 return locCategories.includes(activeCategory);
               })
