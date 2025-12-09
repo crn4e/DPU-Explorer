@@ -17,7 +17,7 @@ export const locations: Location[] = [
     category: ['Services'],
     description: 'คณะวิทยาลัยบริหารธุรกิจนวัตกรรมและการบัญชี (CIBA)',
     announcement: 'Hello World',
-    image: '/food/IMG_1804.jpg',
+    image: '/IMG_1805.jpg',
     hours: {
       "Monday": { open: '08:00', close: '20:00' },
       "Tuesday": { open: '08:00', close: '20:00' },
