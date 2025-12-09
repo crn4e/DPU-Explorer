@@ -156,8 +156,11 @@ export default function EditAnnouncementPage() {
                 </CardContent>
                 <CardFooter>
                     <Button onClick={handleSave} className="w-full" disabled={isSaving}>
-                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Announcement
+                      {isSaving ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <span>Save Announcement</span>
+                      )}
                     </Button>
                 </CardFooter>
             </Card>
