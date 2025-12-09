@@ -35,9 +35,10 @@ import {
   SheetTitle,
   SheetFooter,
   SheetClose,
+  SheetDescription,
 } from '@/components/ui/sheet';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Map, Trash2, UserPlus, PlusCircle, Move, X } from 'lucide-react';
+import { Loader2, User, Map, Trash2, UserPlus, PlusCircle, Move, X, RotateCcw } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -355,7 +356,7 @@ function EditLocationSheet({
 
 export default function DevPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [allLocations, setAllLocations] = useState<Location[]>([]);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const router = useRouter();
   const { toast } = useToast();
@@ -364,6 +365,7 @@ export default function DevPage() {
   // State for the edit sheet
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
 
 
   useEffect(() => {
@@ -400,25 +402,25 @@ export default function DevPage() {
     return () => unsubscribe();
   }, [router]);
 
-  useEffect(() => {
-    const fetchLocations = async () => {
-      setIsLoading(true);
-      try {
-        const querySnapshot = await getDocs(collection(db, 'locations'));
-        const locationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
-        setLocations(locationsData);
-      } catch (error) {
-        console.error("Error fetching locations: ", error);
-        toast({
-            title: "Error fetching locations",
-            description: "Could not fetch locations from the database.",
-            variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchLocations = async () => {
+    setIsLoading(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, 'locations'));
+      const locationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
+      setAllLocations(locationsData);
+    } catch (error) {
+      console.error("Error fetching locations: ", error);
+      toast({
+          title: "Error fetching locations",
+          description: "Could not fetch locations from the database.",
+          variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (isAuthenticated) {
       fetchLocations();
     }
@@ -430,26 +432,64 @@ export default function DevPage() {
   };
   
   const handleSaveLocation = (updatedLocation: Location) => {
-    setLocations((prevLocations) =>
+    setAllLocations((prevLocations) =>
       prevLocations.map((loc) =>
         loc.id === updatedLocation.id ? updatedLocation : loc
       )
     );
   };
 
-  const handleDeleteLocation = async (locationId: string, locationName: string) => {
+  const handleSoftDeleteLocation = async (locationId: string, locationName: string) => {
     try {
-        await deleteDoc(doc(db, "locations", locationId));
-        setLocations(prevLocations => prevLocations.filter(loc => loc.id !== locationId));
+        const locationRef = doc(db, "locations", locationId);
+        await updateDoc(locationRef, { isDeleted: true });
+        setAllLocations(prev => prev.map(loc => loc.id === locationId ? { ...loc, isDeleted: true } : loc));
         toast({
-            title: "Location Deleted",
-            description: `${locationName} has been successfully deleted.`,
+            title: "Location Moved to Trash",
+            description: `${locationName} has been moved to the trash.`,
         });
     } catch (error) {
-        console.error("Error deleting location: ", error);
+        console.error("Error soft-deleting location: ", error);
         toast({
-            title: "Delete Failed",
-            description: `Could not delete ${locationName}. Please try again.`,
+            title: "Deletion Failed",
+            description: `Could not move ${locationName} to trash. Please try again.`,
+            variant: "destructive",
+        });
+    }
+  };
+
+  const handleRestoreLocation = async (locationId: string, locationName: string) => {
+    try {
+        const locationRef = doc(db, "locations", locationId);
+        await updateDoc(locationRef, { isDeleted: false });
+        setAllLocations(prev => prev.map(loc => loc.id === locationId ? { ...loc, isDeleted: false } : loc));
+        toast({
+            title: "Location Restored",
+            description: `${locationName} has been successfully restored.`,
+        });
+    } catch (error) {
+        console.error("Error restoring location: ", error);
+        toast({
+            title: "Restore Failed",
+            description: `Could not restore ${locationName}. Please try again.`,
+            variant: "destructive",
+        });
+    }
+  };
+  
+  const handlePermanentDelete = async (locationId: string, locationName: string) => {
+     try {
+        await deleteDoc(doc(db, "locations", locationId));
+        setAllLocations(prev => prev.filter(loc => loc.id !== locationId));
+        toast({
+            title: "Permanently Deleted",
+            description: `${locationName} has been permanently deleted.`,
+        });
+    } catch (error) {
+        console.error("Error permanently deleting location: ", error);
+        toast({
+            title: "Permanent Deletion Failed",
+            description: `Could not permanently delete ${locationName}.`,
             variant: "destructive",
         });
     }
@@ -482,6 +522,9 @@ export default function DevPage() {
       </div>
     );
   }
+
+  const activeLocations = allLocations.filter(loc => !loc.isDeleted);
+  const deletedLocations = allLocations.filter(loc => loc.isDeleted);
 
   return (
     <TooltipProvider>
@@ -553,6 +596,16 @@ export default function DevPage() {
                   <p>Edit Map</p>
                 </TooltipContent>
               </Tooltip>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button variant="outline" size="icon" onClick={() => setIsTrashOpen(true)}>
+                          <Trash2 className="h-4 w-4" />
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>Open Trash</p>
+                  </TooltipContent>
+              </Tooltip>
               <Button variant="destructive" onClick={handleLogout}>
                   Logout
               </Button>
@@ -576,10 +629,10 @@ export default function DevPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {locations.map((location) => (
+                  {activeLocations.map((location) => (
                     <TableRow key={location.id}>
                       <TableCell className="font-medium">{location.name}</TableCell>
-                      <TableCell>{location.category}</TableCell>
+                      <TableCell>{Array.isArray(location.category) ? location.category.join(', ') : location.category}</TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button variant="ghost" size="sm" onClick={() => handleEditClick(location)}>
                             Edit
@@ -593,17 +646,15 @@ export default function DevPage() {
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogTitle>Move to Trash?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the
-                                <span className="font-bold"> {location.name} </span> 
-                                location.
+                                This will move <span className="font-bold">{location.name}</span> to the trash. You can restore it later.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteLocation(location.id, location.name)}>
-                                Continue
+                              <AlertDialogAction onClick={() => handleSoftDeleteLocation(location.id, location.name)}>
+                                Move to Trash
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -620,10 +671,70 @@ export default function DevPage() {
         <EditLocationSheet
             location={editingLocation}
             onSave={handleSaveLocation}
-            onDelete={handleDeleteLocation}
+            onDelete={handleSoftDeleteLocation}
             isOpen={isSheetOpen}
             onOpenChange={setIsSheetOpen}
         />
+        
+        <Sheet open={isTrashOpen} onOpenChange={setIsTrashOpen}>
+            <SheetContent className="sm:max-w-lg">
+                <SheetHeader>
+                    <SheetTitle>Trash</SheetTitle>
+                    <SheetDescription>
+                        Locations in the trash can be restored or permanently deleted.
+                    </SheetDescription>
+                </SheetHeader>
+                <div className="mt-4">
+                    {deletedLocations.length > 0 ? (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {deletedLocations.map(location => (
+                                    <TableRow key={location.id}>
+                                        <TableCell>{location.name}</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button variant="ghost" size="sm" onClick={() => handleRestoreLocation(location.id, location.name)}>
+                                                <RotateCcw className="mr-2 h-4 w-4" />
+                                                Restore
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="destructive" size="sm">
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Delete
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Permanently Delete?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action is irreversible. Are you sure you want to permanently delete <span className="font-bold">{location.name}</span>?
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handlePermanentDelete(location.id, location.name)}>
+                                                            Yes, permanently delete
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    ) : (
+                        <p className="text-center text-muted-foreground py-8">The trash is empty.</p>
+                    )}
+                </div>
+            </SheetContent>
+        </Sheet>
       </div>
     </TooltipProvider>
   );

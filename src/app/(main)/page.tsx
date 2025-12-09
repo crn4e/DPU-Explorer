@@ -95,8 +95,9 @@ export default function Home() {
 
   const filteredLocations = (
     activeCategory === 'All'
-      ? allLocations
+      ? allLocations.filter(loc => !loc.isDeleted)
       : allLocations.filter((loc) => {
+          if (loc.isDeleted) return false;
           const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
           return locCategories.includes(activeCategory);
         })
