@@ -7,8 +7,8 @@
  * - UploadImageOutput - The return type for the uploadImage function.
  */
 
-import { genkit, z } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
+import { z } from 'genkit';
+import { ai } from '@/ai/genkit';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { initializeApp, getApps } from 'firebase/app';
 import { firebaseConfig } from '@/lib/firebase';
@@ -20,16 +20,12 @@ if (!getApps().length) {
   initializeApp(firebaseConfig);
 }
 
-const ai = genkit({
-  plugins: [googleAI()],
-});
-
 const UploadImageInputSchema = z.object({
   fileName: z.string().describe('The name of the file to upload.'),
   dataUri: z
     .string()
     .describe(
-      "The image file as a data URI, including a MIME type and Base64 encoding. Format: 'data:<mimetype>;base64,<encoded_data>'."
+      "The image file as a data URI, including a MIME type and Base64 encoding. Format: 'data:<mimetype>;base64,<encoded_data>'"
     ),
 });
 export type UploadImageInput = z.infer<typeof UploadImageInputSchema>;
