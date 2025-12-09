@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageSquare, Loader2, Send, Sparkles, User, Bot } from 'lucide-react';
-import { chatDpu, type ChatDpuInput } from '@/ai/flows/chat-dpu';
+import { chatDpu } from '@/ai/flows/chat-dpu';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
 import Markdown from 'react-markdown';
@@ -107,19 +107,14 @@ export default function AiChat() {
     const currentMessage = message.trim();
     if (!currentMessage) return;
 
-    const newHistory: ChatMessage[] = [...history, { role: 'user', content: currentMessage }];
+    const userMessage: ChatMessage = { role: 'user', content: currentMessage };
+    const newHistory: ChatMessage[] = [...history, userMessage];
     setHistory(newHistory);
     setMessage('');
     
     startTransition(async () => {
         try {
-            // Format the history for the Genkit flow
-            const flowHistory: ChatDpuInput['history'] = history.map(msg => ({
-                role: msg.role,
-                content: [{ text: msg.content }]
-            }));
-
-            const result = await chatDpu({ history: flowHistory, message: currentMessage });
+            const result = await chatDpu({ history: history, message: currentMessage });
             const aiMessage = { role: 'model', content: result.response };
             setHistory(prev => [...prev, aiMessage]);
         } catch (error) {
@@ -131,7 +126,7 @@ export default function AiChat() {
               variant: 'destructive',
             });
             // Rollback only the user message on error
-            setHistory(prev => prev.slice(0, -1));
+            setHistory(prev => prev.filter(msg => msg !== userMessage));
         }
     });
   };

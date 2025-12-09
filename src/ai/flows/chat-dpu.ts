@@ -10,15 +10,22 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
+// This is the format the frontend sends
+const FrontendChatMessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  content: z.string(),
+});
+
+// This is the format Genkit/Google AI needs
+const GenkitChatMessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  content: z.array(z.object({ text: z.string() })),
+});
+
 const ChatDpuInputSchema = z.object({
   history: z
-    .array(
-      z.object({
-        role: z.enum(['user', 'model']),
-        content: z.array(z.object({ text: z.string() })),
-      })
-    )
-    .describe('The chat history.'),
+    .array(FrontendChatMessageSchema)
+    .describe('The chat history from the frontend.'),
   message: z.string().describe('The latest user message.'),
 });
 export type ChatDpuInput = z.infer<typeof ChatDpuInputSchema>;
@@ -39,10 +46,16 @@ const chatDpuFlow = ai.defineFlow(
   },
   async ({ history, message }) => {
     
+    // Transform the frontend history to the format Genkit expects
+    const genkitHistory = history.map(msg => ({
+      role: msg.role,
+      content: [{ text: msg.content }]
+    }));
+
     const llmResponse = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
       system: systemPrompt,
-      history: history,
+      history: genkitHistory,
       prompt: message,
     });
 
