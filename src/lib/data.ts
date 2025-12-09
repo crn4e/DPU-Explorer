@@ -309,7 +309,7 @@ export const locations: Location[] = [
     mapPosition: { x: 27, y: 58 }, // Inside Building 10
   },
   {
-    id: 'building-37',
+    id: 'building-37-1',
     name: 'อาคาร 1001',
     category: ['Services'],
     description: '1000',
