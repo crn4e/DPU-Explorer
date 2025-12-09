@@ -11,14 +11,6 @@
  * - /locations/{locationId}/announcements/{announcementId}: Subcollection for announcements specific to a location.
  * - /admins/{uid}: A dedicated collection to manage admin roles. The existence of a document
  *   with a user's UID in this collection grants them administrative privileges across the database.
- *
- * Key Security Decisions:
- * - Public Read Access: The `/locations` and nested `/announcements` collections are publicly readable
- *   to ensure the app is accessible to everyone, including anonymous users.
- * - Centralized Admin Roles: Admin status is determined by checking for a user's UID in the `/admins` collection.
- *   This avoids embedding role information in individual documents and provides a single source of truth for admin privileges.
- * - Admin Collection Security: The `/admins` collection itself is secured. Only existing admins can view, add, or remove
- *   other administrators, preventing unauthorized privilege escalation.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -34,12 +26,38 @@ service cloud.firestore {
     }
 
     /**
+     * Checks if the user's UID matches the document's ID they are trying to access.
+     * This is the cornerstone of owner-based security rules.
+     */
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    /**
      * Checks if the currently signed-in user is an administrator.
      * Admin status is granted if a document with the user's UID exists in the /admins collection.
      */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
+
+    /**
+     * Checks if the currently signed-in user is a developer.
+     * Dev status is granted if a document with the user's UID exists in the /admins collection.
+     * This might be expanded in the future for more granular dev roles.
+     */
+    function isDev() {
+      // For now, developers are also admins
+      return isAdmin();
+    }
+    
+    /**
+     * Checks if the user is an Announcement Admin.
+     */
+    function isAnnouncementAdmin() {
+        return isSignedIn() && exists(/databases/$(database)/documents/announcementAdmins/$(request.auth.uid));
+    }
+
 
     /**
      * @description Enforces a public-read, admin-only write access model for locations.
@@ -51,9 +69,7 @@ service cloud.firestore {
      */
     match /locations/{locationId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow create, update, delete: if isDev() || isAdmin();
     }
 
     /**
@@ -66,24 +82,43 @@ service cloud.firestore {
      */
     match /locations/{locationId}/announcements/{announcementId} {
       allow get, list: if true;
-      allow create: if isAdmin() && request.resource.data.locationId == locationId;
-      allow update: if isAdmin() && resource != null && request.resource.data.locationId == resource.data.locationId;
-      allow delete: if isAdmin() && resource != null;
+      allow create: if isAnnouncementAdmin() && request.resource.data.locationId == locationId;
+      allow update: if isAnnouncementAdmin() && resource != null && request.resource.data.locationId == resource.data.locationId;
+      allow delete: if isAnnouncementAdmin() && resource != null;
     }
 
     /**
-     * @description Manages access to the administrators collection.
+     * @description Manages access to the administrators collection. Only Devs can manage Admins.
      * @path /admins/{uid}
-     * @allow (create) An existing admin user adds a new user's UID to the collection, granting them admin rights.
-     * @deny (list) A non-admin user attempts to list all administrator UIDs.
-     * @deny (create) A non-admin user attempts to add their own UID to the collection.
-     * @principle Prevents privilege escalation and protects administrator identities by restricting management of the role collection to its members.
+     * @allow (create) An existing dev user adds a new user's UID to the collection, granting them admin rights.
+     * @deny (list) A non-dev user attempts to list all administrator UIDs.
+     * @principle Prevents privilege escalation by restricting role management to higher-level users.
      */
     match /admins/{uid} {
-      allow get, list: if isAdmin();
-      allow create: if isAdmin();
-      allow update: if false;
-      allow delete: if isAdmin() && resource != null;
+      allow get: if isOwner(uid) || isDev();
+      allow list, create, delete: if isDev();
+      allow update: if false; // Disallow updating admin documents.
+    }
+    
+     /**
+     * @description Manages access to the announcement administrators collection. Only Devs can manage them.
+     * @path /announcementAdmins/{uid}
+     */
+    match /announcementAdmins/{uid} {
+      allow get: if isOwner(uid) || isDev() || isAnnouncementAdmin();
+      allow list, create, delete: if isDev();
+      allow update: if false; 
+    }
+
+    /**
+     * @description Manages access to student profiles.
+     * @path /students/{uid}
+     */
+    match /students/{uid} {
+      allow get: if isOwner(uid);
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid);
+      allow delete: if false;
     }
   }
 }
