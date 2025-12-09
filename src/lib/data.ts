@@ -137,7 +137,7 @@ export const locations: Location[] = [
     name: 'Building 10 - Tourism and Hospitality',
     category: ['Academic'],
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
-    image: '/building-10.jpg',
+    image: '/IMG_10.jpg',
     hours: defaultHours,
     mapPosition: { x: 32, y: 46 },
   },
@@ -157,7 +157,7 @@ export const locations: Location[] = [
     category: ['Recreation'],
     description:
       'Features an indoor gymnasium, basketball court, and other sports facilities. Also includes the main university football field.',
-    image: '/building-12.jpg',
+    image: '/IMG_12.jpg',
     hours: defaultHours,
     mapPosition: { x:82, y: 60 },
   },
@@ -191,7 +191,7 @@ export const locations: Location[] = [
     mapPosition: { x: 82, y: 50 },
   },
   {
-    id: 'EV',
+    id: 'EV-1',
     name: 'EV',
     category: ['Academic'],
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
@@ -218,12 +218,21 @@ export const locations: Location[] = [
     mapPosition: { x: 40, y: 50 },
   },
   {
-    id: 'library',
+    id: 'building-17',
+    name: 'Building 16 - New Building',
+    category: ['Academic'],
+    description: 'A new building with modern facilities.',
+    image: '/IMG_17.jpg',
+    hours: defaultHours,
+    mapPosition: { x: 40, y: 50 },
+  },
+  {
+    id: 'DPUplace',
     name: 'DPU Library',
     category: ['Services'],
     description:
       'The heart of knowledge and research at DPU. Provides a vast collection of books, digital resources, and quiet study areas for students and faculty.',
-    image: '/IMG_6.jpg',
+    image: '/IMG_36.jpg',
     hours: {
       ...defaultHours,
       Saturday: { open: '09:00', close: '17:00' },

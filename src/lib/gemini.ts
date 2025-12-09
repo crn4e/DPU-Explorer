@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ai } from '@/ai/genkit';
 
 const apiKey = process.env.GEMINI_API_KEY;
 

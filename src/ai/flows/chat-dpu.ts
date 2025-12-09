@@ -8,7 +8,7 @@
  * - ChatDpuOutput - The return type for the chatDpu function.
  */
 import { z } from 'genkit';
-import { geminiModel } from '@/lib/gemini';
+import { ai } from '@/ai/genkit';
 import { Content } from '@google/generative-ai';
 
 const ChatDpuInputSchema = z.object({
@@ -108,20 +108,17 @@ AI ควรจะมีความสามารถในการตอบ�
 
 export async function chatDpu({ history, message }: ChatDpuInput): Promise<ChatDpuOutput> {
 
-  const chat = geminiModel.startChat({
+  const result = await ai.generate({
+    model: 'gemini-1.5-flash',
+    system: systemPrompt,
     history: history.map(msg => ({
       role: msg.role,
-      parts: [{ text: msg.content }]
+      content: [{ text: msg.content }]
     })),
-    systemInstruction: {
-      role: 'system',
-      parts: [{ text: systemPrompt }],
-    },
+    prompt: message,
   });
 
-  const result = await chat.sendMessage(message);
-  const response = result.response;
-  const text = response.text();
+  const text = result.text;
 
   return { response: text };
 }

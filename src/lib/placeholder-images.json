@@ -32,7 +32,7 @@
   "building-17": {
     "main": {
       "url": "/IMG_17.jpg",
-      "hint": "medical building"
+      "hint": "plane building"
     }
   },
   "building-4": {
@@ -85,7 +85,7 @@
   },
   "building-10": {
     "main": {
-      "url": "/building-10.jpg",
+      "url": "/IMG_10.jpg",
       "hint": "hotel reception"
     }
   },
@@ -97,7 +97,7 @@
   },
   "building-12": {
     "main": {
-      "url": "/building-12.jpg",
+      "url": "/IMG_12.jpg",
       "hint": "lecture hall"
     }
   },
@@ -109,7 +109,7 @@
   },
   "building-14": {
     "main": {
-      "url": "/default.png",
+      "url": "/IMG_38.jpg",
       "hint": "modern building"
     }
   },
@@ -119,7 +119,7 @@
       "hint": "theater stage"
     }
   },
-  "EV": {
+  "EV-1": {
     "main": {
       "url": "/IMG_33.jpg",
       "hint": "theater stage"
@@ -131,9 +131,9 @@
       "hint": "airplane hangar"
     }
   },
-  "library": {
+  "DPUplace": {
     "main": {
-      "url": "/IMG_6.jpg",
+      "url": "/IMG_36.jpg",
       "hint": "library interior"
     },
     "directoryPages": {
