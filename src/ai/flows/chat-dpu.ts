@@ -107,15 +107,6 @@ AI ควรจะมีความสามารถในการตอบ�
 
 
 export async function chatDpu({ history, message }: ChatDpuInput): Promise<ChatDpuOutput> {
-
-  const result = await ai.generate({
-    model: 'googleai/gemini-1.5-flash',
-    system: systemPrompt,
-    history: history,
-    prompt: message,
-  });
-
-  const text = result.text;
-
-  return { response: text };
+  // Return a static message instead of calling the AI model.
+  return { response: "คุณสมบัตินี้ถูกปิดการใช้งานชั่วคราว" };
 }
