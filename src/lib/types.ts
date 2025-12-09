@@ -24,6 +24,7 @@ export interface Location {
   announcement?: string;
   mapPosition: { x: number; y: number };
   directoryInfo?: DirectoryPage[];
+  image?: string; // URL for the main location image
 }
 
 export interface StudentProfile {

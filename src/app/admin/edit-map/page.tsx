@@ -103,6 +103,7 @@ function AddLocationSheet({
                 category,
                 announcement,
                 mapPosition: newPosition,
+                image: '/default.png',
                 hours: {
                     Monday: { open: '08:00', close: '20:00' },
                     Tuesday: { open: '08:00', close: '20:00' },
@@ -826,7 +827,7 @@ export default function EditMapPage() {
   const handleAddNewLocation = async (newLocationData: Omit<Location, 'id'>) => {
     try {
         const docRef = await addDoc(collection(db, 'locations'), newLocationData);
-        const newLocationWithId = { id: docRef.id, ...newLocationData };
+        const newLocationWithId = { id: docRef.id, ...newLocationData } as Location;
         setLocations(prev => [...prev, newLocationWithId]);
         setSelectedLocation(newLocationWithId);
     } catch (error) {

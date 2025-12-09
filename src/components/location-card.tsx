@@ -62,20 +62,9 @@ export default function LocationCard({ location }: LocationCardProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const locationImages = images[location.id] || { main: defaultImage };
-  const [currentImage, setCurrentImage] = useState(locationImages.main);
+  const [currentImage, setCurrentImage] = useState(location.image || locationImages.main.url);
+  const [currentHint, setCurrentHint] = useState(locationImages.main.hint);
 
-  useEffect(() => {
-    if (api) {
-      api.scrollTo(0);
-      const handleSelect = () => {
-        setCurrentSlide(api.selectedScrollSnap());
-      };
-      api.on('select', handleSelect);
-      return () => {
-        api.off('select', handleSelect);
-      };
-    }
-  }, [api, location]);
 
   useEffect(() => {
     const newStatus = checkOpenStatus(location);
@@ -91,21 +80,37 @@ export default function LocationCard({ location }: LocationCardProps) {
   useEffect(() => {
     // Re-initialize image state when location changes
     const newLocationImages = images[location.id] || { main: defaultImage };
-    setCurrentImage(newLocationImages.main);
+    setCurrentImage(location.image || newLocationImages.main.url);
+    setCurrentHint(newLocationImages.main.hint);
     setCurrentSlide(0);
     api?.scrollTo(0);
   }, [location, api]);
 
   useEffect(() => {
+    if (api) {
+      const handleSelect = () => {
+        setCurrentSlide(api.selectedScrollSnap());
+      };
+      api.on('select', handleSelect);
+      return () => {
+        api.off('select', handleSelect);
+      };
+    }
+  }, [api]);
+
+
+  useEffect(() => {
     const locationImages = images[location.id] || { main: defaultImage };
     if (currentSlide === 0) {
-      setCurrentImage(locationImages.main);
+      setCurrentImage(location.image || locationImages.main.url);
+      setCurrentHint(locationImages.main.hint);
     } else {
       const pageIndex = currentSlide - 1;
       const directoryPage = location.directoryInfo?.[pageIndex];
       const pageImageId = directoryPage?.imageId;
       const pageImage = pageImageId ? locationImages.directoryPages?.[pageImageId] : null;
-      setCurrentImage(pageImage || locationImages.main || defaultImage);
+      setCurrentImage(pageImage?.url || location.image || locationImages.main.url);
+      setCurrentHint(pageImage?.hint || locationImages.main.hint);
     }
   }, [currentSlide, location, images]);
 
@@ -123,13 +128,13 @@ export default function LocationCard({ location }: LocationCardProps) {
         <CardHeader className="relative p-0">
            <div className="relative aspect-video w-full">
             <Image
-              key={currentImage.url}
-              src={currentImage.url}
+              key={currentImage}
+              src={currentImage}
               alt={`Image of ${location.name}`}
               width={600}
               height={400}
               className="aspect-video w-full object-cover transition-opacity duration-500 animate-in fade-in-0"
-              data-ai-hint={currentImage.hint}
+              data-ai-hint={currentHint}
             />
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
