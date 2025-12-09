@@ -7,14 +7,9 @@
  * - GenerateCampusTourInput - The input type for the generateCampusTour function.
  * - GenerateCampusTourOutput - The return type for the generateCampusTour function.
  */
-import {genkit, z} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
+import {z} from 'genkit';
+import {ai} from '@/ai/genkit';
 import {locations} from '@/lib/data';
-
-const ai = genkit({
-  plugins: [googleAI()],
-});
-
 
 const GenerateCampusTourInputSchema = z.object({
   interests: z
@@ -42,7 +37,7 @@ const systemPrompt = `You are a helpful tour guide for Dhurakij Pundit Universit
   You must only use the locations provided in the available locations list. Do not invent locations.
 
   Available DPU Locations:
-  ${locations.map((l) => `- ${l.name} (${l.category}): ${l.description}`).join('\n')}
+  ${locations.map((l) => `- ${l.name} (${l.category.join(', ')}): ${l.description}`).join('\n')}
 
   Consider the current time when suggesting locations, and the opening hours of different locations. Only suggest places that are open right now. If no relevant places are open, inform the user politely in Thai.
 
@@ -56,7 +51,7 @@ const generateCampusTourFlow = ai.defineFlow(
   },
   async (input) => {
      const {text} = await ai.generate({
-      model: 'gemini-pro',
+      model: 'googleai/gemini-1.5-flash',
       system: systemPrompt,
       prompt: `User's Interests: ${input.interests}
 Current Time: ${input.currentTime}

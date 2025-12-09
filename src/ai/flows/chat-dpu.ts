@@ -16,7 +16,7 @@ const ChatDpuInputSchema = z.object({
     .array(
       z.object({
         role: z.enum(['user', 'model']),
-        content: z.string(),
+        content: z.array(z.object({ text: z.string() })),
       })
     )
     .describe('The chat history.'),
@@ -111,10 +111,7 @@ export async function chatDpu({ history, message }: ChatDpuInput): Promise<ChatD
   const result = await ai.generate({
     model: 'googleai/gemini-1.5-flash',
     system: systemPrompt,
-    history: history.map(msg => ({
-      role: msg.role,
-      content: [{ text: msg.content }]
-    })),
+    history: history,
     prompt: message,
   });
 

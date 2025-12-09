@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { MessageSquare, Loader2, Send, Sparkles, User, Bot } from 'lucide-react';
-import { chatDpu } from '@/ai/flows/chat-dpu';
+import { chatDpu, type ChatDpuInput } from '@/ai/flows/chat-dpu';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
 import Markdown from 'react-markdown';
@@ -113,7 +113,13 @@ export default function AiChat() {
     
     startTransition(async () => {
         try {
-            const result = await chatDpu({ history: newHistory.slice(0, -1), message: currentMessage });
+            // Format the history for the Genkit flow
+            const flowHistory: ChatDpuInput['history'] = history.map(msg => ({
+                role: msg.role,
+                content: [{ text: msg.content }]
+            }));
+
+            const result = await chatDpu({ history: flowHistory, message: currentMessage });
             const aiMessage = { role: 'model', content: result.response };
             setHistory(prev => [...prev, aiMessage]);
         } catch (error) {
