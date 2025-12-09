@@ -14,7 +14,7 @@ import { Clock, Megaphone, CalendarDays, BookUser } from 'lucide-react';
 import { checkOpenStatus } from '@/lib/helpers';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { images } from '@/lib/images';
+import placeholderImages from '@/lib/placeholder-images.json';
 import {
   Carousel,
   CarouselContent,
@@ -28,12 +28,11 @@ interface LocationCardProps {
   location: Location;
 }
 
-const defaultImageInfo = images['default'].main;
+const defaultImageInfo = placeholderImages['default' as keyof typeof placeholderImages].main;
 
 const daysOfWeek = [
   'Monday',
   'Tuesday',
-
   'Wednesday',
   'Thursday',
   'Friday',
@@ -72,7 +71,7 @@ export default function LocationCard({ location }: LocationCardProps) {
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
   const categories = Array.isArray(location.category) ? location.category : [location.category];
 
-  const imageInfo = images[location.id]?.main || defaultImageInfo;
+  const imageInfo = placeholderImages[location.id as keyof typeof placeholderImages]?.main || defaultImageInfo;
   const mainImageUrl = imageInfo.url;
   const mainImageHint = imageInfo.hint;
 
@@ -181,8 +180,8 @@ export default function LocationCard({ location }: LocationCardProps) {
             </CardContent>
           </CarouselItem>
           {location.directoryInfo?.map((page, index) => {
-            const pageImageInfo = page.imageId && images[location.id]?.directoryPages?.[page.imageId] 
-              ? images[location.id]?.directoryPages?.[page.imageId]
+            const pageImageInfo = page.imageId && placeholderImages[location.id as keyof typeof placeholderImages]?.directoryPages?.[page.imageId as keyof typeof placeholderImages[keyof typeof placeholderImages]['directoryPages']] 
+              ? placeholderImages[location.id as keyof typeof placeholderImages]?.directoryPages?.[page.imageId as keyof typeof placeholderImages[keyof typeof placeholderImages]['directoryPages']]
               : null;
             
             return (
