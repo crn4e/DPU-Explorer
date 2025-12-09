@@ -40,8 +40,15 @@ const daysOfWeek = [
   'Sunday',
 ];
 
+type OpenStatus = {
+  status: 'open' | 'closed' | 'no-hours';
+  closesAt: string;
+  opensAt: string;
+  todayName: string;
+};
+
 export default function LocationCard({ location }: LocationCardProps) {
-  const [status, setStatus] = useState<{ isOpen: boolean | null; closesAt: string; opensAt: string, todayName: string }>({ isOpen: null, closesAt: '', opensAt: '', todayName: '' });
+  const [status, setStatus] = useState<OpenStatus>({ status: 'no-hours', closesAt: '', opensAt: '', todayName: '' });
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -72,7 +79,7 @@ export default function LocationCard({ location }: LocationCardProps) {
   const categories = Array.isArray(location.category) ? location.category : [location.category];
 
   const imageInfo = (placeholderImages as any)[location.id]?.main || defaultImageInfo;
-  const mainImageUrl = location.image;
+  const mainImageUrl = imageInfo.url;
   const mainImageHint = imageInfo.hint;
 
 
@@ -112,24 +119,31 @@ export default function LocationCard({ location }: LocationCardProps) {
         <CarouselContent>
           <CarouselItem>
             <CardContent className="p-6 select-none">
-              {status.isOpen !== null ? (
-                <div className="mb-4 flex items-center gap-3">
-                  <Badge
-                    className={cn(
-                      "text-sm",
-                      status.isOpen ? "bg-green-600 text-white hover:bg-green-700" : "bg-destructive text-destructive-foreground"
-                    )}
-                  >
-                    {status.isOpen ? 'Open' : 'Closed'}
-                  </Badge>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>
-                      {status.isOpen ? `Closes at ${status.closesAt}` : (status.opensAt ? `Opens at ${status.opensAt}` : 'Closed today')}
-                    </span>
-                  </div>
-                </div>
-              ) : <div className="h-6 mb-4" /> }
+              <div className="mb-4 flex items-center gap-3">
+                {status.status === 'open' && (
+                  <>
+                    <Badge className="bg-green-600 text-white hover:bg-green-700">Open</Badge>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      <span>Closes at {status.closesAt}</span>
+                    </div>
+                  </>
+                )}
+                {status.status === 'closed' && (
+                  <>
+                    <Badge variant="destructive">Closed</Badge>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      <span>{status.opensAt ? `Opens at ${status.opensAt}` : 'Closed today'}</span>
+                    </div>
+                  </>
+                )}
+                 {status.status === 'no-hours' && (
+                  <>
+                    <Badge className="bg-sky-500 text-white hover:bg-sky-600">No hours available</Badge>
+                  </>
+                )}
+              </div>
 
               <p className="mb-6 text-foreground/90 whitespace-pre-wrap">{location.description}</p>
               

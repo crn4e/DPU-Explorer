@@ -2,18 +2,25 @@
 import { type Location } from '@/lib/types';
 import { format, isAfter, isBefore, parse } from 'date-fns';
 
-export function checkOpenStatus(location: Location): { isOpen: boolean; closesAt: string; opensAt: string, todayName: string } {
+type OpenStatus = {
+  status: 'open' | 'closed' | 'no-hours';
+  closesAt: string;
+  opensAt: string;
+  todayName: string;
+};
+
+export function checkOpenStatus(location: Location): OpenStatus {
   const now = new Date();
   const todayName = format(now, 'EEEE'); // 'Monday', 'Tuesday'...
 
   if (!location.hours) {
-    return { isOpen: false, closesAt: '', opensAt: '', todayName };
+    return { status: 'no-hours', closesAt: '', opensAt: '', todayName };
   }
 
   const todaysHours = location.hours[todayName];
 
   if (!todaysHours || typeof todaysHours !== 'object' || !todaysHours.open || !todaysHours.close) {
-    return { isOpen: false, closesAt: '', opensAt: '', todayName };
+    return { status: 'closed', closesAt: '', opensAt: '', todayName };
   }
 
   const openTime = parse(todaysHours.open, 'HH:mm', now);
@@ -22,7 +29,7 @@ export function checkOpenStatus(location: Location): { isOpen: boolean; closesAt
   const isOpen = isAfter(now, openTime) && isBefore(now, closeTime);
 
   return { 
-    isOpen, 
+    status: isOpen ? 'open' : 'closed', 
     closesAt: format(closeTime, 'p'),
     opensAt: format(openTime, 'p'),
     todayName,
