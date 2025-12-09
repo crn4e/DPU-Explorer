@@ -83,10 +83,28 @@
       "hint": "hotel reception"
     }
   },
+  "building-11": {
+    "main": {
+      "url": "/default.png",
+      "hint": "modern building"
+    }
+  },
   "building-12": {
     "main": {
       "url": "/building-12.jpg",
       "hint": "lecture hall"
+    }
+  },
+  "building-13": {
+    "main": {
+      "url": "/default.png",
+      "hint": "modern building"
+    }
+  },
+  "building-14": {
+    "main": {
+      "url": "/default.png",
+      "hint": "modern building"
     }
   },
   "โรงละคร": {

@@ -132,6 +132,15 @@ export const locations: Location[] = [
     mapPosition: { x: 32, y: 46 },
   },
   {
+    id: 'building-11',
+    name: 'Building 11',
+    category: ['Academic'],
+    description: 'Placeholder description for Building 11.',
+    hours: defaultHours,
+    mapPosition: { x: 50, y: 50 },
+    directoryInfo: []
+  },
+  {
     id: 'building-12',
     name: 'Building 12 - Sports Complex',
     category: ['Recreation'],
@@ -139,6 +148,24 @@ export const locations: Location[] = [
       'Features an indoor gymnasium, basketball court, and other sports facilities. Also includes the main university football field.',
     hours: defaultHours,
     mapPosition: { x:82, y: 60 },
+  },
+  {
+    id: 'building-13',
+    name: 'Building 13',
+    category: ['Academic'],
+    description: 'Placeholder description for Building 13.',
+    hours: defaultHours,
+    mapPosition: { x: 50, y: 50 },
+    directoryInfo: []
+  },
+  {
+    id: 'building-14',
+    name: 'Building 14',
+    category: ['Academic'],
+    description: 'Placeholder description for Building 14.',
+    hours: defaultHours,
+    mapPosition: { x: 50, y: 50 },
+    directoryInfo: []
   },
   {
     id: 'โรงละคร',
