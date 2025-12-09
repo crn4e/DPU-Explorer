@@ -71,7 +71,7 @@ export default function LocationCard({ location }: LocationCardProps) {
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
   const categories = Array.isArray(location.category) ? location.category : [location.category];
 
-  const imageInfo = placeholderImages[location.id as keyof typeof placeholderImages]?.main || defaultImageInfo;
+  const imageInfo = (placeholderImages as any)[location.id]?.main || defaultImageInfo;
   const mainImageUrl = imageInfo.url;
   const mainImageHint = imageInfo.hint;
 
@@ -84,7 +84,8 @@ export default function LocationCard({ location }: LocationCardProps) {
             key={location.id}
             src={mainImageUrl}
             alt={`Image of ${location.name}`}
-            fill
+            width={600}
+            height={400}
             className="object-cover"
             data-ai-hint={mainImageHint}
             priority
@@ -180,8 +181,8 @@ export default function LocationCard({ location }: LocationCardProps) {
             </CardContent>
           </CarouselItem>
           {location.directoryInfo?.map((page, index) => {
-            const pageImageInfo = page.imageId && placeholderImages[location.id as keyof typeof placeholderImages]?.directoryPages?.[page.imageId as keyof typeof placeholderImages[keyof typeof placeholderImages]['directoryPages']] 
-              ? placeholderImages[location.id as keyof typeof placeholderImages]?.directoryPages?.[page.imageId as keyof typeof placeholderImages[keyof typeof placeholderImages]['directoryPages']]
+            const pageImageInfo = page.imageId && (placeholderImages as any)[location.id]?.directoryPages?.[page.imageId]
+              ? (placeholderImages as any)[location.id]?.directoryPages?.[page.imageId]
               : null;
             
             return (
@@ -192,7 +193,8 @@ export default function LocationCard({ location }: LocationCardProps) {
                           <Image
                             src={pageImageInfo.url}
                             alt={page.title}
-                            fill
+                            width={600}
+                            height={400}
                             className="object-cover"
                             data-ai-hint={pageImageInfo.hint}
                           />

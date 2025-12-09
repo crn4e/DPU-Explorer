@@ -1,7 +1,7 @@
 {
   "building-1": {
     "main": {
-      "url": "/IMG_1804.jpg",
+      "url": "/IMG_001.jpg",
       "hint": "university building"
     },
     "directoryPages": {
@@ -13,7 +13,7 @@
   },
   "building-2": {
     "main": {
-      "url": "/IMG_1805.jpg",
+      "url": "/IMG_1806.jpg",
       "hint": "office building"
     },
     "directoryPages": {
@@ -31,13 +31,13 @@
   },
   "building-4": {
     "main": {
-      "url": "/building-4.jpg",
+      "url": "/IMG_1805.jpg",
       "hint": "modern building"
     }
   },
   "building-5": {
     "main": {
-      "url": "/building-5.jpg",
+      "url": "/IMG_001.jpg",
       "hint": "modern building"
     },
     "directoryPages": {
