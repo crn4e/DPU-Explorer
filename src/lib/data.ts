@@ -17,7 +17,6 @@ export const locations: Location[] = [
     category: ['Services'],
     description: 'คณะวิทยาลัยบริหารธุรกิจนวัตกรรมและการบัญชี (CIBA)',
     announcement: 'Hello World',
-    image: '/IMG_1804.jpg',
     hours: {
       "Monday": { open: '08:00', close: '20:00' },
       "Tuesday": { open: '08:00', close: '20:00' },
@@ -38,7 +37,6 @@ export const locations: Location[] = [
     category: ['Services'],
     description:
       'The main administration building, housing key university offices including the Office of the President.',
-    image: '/IMG_1805.jpg',
     hours: {
       ...defaultHours,
       Saturday: null,
@@ -55,7 +53,6 @@ export const locations: Location[] = [
     category: ['Academic'],
     description:
       'Home to the College of Health and Wellness and the Faculty of Nursing, focusing on health sciences and medical education.',
-    image: '/IMG_1805.jpg',
     hours: defaultHours,
     mapPosition: { x: 63, y: 33 },
   },
@@ -64,7 +61,6 @@ export const locations: Location[] = [
     name: 'Building 4',
     category: ['Academic'],
     description: 'Houses various classrooms and faculty offices for general studies.',
-    image: '/building-4.jpg',
     hours: defaultHours,
     mapPosition: { x: 57.55, y: 36 },
   },
@@ -75,7 +71,6 @@ export const locations: Location[] = [
     description:
       'Home to the College of Creative Design and Entertainment Technology (ANT) and the College of Communication Arts (CA), fostering innovation in digital content and communication.',
     hours: defaultHours,
-    image: '/building-5.jpg',
     announcement: 'Special workshop on AI in Game Development this Saturday.',
     mapPosition: { x: 71, y: 42 },
     directoryInfo: [
@@ -88,7 +83,6 @@ export const locations: Location[] = [
     category: ['Academic'],
     description:
       'A central hub for various faculties including Law, Public Administration, and Business Administration. This building is a cornerstone of DPU\'s academic excellence.',
-    image: '/building-6.jpg',
     hours: defaultHours,
     mapPosition: { x: 67, y: 46 },
     directoryInfo: [
@@ -101,7 +95,6 @@ export const locations: Location[] = [
     category: ['Services'],
     description:
       'A one-stop service point for all student needs, including registration, academic advising, and administrative support.',
-    image: '/building-7.jpg',
     hours: {
       Monday: { open: '08:30', close: '16:30' },
       Tuesday: { open: '08:30', close: '16:30' },
@@ -118,7 +111,6 @@ export const locations: Location[] = [
     name: 'Building 8',
     category: ['Academic'],
     description: 'Part of the Engineering and Technology complex, with specialized labs and workshops.',
-    image: '/building-8.jpg',
     hours: defaultHours,
     mapPosition: { x: 75, y: 63 },
   },
@@ -128,7 +120,6 @@ export const locations: Location[] = [
     category: ['Academic'],
     description:
       'The hub for international students and programs, home to the DPU International College (DPUIC).',
-    image: '/building-9.jpg',
     hours: defaultHours,
     mapPosition: { x: 73.5, y: 66 },
   },
@@ -137,7 +128,6 @@ export const locations: Location[] = [
     name: 'Building 10 - Tourism and Hospitality',
     category: ['Academic'],
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
-    image: '/building-10.jpg',
     hours: defaultHours,
     mapPosition: { x: 32, y: 46 },
   },
@@ -147,7 +137,6 @@ export const locations: Location[] = [
     category: ['Recreation'],
     description:
       'Features an indoor gymnasium, basketball court, and other sports facilities. Also includes the main university football field.',
-    image: '/building-12.jpg',
     hours: defaultHours,
     mapPosition: { x:82, y: 60 },
   },
@@ -156,7 +145,6 @@ export const locations: Location[] = [
     name: 'โรงละคร - Tourism and Hospitality',
     category: ['Academic'],
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
-    image: '/โรงละคร.jpg',
     hours: defaultHours,
     mapPosition: { x: 82, y: 50 },
   },
@@ -165,7 +153,6 @@ export const locations: Location[] = [
     name: 'Building 15-17 - Aviation Training',
     category: ['Academic'],
     description: 'The College of Aviation Development and Training (CADT), featuring advanced simulators and a full-size aircraft for hands-on learning.',
-    image: '/building-15-17.jpg',
     hours: defaultHours,
     mapPosition: { x: 12, y: 36 },
   },
@@ -175,7 +162,6 @@ export const locations: Location[] = [
     category: ['Services'],
     description:
       'The heart of knowledge and research at DPU. Provides a vast collection of books, digital resources, and quiet study areas for students and faculty.',
-    image: '/library.jpg',
     hours: {
       ...defaultHours,
       Saturday: { open: '09:00', close: '17:00' },
@@ -192,7 +178,6 @@ export const locations: Location[] = [
     category: ['Food'],
     description:
       'Offers a wide variety of delicious and affordable Thai and international food options in a lively atmosphere. A popular spot for students to eat and socialize.',
-    image: '/food-court.jpg',
     hours: {
       Monday: { open: '07:30', close: '18:00' },
       Tuesday: { open: '07:30', close: '18:00' },
@@ -211,7 +196,6 @@ export const locations: Location[] = [
     category: ['Recreation'],
     description:
       'A state-of-the-art facility with modern equipment, a swimming pool, and various fitness classes to promote a healthy lifestyle for the DPU community.',
-    image: '/gym.jpg',
     hours: {
       Monday: { open: '10:00', close: '21:00' },
       Tuesday: { open: '10:00', close: '21:00' },
@@ -229,7 +213,6 @@ export const locations: Location[] = [
     category: ['Recreation'],
     description:
       'An outdoor swimming pool for leisure and exercise, located next to Building 10.',
-    image: '/swimming-pool.jpg',
     hours: {
       Monday: { open: '10:00', close: '20:00' },
       Tuesday: { open: '10:00', close: '20:00' },
@@ -247,7 +230,6 @@ export const locations: Location[] = [
     category: ['Recreation'],
     description:
       'An indoor basketball court available for student use and university team practices, located in Building 10.',
-    image: '/basketball-court.jpg',
     hours: defaultHours,
     mapPosition: { x: 27, y: 58 }, // Inside Building 10
   },

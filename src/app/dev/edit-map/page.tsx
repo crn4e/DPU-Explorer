@@ -446,8 +446,8 @@ function EditLocationSheet({
           {activePageIndex === 0 ? (
             <>
               <div className="space-y-2">
-                  <Label htmlFor="image">Image URL</Label>
-                  <Input id="image" value={formData.image || ''} onChange={handleFieldChange} placeholder="Enter image URL" />
+                  <Label>Image</Label>
+                  <p className="text-xs text-muted-foreground">To change an image, edit the file at `src/lib/images.ts`.</p>
               </div>
               <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>

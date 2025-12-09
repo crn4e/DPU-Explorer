@@ -14,7 +14,7 @@ import { Clock, Megaphone, CalendarDays, BookUser } from 'lucide-react';
 import { checkOpenStatus } from '@/lib/helpers';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import placeholderImages from '@/lib/placeholder-images.json';
+import { images } from '@/lib/images';
 import {
   Carousel,
   CarouselContent,
@@ -28,11 +28,12 @@ interface LocationCardProps {
   location: Location;
 }
 
-const defaultImage = { url: '/default.png', hint: 'placeholder' };
+const defaultImageInfo = images['default'].main;
 
 const daysOfWeek = [
   'Monday',
   'Tuesday',
+
   'Wednesday',
   'Thursday',
   'Friday',
@@ -71,20 +72,23 @@ export default function LocationCard({ location }: LocationCardProps) {
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
   const categories = Array.isArray(location.category) ? location.category : [location.category];
 
-  const mainImageUrl = location.image || defaultImage.url;
-  const mainImageHint = 'location image';
+  const imageInfo = images[location.id]?.main || defaultImageInfo;
+  const mainImageUrl = imageInfo.url;
+  const mainImageHint = imageInfo.hint;
+
 
   return (
     <Card className="overflow-hidden shadow-2xl transition-all duration-300 animate-in fade-in-0 zoom-in-95">
       <CardHeader className="relative p-0">
         <div className="relative aspect-video w-full">
           <Image
-            key={mainImageUrl}
+            key={location.id}
             src={mainImageUrl}
             alt={`Image of ${location.name}`}
             fill
             className="object-cover"
             data-ai-hint={mainImageHint}
+            priority
           />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -176,27 +180,44 @@ export default function LocationCard({ location }: LocationCardProps) {
 
             </CardContent>
           </CarouselItem>
-          {location.directoryInfo?.map((page, index) => (
-            <CarouselItem key={page.imageId || index}>
-                <CardContent className="p-6 select-none">
-                    <div className="flex items-center gap-2 mb-4">
-                        <BookUser className="h-5 w-5 text-primary" />
-                        <h3 className="font-bold font-headline text-lg text-primary">{page.title}</h3>
-                    </div>
-                    {page.description && (
-                        <p className="text-sm text-muted-foreground mb-4 whitespace-pre-wrap">{page.description}</p>
-                    )}
-                    <div className="prose prose-sm dark:prose-invert max-h-60 space-y-2 overflow-y-auto">
-                        {(page.items || []).map((item, itemIndex) => (
-                          <div key={itemIndex}>
-                            <p className="font-semibold mb-0">{item.name}</p>
-                            <p className="text-muted-foreground mt-0 whitespace-pre-wrap">{item.details}</p>
-                          </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </CarouselItem>
-          ))}
+          {location.directoryInfo?.map((page, index) => {
+            const pageImageInfo = page.imageId && images[location.id]?.directoryPages?.[page.imageId] 
+              ? images[location.id]?.directoryPages?.[page.imageId]
+              : null;
+            
+            return (
+              <CarouselItem key={page.imageId || index}>
+                  <CardContent className="p-6 select-none">
+                      {pageImageInfo && (
+                        <div className="relative aspect-video w-full mb-4 rounded-md overflow-hidden">
+                          <Image
+                            src={pageImageInfo.url}
+                            alt={page.title}
+                            fill
+                            className="object-cover"
+                            data-ai-hint={pageImageInfo.hint}
+                          />
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 mb-4">
+                          <BookUser className="h-5 w-5 text-primary" />
+                          <h3 className="font-bold font-headline text-lg text-primary">{page.title}</h3>
+                      </div>
+                      {page.description && (
+                          <p className="text-sm text-muted-foreground mb-4 whitespace-pre-wrap">{page.description}</p>
+                      )}
+                      <div className="prose prose-sm dark:prose-invert max-h-60 space-y-2 overflow-y-auto">
+                          {(page.items || []).map((item, itemIndex) => (
+                            <div key={itemIndex}>
+                              <p className="font-semibold mb-0">{item.name}</p>
+                              <p className="text-muted-foreground mt-0 whitespace-pre-wrap">{item.details}</p>
+                            </div>
+                          ))}
+                      </div>
+                  </CardContent>
+              </CarouselItem>
+            )
+          })}
         </CarouselContent>
         {hasDirectoryInfo && (
             <CardFooter className="flex justify-center items-center py-2 gap-2">

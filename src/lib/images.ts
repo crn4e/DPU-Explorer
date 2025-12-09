@@ -1,32 +1,29 @@
 import { StaticImageData } from 'next/image';
 
-import building1 from '../assets/images/IMG_1804.jpg';
-import building1_guest_services from '../assets/images/building-1-guest-services.jpg';
-import building2 from '../assets/images/IMG_1805.jpg';
-import building2_key_offices from '../assets/images/building-2-key-offices.jpg';
-import building3 from '../assets/images/building-3.jpg';
-import building4 from '../assets/images/building-4.jpg';
-import building5 from '../assets/images/building-5.jpg';
-import building5_faculty_directory from '../assets/images/building-5-faculty-directory.jpg';
-import building6 from '../assets/images/building-6.jpg';
-import building6_faculty_offices from '../assets/images/building-6-faculty-offices.jpg';
-import building7 from '../assets/images/building-7.jpg';
-import building8 from '../assets/images/building-8.jpg';
-import building9 from '../assets/images/building-9.jpg';
-import building10 from '../assets/images/building-10.jpg';
-import building12 from '../assets/images/building-12.jpg';
-import building15_17 from '../assets/images/building-15-17.jpg';
-import dpu_map from '../assets/images/dpu-map.png.png';
-import food_court from '../assets/images/food-court.jpg';
-import gym from '../assets/images/gym.jpg';
-import library from '../assets/images/library.jpg';
-import library_services from '../assets/images/library-services.jpg';
-import logo from '../assets/images/Logo.jpg';
-import pngegg from '../assets/images/pngegg.png';
-import swimming_pool from '../assets/images/swimming-pool.jpg';
-import basketball_court from '../assets/images/basketball-court.jpg';
-import default_image from '../assets/images/default.png';
-import roong_la_korn from '../assets/images/โรงละคร.jpg';
+import building1 from '../../public/IMG_1804.jpg';
+import building1_guest_services from '../../public/building-1-guest-services.jpg';
+import building2 from '../../public/IMG_1805.jpg';
+import building2_key_offices from '../../public/building-2-key-offices.jpg';
+import building3 from '../../public/building-3.jpg';
+import building4 from '../../public/building-4.jpg';
+import building5 from '../../public/building-5.jpg';
+import building5_faculty_directory from '../../public/building-5-faculty-directory.jpg';
+import building6 from '../../public/building-6.jpg';
+import building6_faculty_offices from '../../public/building-6-faculty-offices.jpg';
+import building7 from '../../public/building-7.jpg';
+import building8 from '../../public/building-8.jpg';
+import building9 from '../../public/building-9.jpg';
+import building10 from '../../public/building-10.jpg';
+import building12 from '../../public/building-12.jpg';
+import building15_17 from '../../public/building-15-17.jpg';
+import food_court from '../../public/food-court.jpg';
+import gym from '../../public/gym.jpg';
+import library from '../../public/library.jpg';
+import library_services from '../../public/library-services.jpg';
+import swimming_pool from '../../public/swimming-pool.jpg';
+import basketball_court from '../../public/basketball-court.jpg';
+import default_image from '../../public/default.png';
+import roong_la_korn from '../../public/โรงละคร.jpg';
 
 
 type ImageInfo = {
@@ -146,7 +143,7 @@ export const images: ImagesData = {
       hint: 'airplane hangar',
     },
   },
-  library: {
+  'library': {
     main: {
       url: library,
       hint: 'library interior',
@@ -164,7 +161,7 @@ export const images: ImagesData = {
       hint: 'food court',
     },
   },
-  gym: {
+  'gym': {
     main: {
       url: gym,
       hint: 'gym equipment',
@@ -182,7 +179,7 @@ export const images: ImagesData = {
       hint: 'basketball court',
     },
   },
-  default: {
+  'default': {
     main: {
       url: default_image,
       hint: 'placeholder',
