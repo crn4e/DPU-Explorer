@@ -30,6 +30,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import AiChat from '@/components/ai-chat';
 
 const allCategories: (LocationCategory | 'All')[] = [
   'All',
@@ -209,9 +210,7 @@ export default function Home() {
           )}
         </SidebarContent>
         <SidebarFooter>
-          <div className="flex flex-col gap-2 p-2">
-            
-          </div>
+          <AiChat />
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
