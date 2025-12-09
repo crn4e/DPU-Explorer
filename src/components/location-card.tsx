@@ -28,7 +28,7 @@ interface LocationCardProps {
   location: Location;
 }
 
-const defaultImageInfo = placeholderImages['default' as keyof typeof placeholderImages].main;
+const defaultImageInfo = placeholderImages['default' as keyof typeof placeholderImages]?.main || { url: '/default.png', hint: 'placeholder' };
 
 const daysOfWeek = [
   'Monday',
@@ -72,7 +72,7 @@ export default function LocationCard({ location }: LocationCardProps) {
   const categories = Array.isArray(location.category) ? location.category : [location.category];
 
   const imageInfo = (placeholderImages as any)[location.id]?.main || defaultImageInfo;
-  const mainImageUrl = imageInfo.url;
+  const mainImageUrl = location.image;
   const mainImageHint = imageInfo.hint;
 
 
@@ -208,12 +208,29 @@ export default function LocationCard({ location }: LocationCardProps) {
                           <p className="text-sm text-muted-foreground mb-4 whitespace-pre-wrap">{page.description}</p>
                       )}
                       <div className="prose prose-sm dark:prose-invert max-h-60 space-y-2 overflow-y-auto">
-                          {(page.items || []).map((item, itemIndex) => (
-                            <div key={itemIndex}>
-                              <p className="font-semibold mb-0">{item.name}</p>
-                              <p className="text-muted-foreground mt-0 whitespace-pre-wrap">{item.details}</p>
-                            </div>
-                          ))}
+                          {(page.items || []).map((item, itemIndex) => {
+                            const itemImageInfo = item.imageId && (placeholderImages as any)[location.id]?.directoryPages?.[item.imageId]
+                              ? (placeholderImages as any)[location.id]?.directoryPages?.[item.imageId]
+                              : null;
+                            return (
+                              <div key={itemIndex}>
+                                <p className="font-semibold mb-0">{item.name}</p>
+                                <p className="text-muted-foreground mt-0 whitespace-pre-wrap">{item.details}</p>
+                                {itemImageInfo && (
+                                  <div className="relative aspect-video w-full mt-2 rounded-md overflow-hidden">
+                                    <Image
+                                      src={itemImageInfo.url}
+                                      alt={item.name}
+                                      width={400}
+                                      height={300}
+                                      className="object-cover"
+                                      data-ai-hint={itemImageInfo.hint}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
                       </div>
                   </CardContent>
               </CarouselItem>

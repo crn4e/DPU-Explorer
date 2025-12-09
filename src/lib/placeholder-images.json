@@ -6,7 +6,7 @@
     },
     "directoryPages": {
       "building-1-guest-services": {
-        "url": "/building-1-guest-services.jpg",
+        "url": "/IMG_1806.jpg",
         "hint": "reception desk"
       }
     }
@@ -139,7 +139,7 @@
   },
   "default": {
     "main": {
-      "url": "/default.png",
+      "url": "/IMG_001.jpg",
       "hint": "placeholder"
     }
   }

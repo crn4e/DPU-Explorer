@@ -3,13 +3,14 @@ export type LocationCategory = 'Academic' | 'Food' | 'Recreation' | 'Services';
 export interface RoomItem {
   name: string;
   details: string;
+  imageId?: string; // Add imageId to RoomItem
 }
 
 export interface DirectoryPage {
   title: string;
   description?: string;
   items: RoomItem[];
-  imageId?: string; // Unique key to look up image in placeholder-images.json
+  imageId?: string; // This can be the main image for the page
 }
 
 export interface Location {
@@ -23,6 +24,7 @@ export interface Location {
   } | null; // Allow hours to be null
   announcement?: string;
   mapPosition: { x: number; y: number };
+  image: string; // Main image URL for the location
   directoryInfo?: DirectoryPage[];
 }
 

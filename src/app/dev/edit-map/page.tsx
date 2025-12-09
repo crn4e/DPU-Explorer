@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock, ArrowRight } from 'lucide-react';
+import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock, ArrowRight, ImagePlus } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import placeholderImages from '@/lib/placeholder-images.json';
 
 
 const categories: LocationCategory[] = [
@@ -99,6 +100,7 @@ function AddLocationSheet({
                 category,
                 announcement,
                 mapPosition: newPosition,
+                image: '/default.png', // Default image
                 hours: {
                     Monday: { open: '08:00', close: '20:00' },
                     Tuesday: { open: '08:00', close: '20:00' },
@@ -289,7 +291,7 @@ function EditLocationSheet({
     setFormData(prev => prev ? ({ ...prev, hours: defaultHours }) : null);
   };
 
-  const handleDirectoryPageChange = (index: number, field: 'title' | 'description', value: string) => {
+  const handleDirectoryPageChange = (index: number, field: 'title' | 'description' | 'imageId', value: string) => {
     setFormData(prev => {
       if (!prev) return null;
       const newDirectoryInfo = [...(prev.directoryInfo || [])];
@@ -298,7 +300,7 @@ function EditLocationSheet({
     });
   }
 
-  const handleRoomItemChange = (pageIndex: number, itemIndex: number, field: 'name' | 'details', value: string) => {
+  const handleRoomItemChange = (pageIndex: number, itemIndex: number, field: 'name' | 'details' | 'imageId', value: string) => {
       setFormData(prev => {
         if (!prev) return null;
         const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
@@ -314,7 +316,8 @@ function EditLocationSheet({
           if (!newDirectoryInfo[pageIndex].items) {
               newDirectoryInfo[pageIndex].items = [];
           }
-          newDirectoryInfo[pageIndex].items.push({ name: '', details: '' });
+          const newImageId = `${location.id}-item-${Date.now()}`;
+          newDirectoryInfo[pageIndex].items.push({ name: '', details: '', imageId: newImageId });
           return { ...prev, directoryInfo: newDirectoryInfo };
       });
   }
@@ -446,8 +449,9 @@ function EditLocationSheet({
           {activePageIndex === 0 ? (
             <>
               <div className="space-y-2">
-                  <Label>Image</Label>
-                  <p className="text-xs text-muted-foreground">To change an image, edit the file at `src/lib/images.ts`.</p>
+                  <Label htmlFor="image-url">Image URL</Label>
+                  <p className="text-xs text-muted-foreground">To change an image, edit the URL in `src/lib/placeholder-images.json`.</p>
+                  <Input id="image" value={formData.image} onChange={handleFieldChange} />
               </div>
               <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
@@ -582,40 +586,68 @@ function EditLocationSheet({
                     rows={3}
                   />
                 </div>
+                <div className="space-y-2">
+                    <Label htmlFor={`dir-imageid-${activePageIndex-1}`}>Page Image ID</Label>
+                    <Input
+                        id={`dir-imageid-${activePageIndex-1}`}
+                        value={formData.directoryInfo[activePageIndex - 1].imageId || ''}
+                        placeholder='e.g., building-1-guest-services'
+                        onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'imageId', e.target.value)}
+                    />
+                </div>
                 
                 <div className="space-y-4">
                   <Label>Items</Label>
-                  {(formData.directoryInfo[activePageIndex - 1].items || []).map((item, itemIndex) => (
-                    <div key={itemIndex} className="relative space-y-2 rounded-md border bg-muted/50 p-4">
-                        <div className="space-y-1">
-                           <Label htmlFor={`item-name-${itemIndex}`} className="text-xs">ชื่อรายการ</Label>
-                           <Input 
-                                id={`item-name-${itemIndex}`}
-                                placeholder="เช่น ห้อง 10522, โต๊ะ อ.สมชาย"
-                                value={item.name}
-                                onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'name', e.target.value)}
-                            />
+                  {(formData.directoryInfo[activePageIndex - 1].items || []).map((item, itemIndex) => {
+                    const itemImageId = item.imageId || '';
+                    const itemImageInfo = (placeholderImages as any)[location.id]?.directoryPages?.[itemImageId];
+                    return (
+                        <div key={itemIndex} className="relative space-y-2 rounded-md border bg-muted/50 p-4">
+                            <div className="space-y-1">
+                                <Label htmlFor={`item-name-${itemIndex}`} className="text-xs">ชื่อรายการ</Label>
+                                <Input 
+                                    id={`item-name-${itemIndex}`}
+                                    placeholder="เช่น ห้อง 10522, โต๊ะ อ.สมชาย"
+                                    value={item.name}
+                                    onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'name', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <Label htmlFor={`item-details-${itemIndex}`} className="text-xs">รายละเอียด</Label>
+                                <Textarea 
+                                    id={`item-details-${itemIndex}`}
+                                    placeholder="เช่น รายละเอียดเพิ่มเติมเกี่ยวกับอาจารย์ หรือห้อง"
+                                    value={item.details}
+                                    onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'details', e.target.value)}
+                                    rows={2}
+                                />
+                            </div>
+                             <div className="space-y-1">
+                                <Label htmlFor={`item-imageid-${itemIndex}`} className="text-xs">Item Image ID</Label>
+                               <Input 
+                                    id={`item-imageid-${itemIndex}`}
+                                    placeholder="e.g., room-1412-photo"
+                                    value={item.imageId || ''}
+                                    onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'imageId', e.target.value)}
+                                />
+                            </div>
+                            {itemImageInfo && (
+                               <div className="relative w-24 h-24 mt-2">
+                                  <Image src={itemImageInfo.url} alt={item.name} layout="fill" className="rounded-md object-cover"/>
+                               </div>
+                            )}
+
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="absolute top-1 right-1 h-6 w-6 text-destructive"
+                                onClick={() => removeRoomItem(activePageIndex - 1, itemIndex)}
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
-                        <div className="space-y-1">
-                            <Label htmlFor={`item-details-${itemIndex}`} className="text-xs">รายละเอียด</Label>
-                           <Textarea 
-                                id={`item-details-${itemIndex}`}
-                                placeholder="เช่น รายละเอียดเพิ่มเติมเกี่ยวกับอาจารย์ หรือห้อง"
-                                value={item.details}
-                                onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'details', e.target.value)}
-                                rows={2}
-                            />
-                        </div>
-                        <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="absolute top-1 right-1 h-6 w-6 text-destructive"
-                            onClick={() => removeRoomItem(activePageIndex - 1, itemIndex)}
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <Button variant="outline" onClick={() => addRoomItem(activePageIndex - 1)} className="w-full">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     เพิ่มรายการ +
