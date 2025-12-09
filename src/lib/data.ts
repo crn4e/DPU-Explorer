@@ -263,7 +263,7 @@ export const locations: Location[] = [
     mapPosition: { x: 38, y: 64.5 },
   },
   {
-    id: 'gym',
+    id: 'gym-fitness',
     name: 'DPU Fitness Center',
     category: ['Recreation'],
     description:
