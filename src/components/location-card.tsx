@@ -102,17 +102,19 @@ export default function LocationCard({ location }: LocationCardProps) {
   useEffect(() => {
     const locationImages = images[location.id] || { main: defaultImage };
     if (currentSlide === 0) {
+      // Always prioritize the image URL from the location object itself
       setCurrentImage(location.image || locationImages.main.url);
       setCurrentHint(locationImages.main.hint);
     } else {
       const pageIndex = currentSlide - 1;
       const directoryPage = location.directoryInfo?.[pageIndex];
       const pageImageId = directoryPage?.imageId;
+      // Fallback logic for directory pages
       const pageImage = pageImageId ? locationImages.directoryPages?.[pageImageId] : null;
       setCurrentImage(pageImage?.url || location.image || locationImages.main.url);
       setCurrentHint(pageImage?.hint || locationImages.main.hint);
     }
-  }, [currentSlide, location, images]);
+  }, [currentSlide, location]);
 
 
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
