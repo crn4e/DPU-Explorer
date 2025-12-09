@@ -91,7 +91,7 @@
   },
   "building-11": {
     "main": {
-      "url": "/default.png",
+      "url": "//IMG_11.jpg.png",
       "hint": "modern building"
     }
   },
@@ -101,9 +101,9 @@
       "hint": "lecture hall"
     }
   },
-  "building-13": {
+  "IMG-13": {
     "main": {
-      "url": "/default.png",
+      "url": "/IMG_13.jpg",
       "hint": "modern building"
     }
   },

@@ -162,7 +162,7 @@ export const locations: Location[] = [
     mapPosition: { x:82, y: 60 },
   },
   {
-    id: 'building-13',
+    id: 'IMG-13',
     name: 'Building 13',
     category: ['Academic'],
     description: 'Placeholder description for Building 13.',
