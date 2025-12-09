@@ -33,13 +33,13 @@ const HistoryItemSchema = z.object({
 export type HistoryItem = z.infer<typeof HistoryItemSchema>;
 
 const ChatDpuInputSchema = z.object({
-  message: z.string().describe('The user\'s latest message.'),
+  message: z.string().describe("The user's latest message."),
   history: z.array(HistoryItemSchema).describe('The conversation history.'),
 });
 export type ChatDpuInput = z.infer<typeof ChatDpuInputSchema>;
 
 const ChatDpuOutputSchema = z.object({
-  response: z.string().describe('The AI\'s response to the user.'),
+  response: z.string().describe("The AI's response to the user."),
 });
 export type ChatDpuOutput = z.infer<typeof ChatDpuOutputSchema>;
 
@@ -56,18 +56,10 @@ const chatDpuFlow = ai.defineFlow(
     outputSchema: ChatDpuOutputSchema,
   },
   async ({ message, history }) => {
-    // Transform the simple history to the format Genkit's generate method expects.
-    // The history from the client is { role, content: string }.
-    // Genkit's history is { role, content: [{ text: string }] }.
-    const genkitHistory = history.map((item) => ({
-      role: item.role,
-      content: [{ text: item.content }],
-    }));
-
     const llmResponse = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
       system: systemPrompt,
-      history: genkitHistory,
+      history: history,
       prompt: message,
     });
 
