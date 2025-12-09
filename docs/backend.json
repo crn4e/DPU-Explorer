@@ -8,23 +8,19 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the location."
+          "description": "Unique identifier for the Location entity."
         },
         "name": {
           "type": "string",
-          "description": "Name of the location (e.g., Building A, Cafeteria 1)."
+          "description": "The name of the location (e.g., Building A, Cafeteria 1)."
         },
         "description": {
           "type": "string",
-          "description": "Detailed description of the location."
+          "description": "A brief description of the location."
         },
-        "category": {
-          "type": "array",
-          "description": "Categories of the location (e.g., academic, food, sports).",
-          "items": {
-            "type": "string",
-            "enum": ["Academic", "Food", "Recreation", "Services"]
-          }
+        "locationType": {
+          "type": "string",
+          "description": "The type of location (e.g., academic building, cafeteria, gym)."
         },
         "latitude": {
           "type": "number",
@@ -34,78 +30,24 @@
           "type": "number",
           "description": "Longitude coordinate of the location."
         },
-        "openingHoursId": {
+        "openingHours": {
           "type": "string",
-          "description": "Reference to OpeningHours. (Relationship: Location 1:1 OpeningHours)"
+          "description": "Stringified JSON representation of the location's opening hours for each day of the week."
         },
-        "announcement": {
-          "type": "string",
-          "description": "An optional announcement for the location."
+        "isOpen": {
+          "type": "boolean",
+          "description": "Indicates whether the location is currently open."
         }
       },
       "required": [
         "id",
         "name",
         "description",
-        "category",
+        "locationType",
         "latitude",
         "longitude",
-        "openingHoursId"
-      ]
-    },
-    "OpeningHours": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OpeningHours",
-      "type": "object",
-      "description": "Represents the opening hours for a specific location.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the opening hours."
-        },
-        "monday": {
-          "type": "string",
-          "description": "Opening hours for Monday, in a format like '08:00-17:00' or 'Closed'."
-        },
-        "tuesday": {
-          "type": "string",
-          "description": "Opening hours for Tuesday, in a format like '08:00-17:00' or 'Closed'."
-        },
-        "wednesday": {
-          "type": "string",
-          "description": "Opening hours for Wednesday, in a format like '08:00-17:00' or 'Closed'."
-        },
-        "thursday": {
-          "type": "string",
-          "description": "Opening hours for Thursday, in a format like '08:00-17:00' or 'Closed'."
-        },
-        "friday": {
-          "type": "string",
-          "description": "Opening hours for Friday, in a format like '08:00-17:00' or 'Closed'."
-        },
-        "saturday": {
-          "type": "string",
-          "description": "Opening hours for Saturday, in a format like '08:00-17:00' or 'Closed'."
-        },
-        "sunday": {
-          "type": "string",
-          "description": "Opening hours for Sunday, in a format like '08:00-17:00' or 'Closed'."
-        },
-        "locationId": {
-          "type": "string",
-          "description": "Reference to Location. (Relationship: Location 1:1 OpeningHours)"
-        }
-      },
-      "required": [
-        "id",
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-        "sunday",
-        "locationId"
+        "openingHours",
+        "isOpen"
       ]
     },
     "Announcement": {
@@ -116,7 +58,7 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the announcement."
+          "description": "Unique identifier for the Announcement entity."
         },
         "locationId": {
           "type": "string",
@@ -124,15 +66,15 @@
         },
         "title": {
           "type": "string",
-          "description": "Title of the announcement."
+          "description": "The title of the announcement."
         },
         "content": {
           "type": "string",
-          "description": "Content of the announcement."
+          "description": "The content of the announcement."
         },
         "date": {
           "type": "string",
-          "description": "Date of the announcement.",
+          "description": "The date of the announcement.",
           "format": "date-time"
         }
       },
@@ -143,87 +85,6 @@
         "content",
         "date"
       ]
-    },
-    "Image": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Image",
-      "type": "object",
-      "description": "Represents an image associated with a location.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the image."
-        },
-        "locationId": {
-          "type": "string",
-          "description": "Reference to Location. (Relationship: Location 1:N Image)"
-        },
-        "url": {
-          "type": "string",
-          "description": "URL of the image.",
-          "format": "uri"
-        },
-        "altText": {
-          "type": "string",
-          "description": "Alternative text for the image."
-        }
-      },
-      "required": [
-        "id",
-        "locationId",
-        "url",
-        "altText"
-      ]
-    },
-    "Admin": {
-      "title": "Admin",
-      "type": "object",
-      "description": "Represents a user with full developer privileges.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Admin's unique ID number."
-        },
-        "name": {
-          "type": "string",
-          "description": "Admin's first name."
-        },
-        "surname": {
-          "type": "string",
-          "description": "Admin's last name."
-        },
-        "email": {
-          "type": "string",
-          "description": "Admin's email address.",
-          "format": "email"
-        }
-      },
-      "required": ["id", "name", "surname", "email"]
-    },
-    "AnnouncementAdmin": {
-      "title": "Announcement Admin",
-      "type": "object",
-      "description": "Represents a user with privileges to manage announcements.",
-      "properties": {
-         "id": {
-          "type": "string",
-          "description": "Admin's unique ID number."
-        },
-        "name": {
-          "type": "string",
-          "description": "Admin's first name."
-        },
-        "surname": {
-          "type": "string",
-          "description": "Admin's last name."
-        },
-        "email": {
-          "type": "string",
-          "description": "Admin's email address.",
-          "format": "email"
-        }
-      },
-      "required": ["id", "name", "surname", "email"]
     }
   },
   "auth": {
@@ -241,7 +102,7 @@
           "schema": {
             "$ref": "#/backend/entities/Location"
           },
-          "description": "Stores information about locations on the DPU campus.",
+          "description": "Stores location details. Accessible to all users for reading. Admins can create, update, and delete.",
           "params": [
             {
               "name": "locationId",
@@ -257,11 +118,11 @@
           "schema": {
             "$ref": "#/backend/entities/Announcement"
           },
-          "description": "Stores announcements related to a specific location.",
+          "description": "Stores announcements related to a specific location. Accessible to all users for reading. Admins can create, update, and delete.",
           "params": [
             {
               "name": "locationId",
-              "description": "Unique identifier for the location."
+              "description": "Unique identifier for the parent location."
             },
             {
               "name": "announcementId",
@@ -271,74 +132,22 @@
         }
       },
       {
-        "path": "/locations/{locationId}/images/{imageId}",
+        "path": "/admins/{uid}",
         "definition": {
-          "entityName": "Image",
+          "entityName": "admin",
           "schema": {
-            "$ref": "#/backend/entities/Image"
+            "$ref": "#/backend/entities/user"
           },
-          "description": "Stores images associated with a specific location.",
+          "description": "Stores admin user IDs. The existence of a document with a user's ID in this collection grants admin privileges.",
           "params": [
             {
-              "name": "locationId",
-              "description": "Unique identifier for the location."
-            },
-            {
-              "name": "imageId",
-              "description": "Unique identifier for the image."
+              "name": "uid",
+              "description": "Firebase Authentication UID of the administrator."
             }
           ]
-        }
-      },
-      {
-        "path": "/openingHours/{openingHoursId}",
-        "definition": {
-          "entityName": "OpeningHours",
-          "schema": {
-            "$ref": "#/backend/entities/OpeningHours"
-          },
-          "description": "Stores opening hours for locations.",
-          "params": [
-            {
-              "name": "openingHoursId",
-              "description": "Unique identifier for the opening hours."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/admins/{userId}",
-        "definition": {
-          "entityName": "Admin",
-          "schema": {
-            "$ref": "#/backend/entities/Admin"
-          },
-          "description": "Marks a user as a dev/admin. Existence of a document indicates dev privileges.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "Unique identifier for the user."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/announcementAdmins/{userId}",
-        "definition": {
-            "entityName": "AnnouncementAdmin",
-            "schema": {
-                "$ref": "#/backend/entities/AnnouncementAdmin"
-            },
-            "description": "Marks a user as an announcement admin. Existence indicates announcement editing privileges.",
-            "params": [
-                {
-                    "name": "userId",
-                    "description": "Unique identifier for the user."
-                }
-            ]
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the DPU Explorer application, focusing on locations, their opening hours, announcements, and associated images. A flat collection for `locations` is created with subcollections for `announcements` and `images`, and a related collection for `openingHours`. This approach enables efficient querying and management of location-specific data. Authorization is achieved by denormalizing role information. `admins` and `announcementAdmins` collections are used. The existence of a document in these collections indicates specific privileges for that user. This structure supports the required QAPs (Rules Are Not Filters) because the rules can efficiently check user roles against specific document paths without needing to filter data based on content."
+    "reasoning": "The Firestore structure is designed to support the DPU Explorer application, focusing on displaying location details, announcements, and enabling admin content updates. The structure prioritizes authorization independence and clarity for secure and scalable operations.\n\n**Authorization Independence:**\n\n*   **Locations:** While admin updates are a key feature, the structure does not directly reflect admin roles within the location documents themselves. Instead, a separate `/admins/{uid}` collection manages admin privileges (see below).\n*   **Announcements:** Announcements are linked to locations via the `locationId` field. There's no user-specific ownership of announcements; they are managed centrally by admins.\n\n**Structural Segregation (Homogeneous Security Posture):**\n\n*   `/locations` collection stores all location documents with a uniform security posture. Admins can update these locations.\n*   `/locations/{locationId}/announcements` subcollection holds announcements related to specific locations.\n*   `/admins/{uid}` collection is used to store admin user IDs. The existence of a document in this collection grants admin privileges.\n\n**Access Modeling:**\n\n*   **Admin Roles:** Global admin roles are managed using the existence of a document in the `/admins/{uid}` collection. This avoids custom claims and simplifies rules.\n\n**QAPs (Rules are not Filters):**\n\n*   The structure enables secure `list` operations. Rules will allow listing locations and announcements based on admin privileges.\n\n**Invariants:**\n\n*   The structure supports the integrity of the `locationId` reference in announcements. Security rules can enforce that `locationId` exists in the `/locations` collection.\n\nThis design ensures that authorization checks are simple, robust, and easily debuggable, adhering to the core design principles outlined."
   }
 }

@@ -1,87 +1,89 @@
 /**
- * Core Philosophy: This ruleset implements a Role-Based Access Control (RBAC) model.
- * Access is dictated by roles defined in dedicated collections: `/admins` for developers
- * with full control, and `/announcementAdmins` for users who can only manage announcements.
+ * This ruleset establishes a public-read, admin-write security model for the DPU Explorer application.
  *
- * Data Structure: The data is structured around a central '/locations' collection.
- * Each location document can contain '/announcements' and '/images' subcollections.
- * A top-level '/openingHours' collection is linked to locations.
+ * Core Philosophy:
+ * Data related to campus locations and their announcements is publicly readable by all users,
+ * including those who are not authenticated. All write operations (creating, updating, deleting data)
+ * are strictly restricted to authorized administrators.
+ *
+ * Data Structure:
+ * - /locations/{locationId}: Top-level collection for all campus location documents.
+ * - /locations/{locationId}/announcements/{announcementId}: Subcollection for announcements specific to a location.
+ * - /admins/{uid}: A dedicated collection to manage admin roles. The existence of a document
+ *   with a user's UID in this collection grants them administrative privileges across the database.
  *
  * Key Security Decisions:
- * - Public Read-Only Access: All primary data collections ('/locations', '/openingHours',
- *   and their subcollections) are publicly readable to support the app's function
- *   as a campus explorer.
- * - Granular Write Controls:
- *   - Developers (`isAdmin()`): Have full CUD (Create, Update, Delete) access to all data.
- *   - Announcement Admins (`isAnnouncementAdmin()`): Can only update the `announcement` field
- *     on existing `locations` documents. They cannot create, delete, or modify other fields.
- * - Role List Protection: The lists of administrators are protected, but users are allowed
- *   to read their OWN role document to verify their permissions upon login.
+ * - Public Read Access: The `/locations` and nested `/announcements` collections are publicly readable
+ *   to ensure the app is accessible to everyone, including anonymous users.
+ * - Centralized Admin Roles: Admin status is determined by checking for a user's UID in the `/admins` collection.
+ *   This avoids embedding role information in individual documents and provides a single source of truth for admin privileges.
+ * - Admin Collection Security: The `/admins` collection itself is secured. Only existing admins can view, add, or remove
+ *   other administrators, preventing unauthorized privilege escalation.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to abstract and simplify rule logic.
+    // Helper functions to abstract and reuse logic across the ruleset.
+
+    /**
+     * Checks if the current user is authenticated.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    function isSelf(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
+    /**
+     * Checks if the currently signed-in user is an administrator.
+     * Admin status is granted if a document with the user's UID exists in the /admins collection.
+     */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
-    
-    function isAnnouncementAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/announcementAdmins/$(request.auth.uid));
-    }
 
+    /**
+     * @description Enforces a public-read, admin-only write access model for locations.
+     * @path /locations/{locationId}
+     * @allow (get) Any user, signed-in or anonymous, can read a location document.
+     * @allow (create) An admin user (auth.uid is in /admins) can create a new location.
+     * @deny (update) A regular signed-in user attempts to update a location's name.
+     * @principle Implements a global role-based access control for content management.
+     */
     match /locations/{locationId} {
       allow get, list: if true;
-      allow create, delete: if isAdmin();
-      // Allow full update for Devs
-      allow update: if isAdmin();
-      // Allow Announcement Admins to update ONLY the 'announcement' field.
-      allow update: if isAnnouncementAdmin() && request.writeFields.hasOnly(['announcement']);
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
     }
 
+    /**
+     * @description Enforces a public-read, admin-only write model for location-specific announcements.
+     * @path /locations/{locationId}/announcements/{announcementId}
+     * @allow (list) Any user can list all announcements for a given location.
+     * @allow (create) An admin creates an announcement, ensuring the 'locationId' in the document data matches the parent path.
+     * @deny (create) An admin attempts to create an announcement where the 'locationId' in the data does not match the path.
+     * @principle Validates relational integrity between a subcollection document and its parent.
+     */
     match /locations/{locationId}/announcements/{announcementId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow create: if isAdmin() && request.resource.data.locationId == locationId;
+      allow update: if isAdmin() && resource != null && request.resource.data.locationId == resource.data.locationId;
+      allow delete: if isAdmin() && resource != null;
     }
 
-    match /locations/{locationId}/images/{imageId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-
-    match /openingHours/{openingHoursId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-    
-    // Admins can manage other admins, and users can read their own admin status.
-    match /admins/{userId} {
-      allow get: if isSelf(userId) || isAdmin();
-      allow list, write: if isAdmin();
-    }
-    
-    // Admins can manage announcement admins, and users can read their own status.
-    match /announcementAdmins/{userId} {
-      allow get: if isSelf(userId) || isAdmin();
-      allow list, write: if isAdmin();
-    }
-    
-    // Student collection rules
-    match /students/{userId} {
-      allow create: if true; // Allow anyone to create a student document (for registration)
-      allow get: if isSelf(userId) || isAdmin();
-      allow update: if isSelf(userId) || isAdmin();
-      allow delete: if isAdmin();
-      allow list: if isAdmin();
+    /**
+     * @description Manages access to the administrators collection.
+     * @path /admins/{uid}
+     * @allow (create) An existing admin user adds a new user's UID to the collection, granting them admin rights.
+     * @deny (list) A non-admin user attempts to list all administrator UIDs.
+     * @deny (create) A non-admin user attempts to add their own UID to the collection.
+     * @principle Prevents privilege escalation and protects administrator identities by restricting management of the role collection to its members.
+     */
+    match /admins/{uid} {
+      allow get, list: if isAdmin();
+      allow create: if isAdmin();
+      allow update: if false;
+      allow delete: if isAdmin() && resource != null;
     }
   }
 }
