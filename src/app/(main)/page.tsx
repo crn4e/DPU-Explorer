@@ -93,13 +93,14 @@ export default function Home() {
     }
   }
 
-  const filteredLocations =
+  const filteredLocations = (
     activeCategory === 'All'
       ? allLocations
       : allLocations.filter((loc) => {
           const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
           return locCategories.includes(activeCategory);
-        });
+        })
+  ).sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
   return (
     <div className="flex h-screen w-full">
