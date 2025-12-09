@@ -46,8 +46,7 @@ async function seedInitialData() {
 }
 
 // Call the seeding function. It will only run if the collection is empty.
-// Disabling seeding for now to avoid potential issues during development
-// seedInitialData().catch(console.error);
+seedInitialData().catch(console.error);
 
 
 export { app, auth, db, storage };
