@@ -162,7 +162,7 @@ export const locations: Location[] = [
     mapPosition: { x:82, y: 60 },
   },
   {
-    id: 'IMG-13',
+    id: 'building-13',
     name: 'Building 13',
     category: ['Academic'],
     description: 'Placeholder description for Building 13.',
@@ -309,11 +309,11 @@ export const locations: Location[] = [
     mapPosition: { x: 27, y: 58 }, // Inside Building 10
   },
   {
-    id: 'building-38',
+    id: 'building-37',
     name: 'อาคาร 1001',
     category: ['Services'],
     description: '1000',
-    image: '/IMG_38.jpg',
+    image: '/IMG_37.jpg',
     hours: {
       Monday: { open: '08:00', close: '20:00' },
       Tuesday: { open: '08:00', close: '20:00' },
