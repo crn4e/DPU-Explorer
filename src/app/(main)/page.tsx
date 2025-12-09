@@ -210,17 +210,22 @@ export default function Home() {
           )}
         </SidebarContent>
         <SidebarFooter>
-          <AiChat />
+          {/* AI Chat is now outside the sidebar */}
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
         <AppHeader />
-        <MapView
-          mapImageWrapperRef={mapImageWrapperRef}
-          selectedLocation={selectedLocation}
-          locations={filteredLocations}
-          onSelectLocation={setSelectedLocation}
-        />
+        <div className="relative h-full w-full">
+            <MapView
+                mapImageWrapperRef={mapImageWrapperRef}
+                selectedLocation={selectedLocation}
+                locations={filteredLocations}
+                onSelectLocation={setSelectedLocation}
+            />
+            <div className="absolute bottom-4 right-4 z-20">
+                <AiChat />
+            </div>
+        </div>
       </SidebarInset>
     </div>
   );
