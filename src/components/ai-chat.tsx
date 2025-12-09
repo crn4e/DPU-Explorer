@@ -96,7 +96,7 @@ export default function AiChat() {
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="flex-1 p-0">
+      <CardContent className="flex-1 p-0 overflow-y-hidden">
         <ScrollArea className="h-full p-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.length === 0 && (
@@ -122,7 +122,7 @@ export default function AiChat() {
                 )}
                 <div
                   className={cn(
-                    'max-w-xs rounded-lg px-3 py-2 text-sm md:max-w-md',
+                    'max-w-xs rounded-lg px-3 py-2 text-sm md:max-w-md break-words',
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted'
