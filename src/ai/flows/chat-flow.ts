@@ -10,6 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
 import { z } from 'genkit';
+import {GenerateContentRequest} from '@google/generative-ai';
 
 const systemPrompt = `You are a helpful and knowledgeable assistant specializing in all matters related to Dhurakij Pundit University (DPU). Your role is to provide accurate, friendly, and up-to-date information to students, faculty, and visitors.
 
@@ -58,7 +59,7 @@ const chatDpuFlow = ai.defineFlow(
   },
   async ({ message, history }) => {
     const llmResponse = await ai.generate({
-      model: googleAI.model('gemini-1.5-flash'),
+      model: googleAI.model('gemini-1.5-flash-latest'),
       system: systemPrompt,
       history: history,
       prompt: message,
