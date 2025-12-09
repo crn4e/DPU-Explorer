@@ -100,7 +100,7 @@ export default function Home() {
           const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
           return locCategories.includes(activeCategory);
         })
-  ).sort((a, b) => a.name.localeCompare(b.name, 'th'));
+  ).sort((a, b) => a.name.localeCompare(b.name, 'th', { numeric: true }));
 
   return (
     <div className="flex h-screen w-full">

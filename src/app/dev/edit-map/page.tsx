@@ -4,14 +4,14 @@ import { useEffect, useState, useRef, MouseEvent as ReactMouseEvent } from 'reac
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Location, LocationCategory, DirectoryPage, RoomItem } from '@/lib/types';
+import type { Location, LocationCategory } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock, ArrowRight, ImagePlus } from 'lucide-react';
+import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc, getDoc, deleteField } from 'firebase/firestore';
+import { doc, collection, getDocs, updateDoc, addDoc, deleteDoc, getDoc, deleteField } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import {
   Sidebar,
@@ -48,7 +48,6 @@ import {
 } from '@/components/ui/sidebar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import placeholderImages from '@/lib/placeholder-images.json';
 
 
 const categories: LocationCategory[] = [
@@ -110,7 +109,6 @@ function AddLocationSheet({
                     Saturday: null,
                     Sunday: null,
                 },
-                directoryInfo: [],
             };
             await onSave(newLocation as any);
             toast({
@@ -211,7 +209,6 @@ function EditLocationSheet({
   const [formData, setFormData] = useState<Location | null>(location);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const [activePageIndex, setActivePageIndex] = useState(0);
   const [newCategory, setNewCategory] = useState<LocationCategory | ''>('');
 
   const defaultHours = {
@@ -230,10 +227,8 @@ function EditLocationSheet({
     const sanitizedLocation = location ? {
         ...location,
         category: Array.isArray(location.category) ? location.category : [location.category as unknown as LocationCategory],
-        directoryInfo: location.directoryInfo || []
     } : null;
     setFormData(sanitizedLocation);
-    setActivePageIndex(0); 
   }, [location]);
 
   if (!formData || !location) return null;
@@ -293,86 +288,6 @@ function EditLocationSheet({
     setFormData(prev => prev ? ({ ...prev, hours: defaultHours }) : null);
   };
 
-  const handleDirectoryPageChange = (index: number, field: 'title' | 'description' | 'imageId', value: string) => {
-    setFormData(prev => {
-      if (!prev) return null;
-      const newDirectoryInfo = [...(prev.directoryInfo || [])];
-      newDirectoryInfo[index] = { ...newDirectoryInfo[index], [field]: value, items: newDirectoryInfo[index].items || [] };
-      return { ...prev, directoryInfo: newDirectoryInfo };
-    });
-  }
-
-  const handleRoomItemChange = (pageIndex: number, itemIndex: number, field: 'name' | 'details' | 'imageId', value: string) => {
-      setFormData(prev => {
-        if (!prev) return null;
-        const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
-        newDirectoryInfo[pageIndex].items[itemIndex][field] = value;
-        return { ...prev, directoryInfo: newDirectoryInfo };
-      });
-  }
-
-  const addRoomItem = (pageIndex: number) => {
-      setFormData(prev => {
-          if (!prev) return null;
-          const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
-          if (!newDirectoryInfo[pageIndex].items) {
-              newDirectoryInfo[pageIndex].items = [];
-          }
-          const newImageId = `${location.id}-item-${Date.now()}`;
-          newDirectoryInfo[pageIndex].items.push({ name: '', details: '', imageId: newImageId });
-          return { ...prev, directoryInfo: newDirectoryInfo };
-      });
-  }
-
-  const removeRoomItem = (pageIndex: number, itemIndex: number) => {
-      setFormData(prev => {
-          if (!prev) return null;
-          const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
-          newDirectoryInfo[pageIndex].items.splice(itemIndex, 1);
-          return { ...prev, directoryInfo: newDirectoryInfo };
-      });
-  }
-
-  const addDirectoryPage = () => {
-    setFormData(prev => {
-        if (!prev) return null;
-        const newImageId = `${prev.id}-page-${Date.now()}`;
-        const newPage: DirectoryPage = { 
-          title: `Page ${ (prev.directoryInfo?.length || 0) + 2 }`, 
-          items: [],
-          imageId: newImageId,
-        };
-        const newDirectoryInfo = [...(prev.directoryInfo || []), newPage];
-        setActivePageIndex(newDirectoryInfo.length); // Switch to the new page (index is length because of main page)
-        return { ...prev, directoryInfo: newDirectoryInfo };
-    });
-  };
-
-  const removeDirectoryPage = (index: number) => {
-    setFormData(prev => {
-        if (!prev) return null;
-        const newDirectoryInfo = (prev.directoryInfo || []).filter((_, i) => i !== index);
-        setActivePageIndex(Math.max(0, activePageIndex - 1)); // Go to previous or first page
-        return { ...prev, directoryInfo: newDirectoryInfo };
-    });
-  };
-
-  const moveDirectoryPage = (index: number, direction: 'left' | 'right') => {
-    setFormData(prev => {
-        if (!prev || !prev.directoryInfo) return null;
-        const newDirectoryInfo = [...prev.directoryInfo];
-        const newIndex = direction === 'left' ? index - 1 : index + 1;
-        if (newIndex < 0 || newIndex >= newDirectoryInfo.length) return prev;
-
-        const [movedItem] = newDirectoryInfo.splice(index, 1);
-        newDirectoryInfo.splice(newIndex, 0, movedItem);
-        
-        setActivePageIndex(newIndex + 1);
-        return { ...prev, directoryInfo: newDirectoryInfo };
-    });
-  };
-
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData) return;
@@ -415,45 +330,9 @@ function EditLocationSheet({
       <SheetContent className="sm:max-w-[550px]">
         <form onSubmit={handleSave}>
             <SheetHeader>
-            <SheetTitle>Edit: {location?.name}</SheetTitle>
+              <SheetTitle>Edit: {location?.name}</SheetTitle>
             </SheetHeader>
-
-            <div className="flex items-center gap-2 border-b border-border pb-2 mb-4 overflow-x-auto">
-                <Button
-                type="button"
-                variant={activePageIndex === 0 ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setActivePageIndex(0)}
-                className="shrink-0"
-                >
-                Page 1
-                </Button>
-                {formData.directoryInfo?.map((page, index) => (
-                    <div key={page.imageId || index} className="flex items-center gap-1 shrink-0">
-                        <Button
-                            type="button"
-                            variant={activePageIndex === index + 1 ? 'secondary' : 'ghost'}
-                            size="sm"
-                            onClick={() => setActivePageIndex(index + 1)}
-                            className="shrink-0"
-                        >
-                            {page.title || `Page ${index + 2}`}
-                        </Button>
-                        <div className="flex flex-col">
-                            <button type="button" onClick={() => moveDirectoryPage(index, 'left')} disabled={index === 0} className="disabled:opacity-20"><ArrowLeft className="h-3 w-3" /></button>
-                            <button type="button" onClick={() => moveDirectoryPage(index, 'right')} disabled={index === formData.directoryInfo.length -1} className="disabled:opacity-20"><ArrowRight className="h-3 w-3" /></button>
-                        </div>
-                    </div>
-                ))}
-                <Button onClick={addDirectoryPage} type="button" variant="ghost" size="icon" className="shrink-0 h-8 w-8">
-                    <PlusCircle className="h-4 w-4"/>
-                </Button>
-            </div>
-
-
-            <div className="grid max-h-[calc(100vh-220px)] gap-4 overflow-y-auto p-1">
-            {activePageIndex === 0 ? (
-                <>
+            <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
                 <div className="space-y-2">
                     <Label htmlFor="image-id">Image ID</Label>
                     <p className="text-xs text-muted-foreground">To change an image, edit the ID and update `src/lib/placeholder-images.json`.</p>
@@ -559,112 +438,6 @@ function EditLocationSheet({
                         <Input disabled value={`Y: ${formData.mapPosition.y.toFixed(2)}%`} />
                     </div>
                 </div>
-                </>
-            ) : (
-                formData.directoryInfo && formData.directoryInfo[activePageIndex - 1] && (
-                <div className="space-y-4 animate-in fade-in-0">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">Editing Page: {formData.directoryInfo[activePageIndex - 1].title}</h3>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => removeDirectoryPage(activePageIndex - 1)}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor={`dir-title-${activePageIndex - 1}`}>Page Title</Label>
-                    <Input
-                        id={`dir-title-${activePageIndex - 1}`}
-                        value={formData.directoryInfo[activePageIndex - 1].title}
-                        onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'title', e.target.value)}
-                    />
-                    </div>
-                    <div className="space-y-2">
-                    <Label htmlFor={`dir-desc-${activePageIndex - 1}`}>Description (Optional)</Label>
-                    <Textarea
-                        id={`dir-desc-${activePageIndex - 1}`}
-                        placeholder="A brief description for this page."
-                        value={formData.directoryInfo[activePageIndex - 1].description || ''}
-                        onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'description', e.target.value)}
-                        rows={3}
-                    />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor={`dir-imageid-${activePageIndex-1}`}>Page Image ID</Label>
-                        <Input
-                            id={`dir-imageid-${activePageIndex-1}`}
-                            value={formData.directoryInfo[activePageIndex - 1].imageId || ''}
-                            placeholder='e.g., building-1-guest-services'
-                            onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'imageId', e.target.value)}
-                        />
-                    </div>
-                    
-                    <div className="space-y-4">
-                    <Label>Items</Label>
-                    {(formData.directoryInfo[activePageIndex - 1].items || []).map((item, itemIndex) => {
-                        const itemImageId = item.imageId || '';
-                        const itemImageInfo = (placeholderImages as any)[location.id]?.directoryPages?.[itemImageId];
-                        return (
-                            <div key={itemIndex} className="relative space-y-2 rounded-md border bg-muted/50 p-4">
-                                <div className="space-y-1">
-                                    <Label htmlFor={`item-name-${itemIndex}`} className="text-xs">ชื่อรายการ</Label>
-                                    <Input 
-                                        id={`item-name-${itemIndex}`}
-                                        placeholder="เช่น ห้อง 10522, โต๊ะ อ.สมชาย"
-                                        value={item.name}
-                                        onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'name', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label htmlFor={`item-details-${itemIndex}`} className="text-xs">รายละเอียด</Label>
-                                    <Textarea 
-                                        id={`item-details-${itemIndex}`}
-                                        placeholder="เช่น รายละเอียดเพิ่มเติมเกี่ยวกับอาจารย์ หรือห้อง"
-                                        value={item.details}
-                                        onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'details', e.target.value)}
-                                        rows={2}
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label htmlFor={`item-imageid-${itemIndex}`} className="text-xs">Item Image ID</Label>
-                                <Input 
-                                        id={`item-imageid-${itemIndex}`}
-                                        placeholder="e.g., room-1412-photo"
-                                        value={item.imageId || ''}
-                                        onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'imageId', e.target.value)}
-                                    />
-                                </div>
-                                {itemImageInfo && (
-                                <div className="relative w-24 h-24 mt-2">
-                                    <Image src={itemImageInfo.url} alt={item.name} layout="fill" className="rounded-md object-cover"/>
-                                </div>
-                                )}
-
-                                <Button 
-                                    type="button"
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="absolute top-1 right-1 h-6 w-6 text-destructive"
-                                    onClick={() => removeRoomItem(activePageIndex - 1, itemIndex)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        );
-                    })}
-                    <Button variant="outline" type="button" onClick={() => addRoomItem(activePageIndex - 1)} className="w-full">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        เพิ่มรายการ +
-                    </Button>
-                    </div>
-
-                </div>
-                )
-            )}
             </div>
 
             <SheetFooter className="absolute bottom-0 right-0 w-full bg-background p-6 border-t justify-between">
@@ -813,7 +586,7 @@ export default function EditMapPage() {
     activeCategory === 'All'
       ? locations
       : locations.filter((loc) => loc.category.includes(activeCategory))
-  ).sort((a, b) => a.name.localeCompare(b.name, 'th'));
+  ).sort((a, b) => a.name.localeCompare(b.name, 'th', { numeric: true }));
 
   const handleSelectLocation = (location: Location | null) => {
     if (isRepositioning || isAddingLocation) return;
