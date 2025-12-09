@@ -91,19 +91,19 @@
   },
   "โรงละคร": {
     "main": {
-      "url": "/โรงละคร.jpg",
+      "url": "/IMG_39.jpg",
       "hint": "theater stage"
     }
   },
-  "building-15-17": {
+  "building-15": {
     "main": {
-      "url": "/building-15-17.jpg",
+      "url": "/IMG_15.jpg",
       "hint": "airplane hangar"
     }
   },
   "library": {
     "main": {
-      "url": "/library.jpg",
+      "url": "/IMG_6.jpg",
       "hint": "library interior"
     },
     "directoryPages": {
@@ -115,19 +115,19 @@
   },
   "food-court": {
     "main": {
-      "url": "/food-court.jpg",
+      "url": "/IMG_32.jpg",
       "hint": "food court"
     }
   },
   "gym": {
     "main": {
-      "url": "/gym.jpg",
+      "url": "/IMG_27.jpg",
       "hint": "gym equipment"
     }
   },
   "swimming-pool": {
     "main": {
-      "url": "/swimming-pool.jpg",
+      "url": "/IMG_28.jpg",
       "hint": "swimming pool"
     }
   },
@@ -137,10 +137,10 @@
       "hint": "basketball court"
     }
   },
-  "default": {
+  "building-16": {
     "main": {
-      "url": "/IMG_001.jpg",
-      "hint": "placeholder"
+      "url": "/IMG_16.jpg",
+      "hint": "modern building"
     }
   }
 }

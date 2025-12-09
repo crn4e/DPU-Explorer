@@ -149,12 +149,20 @@ export const locations: Location[] = [
     mapPosition: { x: 82, y: 50 },
   },
   {
-    id: 'building-15-17',
-    name: 'Building 15-17 - Aviation Training',
+    id: 'building-15',
+    name: 'Building 15- Aviation Training',
     category: ['Academic'],
     description: 'The College of Aviation Development and Training (CADT), featuring advanced simulators and a full-size aircraft for hands-on learning.',
     hours: defaultHours,
     mapPosition: { x: 12, y: 36 },
+  },
+  {
+    id: 'building-16',
+    name: 'Building 16 - New Building',
+    category: ['Academic'],
+    description: 'A new building with modern facilities.',
+    hours: defaultHours,
+    mapPosition: { x: 40, y: 50 },
   },
   {
     id: 'library',
