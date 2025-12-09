@@ -7,12 +7,9 @@
  * - ChatDpuInput - The input type for the chatDpu function.
  * - ChatDpuOutput - The return type for the chatDpu function.
  */
-import {genkit, z} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
-
-const ai = genkit({
-  plugins: [googleAI()],
-});
+import { z } from 'genkit';
+import { geminiModel } from '@/lib/gemini';
+import { Content } from '@google/generative-ai';
 
 const ChatDpuInputSchema = z.object({
   history: z
@@ -108,27 +105,23 @@ AI ควรจะมีความสามารถในการตอบ�
 ◦ สื่อประชาสัมพันธ์ของมหาวิทยาลัย
 • คำถามที่พบบ่อย (FAQ):`;
 
-const chatDpuFlow = ai.defineFlow(
-  {
-    name: 'chatDpuFlow',
-    inputSchema: ChatDpuInputSchema,
-    outputSchema: ChatDpuOutputSchema,
-  },
-  async ({ message, history }) => {
-    const { text } = await ai.generate({
-      model: 'gemini-pro',
-      history,
-      prompt: message,
-      system: systemPrompt,
-      config: {
-        temperature: 0.2,
-      },
-    });
-    return { response: text };
-  }
-);
 
+export async function chatDpu({ history, message }: ChatDpuInput): Promise<ChatDpuOutput> {
 
-export async function chatDpu(input: ChatDpuInput): Promise<ChatDpuOutput> {
-  return chatDpuFlow(input);
+  const chat = geminiModel.startChat({
+    history: history.map(msg => ({
+      role: msg.role,
+      parts: [{ text: msg.content }]
+    })),
+    systemInstruction: {
+      role: 'system',
+      parts: [{ text: systemPrompt }],
+    },
+  });
+
+  const result = await chat.sendMessage(message);
+  const response = result.response;
+  const text = response.text();
+
+  return { response: text };
 }
