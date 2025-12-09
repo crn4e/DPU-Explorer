@@ -191,6 +191,15 @@ export const locations: Location[] = [
     mapPosition: { x: 82, y: 50 },
   },
   {
+    id: 'EV',
+    name: 'EV',
+    category: ['Academic'],
+    description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
+    image: '/IMG_33.jpg',
+    hours: defaultHours,
+    mapPosition: { x: 82, y: 50 },
+  },
+  {
     id: 'building-15',
     name: 'Building 15',
     category: ['Academic'],
