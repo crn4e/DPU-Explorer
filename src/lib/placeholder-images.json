@@ -178,5 +178,119 @@
       "url": "/IMG_38.jpg",
       "hint": "modern building"
     }
+  },
+  "building-18": {
+    "main": {
+      "url": "/IMG_18.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-19": {
+    "main": {
+      "url": "/IMG_19.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-20": {
+    "main": {
+      "url": "/IMG_20.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-21": {
+    "main": {
+      "url": "/IMG_21.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-22": {
+    "main": {
+      "url": "/IMG_22.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-23": {
+    "main": {
+      "url": "/IMG_23.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-24": {
+    "main": {
+      "url": "/IMG_24.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-25": {
+    "main": {
+      "url": "/IMG_25.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-26": {
+    "main": {
+      "url": "/IMG_26.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-27": {
+    "main": {
+      "url": "/IMG_27.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-28": {
+    "main": {
+      "url": "/IMG_28.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-29": {
+    "main": {
+      "url": "/IMG_29.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-30": {
+    "main": {
+      "url": "/IMG_30.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-31": {
+    "main": {
+      "url": "/IMG_31.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-32": {
+    "main": {
+      "url": "/IMG_32.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-33": {
+    "main": {
+      "url": "/IMG_33.jpg",
+      "hint": "plane building"
+    }
+  },
+  "EV-2": {
+    "main": {
+      "url": "/IMG_35.jpg",
+      "hint": "plane building"
+    }
+  },
+  "EV-3": {
+    "main": {
+      "url": "/IMG_34-2.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-36": {
+    "main": {
+      "url": "/IMG_36.jpg",
+      "hint": "plane building"
+    }
   }
 }
