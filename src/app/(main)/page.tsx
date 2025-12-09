@@ -17,7 +17,6 @@ import AiTourGuide from '@/components/ai-tour-guide';
 import type { Location, LocationCategory } from '@/lib/types';
 import { Loader2, User } from 'lucide-react';
 import AppHeader from '@/components/header';
-import AiChat from '@/components/ai-chat';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -213,7 +212,6 @@ export default function Home() {
         <SidebarFooter>
           <div className="flex flex-col gap-2 p-2">
             <AiTourGuide />
-            <AiChat />
           </div>
         </SidebarFooter>
       </Sidebar>
