@@ -168,7 +168,7 @@ export const locations: Location[] = [
     description: 'Placeholder description for Building 13.',
     image: '/IMG_13.jpg',
     hours: defaultHours,
-    mapPosition: { x: 50, y: 50 },
+    mapPosition: { x: 48, y: 52 },
     directoryInfo: []
   },
   {
@@ -178,7 +178,7 @@ export const locations: Location[] = [
     description: 'Placeholder description for Building 14.',
     image: '/default.png',
     hours: defaultHours,
-    mapPosition: { x: 50, y: 50 },
+    mapPosition: { x: 46, y: 54 },
     directoryInfo: []
   },
   {
@@ -192,16 +192,16 @@ export const locations: Location[] = [
   },
   {
     id: 'EV-1',
-    name: 'EV',
-    category: ['Academic'],
-    description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
+    name: 'EV Charging Station',
+    category: ['Services'],
+    description: 'Electric vehicle charging station.',
     image: '/IMG_33.jpg',
     hours: defaultHours,
-    mapPosition: { x: 82, y: 50 },
+    mapPosition: { x: 80, y: 52 },
   },
   {
     id: 'building-15',
-    name: 'Building 15',
+    name: 'Building 15 - Aviation (CADT)',
     category: ['Academic'],
     description: 'The College of Aviation Development and Training (CADT), featuring advanced simulators and a full-size aircraft for hands-on learning.',
     image: '/IMG_15.jpg',
@@ -210,7 +210,7 @@ export const locations: Location[] = [
   },
   {
     id: 'building-16',
-    name: 'Building 16 - New Building',
+    name: 'Building 16',
     category: ['Academic'],
     description: 'A new building with modern facilities.',
     image: '/IMG_16.jpg',
@@ -219,12 +219,12 @@ export const locations: Location[] = [
   },
   {
     id: 'building-17',
-    name: 'Building 17 - New Building',
+    name: 'Building 17',
     category: ['Academic'],
     description: 'A new building with modern facilities.',
     image: '/IMG_17.jpg',
     hours: defaultHours,
-    mapPosition: { x: 40, y: 50 },
+    mapPosition: { x: 42, y: 48 },
   },
   {
     id: 'DPUplace',
@@ -309,10 +309,10 @@ export const locations: Location[] = [
     mapPosition: { x: 27, y: 58 },
   },
   {
-    id: 'building-37-1',
-    name: 'อาคาร 1001',
+    id: 'building-37',
+    name: 'อาคารเฉลิมพระเกียรติ (อาคาร 3)',
     category: ['Services'],
-    description: '1000',
+    description: 'This is the new description for what was building 37',
     image: '/IMG_37.jpg',
     hours: {
       Monday: { open: '08:00', close: '20:00' },
@@ -323,6 +323,6 @@ export const locations: Location[] = [
       Saturday: null,
       Sunday: null,
     },
-    mapPosition: { x: 50, y: 50 },
+    mapPosition: { x: 52, y: 52 },
   }
 ];
