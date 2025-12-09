@@ -9,6 +9,12 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Clock, Megaphone, CalendarDays, BookUser } from 'lucide-react';
+import { checkOpenStatus } from '@/lib/helpers';
+import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
+import placeholderImages from '@/lib/placeholder-images.json';
 import {
   Carousel,
   CarouselContent,
@@ -17,33 +23,11 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from '@/components/ui/carousel';
-import { Badge } from '@/components/ui/badge';
-import { Clock, Megaphone, CalendarDays, BookUser } from 'lucide-react';
-import { checkOpenStatus } from '@/lib/helpers';
-import { useEffect, useState } from 'react';
-import { cn } from '@/lib/utils';
-import placeholderImages from '@/lib/placeholder-images.json';
 
 interface LocationCardProps {
   location: Location;
 }
 
-type ImagesData = {
-    [key: string]: {
-      main: {
-        url: string;
-        hint: string;
-      },
-      directoryPages?: {
-        [key: string]: {
-          url: string;
-          hint: string;
-        }
-      }
-    }
-}
-
-const images: ImagesData = placeholderImages;
 const defaultImage = { url: '/default.png', hint: 'placeholder' };
 
 const daysOfWeek = [
@@ -61,11 +45,6 @@ export default function LocationCard({ location }: LocationCardProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const locationImages = images[location.id] || { main: defaultImage };
-  const [currentImage, setCurrentImage] = useState(location.image || locationImages.main.url);
-  const [currentHint, setCurrentHint] = useState(locationImages.main.hint);
-
-
   useEffect(() => {
     const newStatus = checkOpenStatus(location);
     setStatus(newStatus);
@@ -78,15 +57,6 @@ export default function LocationCard({ location }: LocationCardProps) {
   }, [location]);
   
   useEffect(() => {
-    // Re-initialize image state when location changes
-    const newLocationImages = images[location.id] || { main: defaultImage };
-    setCurrentImage(location.image || newLocationImages.main.url);
-    setCurrentHint(newLocationImages.main.hint);
-    setCurrentSlide(0);
-    api?.scrollTo(0);
-  }, [location, api]);
-
-  useEffect(() => {
     if (api) {
       const handleSelect = () => {
         setCurrentSlide(api.selectedScrollSnap());
@@ -98,60 +68,43 @@ export default function LocationCard({ location }: LocationCardProps) {
     }
   }, [api]);
 
-
-  useEffect(() => {
-    const locationImages = images[location.id] || { main: defaultImage };
-    if (currentSlide === 0) {
-      // Always prioritize the image URL from the location object itself
-      setCurrentImage(location.image || locationImages.main.url);
-      setCurrentHint(locationImages.main.hint);
-    } else {
-      const pageIndex = currentSlide - 1;
-      const directoryPage = location.directoryInfo?.[pageIndex];
-      const pageImageId = directoryPage?.imageId;
-      // Fallback logic for directory pages
-      const pageImage = pageImageId ? locationImages.directoryPages?.[pageImageId] : null;
-      setCurrentImage(pageImage?.url || location.image || locationImages.main.url);
-      setCurrentHint(pageImage?.hint || locationImages.main.hint);
-    }
-  }, [currentSlide, location]);
-
-
   const hasDirectoryInfo = location.directoryInfo && location.directoryInfo.length > 0;
   const categories = Array.isArray(location.category) ? location.category : [location.category];
 
+  const mainImageUrl = location.image || defaultImage.url;
+  const mainImageHint = 'location image';
+
   return (
     <Card className="overflow-hidden shadow-2xl transition-all duration-300 animate-in fade-in-0 zoom-in-95">
+      <CardHeader className="relative p-0">
+        <div className="relative aspect-video w-full">
+          <Image
+            key={mainImageUrl}
+            src={mainImageUrl}
+            alt={`Image of ${location.name}`}
+            fill
+            className="object-cover"
+            data-ai-hint={mainImageHint}
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute bottom-0 p-6">
+          <CardTitle className="font-headline text-2xl text-white">
+            {location.name}
+          </CardTitle>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {categories.map(cat => (
+              <Badge key={cat} variant="secondary" className="text-xs">{cat}</Badge>
+            ))}
+          </div>
+        </div>
+      </CardHeader>
+
       <Carousel 
         className="w-full" 
         opts={{ loop: hasDirectoryInfo }}
         setApi={setApi}
       >
-        <CardHeader className="relative p-0">
-           <div className="relative aspect-video w-full">
-            <Image
-              key={currentImage}
-              src={currentImage}
-              alt={`Image of ${location.name}`}
-              width={600}
-              height={400}
-              className="aspect-video w-full object-cover transition-opacity duration-500 animate-in fade-in-0"
-              data-ai-hint={currentHint}
-            />
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-0 p-6">
-            <CardTitle className="font-headline text-2xl text-white">
-              {location.name}
-            </CardTitle>
-            <div className="flex flex-wrap gap-2 mt-1">
-              {categories.map(cat => (
-                <Badge key={cat} variant="secondary" className="text-xs">{cat}</Badge>
-              ))}
-            </div>
-          </div>
-        </CardHeader>
-
         <CarouselContent>
           <CarouselItem>
             <CardContent className="p-6 select-none">
@@ -224,7 +177,7 @@ export default function LocationCard({ location }: LocationCardProps) {
             </CardContent>
           </CarouselItem>
           {location.directoryInfo?.map((page, index) => (
-            <CarouselItem key={index}>
+            <CarouselItem key={page.imageId || index}>
                 <CardContent className="p-6 select-none">
                     <div className="flex items-center gap-2 mb-4">
                         <BookUser className="h-5 w-5 text-primary" />

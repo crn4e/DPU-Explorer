@@ -55,7 +55,7 @@ export const locations: Location[] = [
     category: ['Academic'],
     description:
       'Home to the College of Health and Wellness and the Faculty of Nursing, focusing on health sciences and medical education.',
-    image: '/building-3.jpg',
+    image: '/IMG_1805.jpg',
     hours: defaultHours,
     mapPosition: { x: 63, y: 33 },
   },

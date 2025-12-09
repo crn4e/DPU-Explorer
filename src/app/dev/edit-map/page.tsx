@@ -446,6 +446,10 @@ function EditLocationSheet({
           {activePageIndex === 0 ? (
             <>
               <div className="space-y-2">
+                  <Label htmlFor="image">Image URL</Label>
+                  <Input id="image" value={formData.image || ''} onChange={handleFieldChange} placeholder="Enter image URL" />
+              </div>
+              <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <Input id="name" value={formData.name} onChange={handleFieldChange} />
               </div>
@@ -545,9 +549,6 @@ function EditLocationSheet({
                       <Input disabled value={`Y: ${formData.mapPosition.y.toFixed(2)}%`} />
                   </div>
               </div>
-               <p className="text-center text-sm text-muted-foreground">
-                  To change an image, edit `src/lib/placeholder-images.json`.
-              </p>
             </>
           ) : (
             formData.directoryInfo && formData.directoryInfo[activePageIndex - 1] && (
@@ -739,7 +740,7 @@ export default function EditMapPage() {
   const handleAddNewLocation = async (newLocationData: Omit<Location, 'id'>) => {
     try {
         const docRef = await addDoc(collection(db, 'locations'), newLocationData);
-        const newLocationWithId = { id: docRef.id, ...newLocationData };
+        const newLocationWithId = { id: docRef.id, ...newLocationData } as Location;
         setLocations(prev => [...prev, newLocationWithId]);
         setSelectedLocation(newLocationWithId);
     } catch (error) {
