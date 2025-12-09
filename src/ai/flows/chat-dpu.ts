@@ -109,7 +109,7 @@ AI ควรจะมีความสามารถในการตอบ�
 export async function chatDpu({ history, message }: ChatDpuInput): Promise<ChatDpuOutput> {
 
   const result = await ai.generate({
-    model: 'gemini-1.5-flash',
+    model: 'googleai/gemini-1.5-flash',
     system: systemPrompt,
     history: history.map(msg => ({
       role: msg.role,
