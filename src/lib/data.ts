@@ -182,7 +182,7 @@ export const locations: Location[] = [
     directoryInfo: []
   },
   {
-    id: 'โรงละคร',
+    id: 'rong-la-korn',
     name: 'โรงละคร - Tourism and Hospitality',
     category: ['Academic'],
     description: 'Home to the Faculty of Tourism and Hospitality, with specialized training rooms and facilities.',
