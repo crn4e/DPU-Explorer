@@ -894,13 +894,14 @@ export default function EditMapPage() {
     }
   };
 
-  const filteredLocations =
+  const filteredLocations = (
     activeCategory === 'All'
       ? locations
       : locations.filter((loc) => {
           const locCategories = Array.isArray(loc.category) ? loc.category : [loc.category];
           return locCategories.includes(activeCategory);
-        });
+        })
+  ).sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
   const handleSelectLocation = (location: Location | null) => {
     if (isRepositioning || isAddingLocation) return;

@@ -809,10 +809,11 @@ export default function EditMapPage() {
     }
   };
 
-  const filteredLocations =
+  const filteredLocations = (
     activeCategory === 'All'
       ? locations
-      : locations.filter((loc) => loc.category.includes(activeCategory));
+      : locations.filter((loc) => loc.category.includes(activeCategory))
+  ).sort((a, b) => a.name.localeCompare(b.name, 'th'));
 
   const handleSelectLocation = (location: Location | null) => {
     if (isRepositioning || isAddingLocation) return;
