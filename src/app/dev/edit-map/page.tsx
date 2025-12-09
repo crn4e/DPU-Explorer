@@ -4,14 +4,14 @@ import { useEffect, useState, useRef, MouseEvent as ReactMouseEvent } from 'reac
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type { Location, LocationCategory } from '@/lib/types';
+import type { Location, LocationCategory, DirectoryPage, RoomItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock } from 'lucide-react';
+import { Loader2, Edit, MapPin, Move, ArrowLeft, PlusCircle, Trash2, X, Clock, ArrowRight } from 'lucide-react';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import MapView from '@/components/map-view';
@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { doc, collection, getDocs, updateDoc, addDoc, getDoc, deleteField } from 'firebase/firestore';
+import { doc, collection, getDocs, updateDoc, addDoc, getDoc, deleteField, setDoc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import {
   Sidebar,
@@ -48,7 +48,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-
+import placeholderImages from '@/lib/placeholder-images.json';
 
 const categories: LocationCategory[] = [
   'Academic',
@@ -110,6 +110,7 @@ function AddLocationSheet({
                     Sunday: null,
                 },
                  isDeleted: false,
+                 directoryInfo: [],
             };
             await onSave(newLocation as any);
             toast({
@@ -211,6 +212,7 @@ function EditLocationSheet({
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const [newCategory, setNewCategory] = useState<LocationCategory | ''>('');
+  const [activePageIndex, setActivePageIndex] = useState(0);
 
   const defaultHours = {
       Monday: { open: '08:00', close: '17:00' },
@@ -224,12 +226,13 @@ function EditLocationSheet({
 
 
   useEffect(() => {
-    // Ensure directoryInfo and category are always arrays
     const sanitizedLocation = location ? {
         ...location,
         category: Array.isArray(location.category) ? location.category : [location.category as unknown as LocationCategory],
+        directoryInfo: location.directoryInfo || []
     } : null;
     setFormData(sanitizedLocation);
+    setActivePageIndex(0); 
   }, [location]);
 
   if (!formData || !location) return null;
@@ -260,7 +263,6 @@ function EditLocationSheet({
           if (dayHours) {
               newHours[day] = { ...dayHours, [field]: value };
           } else {
-              // If it was null (closed), initialize it
               newHours[day] = { open: '00:00', close: '00:00', [field]: value };
           }
           return { ...prev, hours: newHours };
@@ -274,7 +276,6 @@ function EditLocationSheet({
           if (checked) {
               newHours[day] = null;
           } else {
-              // If unchecking, set default hours
               newHours[day] = { open: '08:00', close: '17:00' };
           }
           return { ...prev, hours: newHours };
@@ -289,6 +290,84 @@ function EditLocationSheet({
     setFormData(prev => prev ? ({ ...prev, hours: defaultHours }) : null);
   };
 
+  const handleDirectoryPageChange = (index: number, field: 'title' | 'description' | 'imageId', value: string) => {
+    setFormData(prev => {
+      if (!prev) return null;
+      const newDirectoryInfo = [...(prev.directoryInfo || [])];
+      newDirectoryInfo[index] = { ...newDirectoryInfo[index], [field]: value, items: newDirectoryInfo[index].items || [] };
+      return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  }
+
+  const handleRoomItemChange = (pageIndex: number, itemIndex: number, field: 'name' | 'details' | 'imageId', value: string) => {
+      setFormData(prev => {
+        if (!prev) return null;
+        const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
+        newDirectoryInfo[pageIndex].items[itemIndex][field] = value;
+        return { ...prev, directoryInfo: newDirectoryInfo };
+      });
+  }
+
+  const addRoomItem = (pageIndex: number) => {
+      setFormData(prev => {
+          if (!prev) return null;
+          const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
+          if (!newDirectoryInfo[pageIndex].items) {
+              newDirectoryInfo[pageIndex].items = [];
+          }
+          newDirectoryInfo[pageIndex].items.push({ name: '', details: '', imageId: '' });
+          return { ...prev, directoryInfo: newDirectoryInfo };
+      });
+  }
+
+  const removeRoomItem = (pageIndex: number, itemIndex: number) => {
+      setFormData(prev => {
+          if (!prev) return null;
+          const newDirectoryInfo = JSON.parse(JSON.stringify(prev.directoryInfo || []));
+          newDirectoryInfo[pageIndex].items.splice(itemIndex, 1);
+          return { ...prev, directoryInfo: newDirectoryInfo };
+      });
+  }
+
+  const addDirectoryPage = () => {
+    setFormData(prev => {
+        if (!prev) return null;
+        const newImageId = `${prev.id}-page-${Date.now()}`;
+        const newPage: DirectoryPage = { 
+            title: `Page ${(prev.directoryInfo?.length || 0) + 2}`, 
+            items: [],
+            imageId: newImageId,
+        };
+        const newDirectoryInfo = [...(prev.directoryInfo || []), newPage];
+        setActivePageIndex(newDirectoryInfo.length);
+        return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  };
+
+  const removeDirectoryPage = (index: number) => {
+    setFormData(prev => {
+        if (!prev) return null;
+        const newDirectoryInfo = (prev.directoryInfo || []).filter((_, i) => i !== index);
+        setActivePageIndex(Math.max(0, activePageIndex - 1));
+        return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  };
+
+  const moveDirectoryPage = (index: number, direction: 'left' | 'right') => {
+    setFormData(prev => {
+        if (!prev || !prev.directoryInfo) return null;
+        const newDirectoryInfo = [...prev.directoryInfo];
+        const newIndex = direction === 'left' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= newDirectoryInfo.length) return prev;
+
+        const [movedItem] = newDirectoryInfo.splice(index, 1);
+        newDirectoryInfo.splice(newIndex, 0, movedItem);
+
+        setActivePageIndex(newIndex + 1);
+        return { ...prev, directoryInfo: newDirectoryInfo };
+    });
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData) return;
@@ -301,7 +380,7 @@ function EditLocationSheet({
           (dataToSave as any).hours = deleteField();
         }
 
-        await updateDoc(locationRef, dataToSave);
+        await setDoc(locationRef, dataToSave, { merge: true });
         onSave(formData);
         toast({
             title: 'Location Updated',
@@ -333,112 +412,252 @@ function EditLocationSheet({
             <SheetHeader>
               <SheetTitle>Edit: {location?.name}</SheetTitle>
             </SheetHeader>
-            <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
-                <div className="space-y-2">
-                    <Label htmlFor="image-id">Image ID</Label>
-                    <p className="text-xs text-muted-foreground">To change an image, edit the ID and update `src/lib/placeholder-images.json`.</p>
-                    <Input id="id" value={formData.id} onChange={handleFieldChange} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input id="name" value={formData.name} onChange={handleFieldChange} required/>
-                </div>
-                <div className="space-y-2">
-                    <Label>Category</Label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                        {formData.category.map(cat => (
-                            <Badge key={cat} variant="secondary" className="flex items-center gap-1">
-                                {cat}
-                                <button type="button" onClick={() => removeCategory(cat)} className="rounded-full hover:bg-muted-foreground/20">
-                                    <X className="h-3 w-3" />
-                                </button>
-                            </Badge>
-                        ))}
-                    </div>
-                    <div className="flex gap-2">
-                        <Select value={newCategory} onValueChange={(v) => setNewCategory(v as LocationCategory)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select a category to add" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {categories.filter(c => !formData.category.includes(c)).map(cat => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button onClick={addCategory} type="button">เพิ่มรายการ</Button>
+            
+            <div className="flex items-center gap-2 border-b border-border pb-2 mb-4 overflow-x-auto">
+                <Button
+                type="button"
+                variant={activePageIndex === 0 ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setActivePageIndex(0)}
+                className="shrink-0"
+                >
+                Page 1
+                </Button>
+                {formData.directoryInfo?.map((page, index) => (
+                <div key={page.imageId || index} className="flex items-center gap-1 shrink-0">
+                    <Button
+                        type="button"
+                        variant={activePageIndex === index + 1 ? 'secondary' : 'ghost'}
+                        size="sm"
+                        onClick={() => setActivePageIndex(index + 1)}
+                        className="shrink-0"
+                    >
+                        {page.title || `Page ${index + 2}`}
+                    </Button>
+                    <div className="flex flex-col">
+                    <button type="button" onClick={() => moveDirectoryPage(index, 'left')} disabled={index === 0} className="disabled:opacity-20"><ArrowLeft className="h-3 w-3" /></button>
+                    <button type="button" onClick={() => moveDirectoryPage(index, 'right')} disabled={index === formData.directoryInfo.length - 1} className="disabled:opacity-20"><ArrowRight className="h-3 w-3" /></button>
                     </div>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="description">Description (Page 1)</Label>
-                    <Textarea id="description" value={formData.description} onChange={handleFieldChange} rows={4} required/>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="announcement">Announcement</Label>
-                    <Textarea id="announcement" value={formData.announcement || ''} onChange={handleFieldChange} rows={2} />
-                </div>
+                ))}
+                <Button onClick={addDirectoryPage} type="button" variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+                    <PlusCircle className="h-4 w-4"/>
+                </Button>
+            </div>
 
-                <div className="space-y-4 rounded-md border p-4">
+            <div className="grid max-h-[calc(100vh-220px)] gap-4 overflow-y-auto p-1">
+              {activePageIndex === 0 ? (
+                <>
+                  <div className="space-y-2">
+                      <Label htmlFor="image-id">Image ID</Label>
+                      <p className="text-xs text-muted-foreground">To change an image, edit the ID and update `src/lib/placeholder-images.json`.</p>
+                      <Input id="id" value={formData.id} onChange={handleFieldChange} />
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="name">Name</Label>
+                      <Input id="name" value={formData.name} onChange={handleFieldChange} required/>
+                  </div>
+                  <div className="space-y-2">
+                      <Label>Category</Label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                          {formData.category.map(cat => (
+                              <Badge key={cat} variant="secondary" className="flex items-center gap-1">
+                                  {cat}
+                                  <button type="button" onClick={() => removeCategory(cat)} className="rounded-full hover:bg-muted-foreground/20">
+                                      <X className="h-3 w-3" />
+                                  </button>
+                              </Badge>
+                          ))}
+                      </div>
+                      <div className="flex gap-2">
+                          <Select value={newCategory} onValueChange={(v) => setNewCategory(v as LocationCategory)}>
+                              <SelectTrigger>
+                                  <SelectValue placeholder="Select a category to add" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  {categories.filter(c => !formData.category.includes(c)).map(cat => (
+                                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                  ))}
+                              </SelectContent>
+                          </Select>
+                          <Button onClick={addCategory} type="button">เพิ่มรายการ</Button>
+                      </div>
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="description">Description (Page 1)</Label>
+                      <Textarea id="description" value={formData.description} onChange={handleFieldChange} rows={4} required/>
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="announcement">Announcement</Label>
+                      <Textarea id="announcement" value={formData.announcement || ''} onChange={handleFieldChange} rows={2} />
+                  </div>
+
+                  <div className="space-y-4 rounded-md border p-4">
+                      <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                          <Clock className="h-5 w-5 text-primary" />
+                          <Label>Opening Hours</Label>
+                          </div>
+                          {formData.hours && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" type="button" onClick={handleClearAllHours}>
+                              <Trash2 className="h-4 w-4" />
+                          </Button>
+                          )}
+                      </div>
+                      {formData.hours ? (
+                          daysOfWeek.map(day => (
+                              <div key={day} className="grid grid-cols-6 items-center gap-2">
+                                  <Label htmlFor={`closed-${day}`} className="col-span-2 text-sm font-normal">{day}</Label>
+                                  <div className="col-span-4 grid grid-cols-3 items-center gap-2">
+                                      <Input
+                                          type="time"
+                                          value={formData.hours?.[day]?.open ?? ''}
+                                          onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                                          disabled={!formData.hours || formData.hours[day] === null}
+                                          className="w-full"
+                                      />
+                                      <Input
+                                          type="time"
+                                          value={formData.hours?.[day]?.close ?? ''}
+                                          onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                                          disabled={!formData.hours || formData.hours[day] === null}
+                                          className="w-full"
+                                      />
+                                      <div className="flex items-center space-x-2 justify-end">
+                                          <Checkbox
+                                              id={`closed-${day}`}
+                                              checked={!formData.hours || formData.hours[day] === null}
+                                              onCheckedChange={(checked) => handleClosedChange(day, checked as boolean)}
+                                          />
+                                          <Label htmlFor={`closed-${day}`} className="text-xs font-light">Closed</Label>
+                                      </div>
+                                  </div>
+                              </div>
+                          ))
+                      ) : (
+                          <Button variant="outline" type="button" onClick={handleAddHours} className="w-full">
+                              <PlusCircle className="mr-2 h-4 w-4" />
+                              Add Opening Hours
+                          </Button>
+                      )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                      <Label>Map Position</Label>
+                      <Button variant="outline" type="button" onClick={onEnterRepositionMode} className='w-full'>
+                          <Move className="mr-2 h-4 w-4" />
+                          Set Position on Map
+                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                          <Input disabled value={`X: ${formData.mapPosition.x.toFixed(2)}%`} />
+                          <Input disabled value={`Y: ${formData.mapPosition.y.toFixed(2)}%`} />
+                      </div>
+                  </div>
+                </>
+              ) : (
+                formData.directoryInfo && formData.directoryInfo[activePageIndex - 1] && (
+                  <div className="space-y-4 animate-in fade-in-0">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-primary" />
-                        <Label>Opening Hours</Label>
-                        </div>
-                        {formData.hours && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" type="button" onClick={handleClearAllHours}>
+                        <h3 className="text-lg font-semibold">Editing Page: {formData.directoryInfo[activePageIndex - 1].title}</h3>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => removeDirectoryPage(activePageIndex - 1)}
+                        >
                             <Trash2 className="h-4 w-4" />
                         </Button>
-                        )}
                     </div>
-                    {formData.hours ? (
-                        daysOfWeek.map(day => (
-                            <div key={day} className="grid grid-cols-6 items-center gap-2">
-                                <Label htmlFor={`closed-${day}`} className="col-span-2 text-sm font-normal">{day}</Label>
-                                <div className="col-span-4 grid grid-cols-3 items-center gap-2">
-                                    <Input
-                                        type="time"
-                                        value={formData.hours?.[day]?.open ?? ''}
-                                        onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
-                                        disabled={!formData.hours || formData.hours[day] === null}
-                                        className="w-full"
+                    <div className="space-y-2">
+                      <Label htmlFor={`dir-title-${activePageIndex - 1}`}>Page Title</Label>
+                      <Input
+                        id={`dir-title-${activePageIndex - 1}`}
+                        value={formData.directoryInfo[activePageIndex - 1].title}
+                        onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'title', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`dir-desc-${activePageIndex - 1}`}>Description (Optional)</Label>
+                      <Textarea
+                        id={`dir-desc-${activePageIndex - 1}`}
+                        placeholder="A brief description for this page."
+                        value={formData.directoryInfo[activePageIndex - 1].description || ''}
+                        onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'description', e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor={`dir-imageid-${activePageIndex-1}`}>Page Image ID</Label>
+                        <Input
+                            id={`dir-imageid-${activePageIndex-1}`}
+                            value={formData.directoryInfo[activePageIndex - 1].imageId || ''}
+                            placeholder='e.g., building-1-guest-services'
+                            onChange={(e) => handleDirectoryPageChange(activePageIndex - 1, 'imageId', e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <Label>Items</Label>
+                      {(formData.directoryInfo[activePageIndex - 1].items || []).map((item, itemIndex) => {
+                        const itemImageId = item.imageId || '';
+                        const itemImageInfo = (placeholderImages as any)[location.id]?.directoryPages?.[itemImageId];
+                        return (
+                            <div key={itemIndex} className="relative space-y-2 rounded-md border bg-muted/50 p-4">
+                                <div className="space-y-1">
+                                    <Label htmlFor={`item-name-${itemIndex}`} className="text-xs">ชื่อรายการ</Label>
+                                    <Input 
+                                        id={`item-name-${itemIndex}`}
+                                        placeholder="เช่น ห้อง 10522, โต๊ะ อ.สมชาย"
+                                        value={item.name}
+                                        onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'name', e.target.value)}
                                     />
-                                    <Input
-                                        type="time"
-                                        value={formData.hours?.[day]?.close ?? ''}
-                                        onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
-                                        disabled={!formData.hours || formData.hours[day] === null}
-                                        className="w-full"
-                                    />
-                                    <div className="flex items-center space-x-2 justify-end">
-                                        <Checkbox
-                                            id={`closed-${day}`}
-                                            checked={!formData.hours || formData.hours[day] === null}
-                                            onCheckedChange={(checked) => handleClosedChange(day, checked as boolean)}
-                                        />
-                                        <Label htmlFor={`closed-${day}`} className="text-xs font-light">Closed</Label>
-                                    </div>
                                 </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor={`item-details-${itemIndex}`} className="text-xs">รายละเอียด</Label>
+                                    <Textarea 
+                                        id={`item-details-${itemIndex}`}
+                                        placeholder="เช่น รายละเอียดเพิ่มเติมเกี่ยวกับอาจารย์ หรือห้อง"
+                                        value={item.details}
+                                        onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'details', e.target.value)}
+                                        rows={2}
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label htmlFor={`item-imageid-${itemIndex}`} className="text-xs">Item Image ID</Label>
+                                    <Input 
+                                        id={`item-imageid-${itemIndex}`}
+                                        placeholder="e.g., room-1412-photo"
+                                        value={item.imageId || ''}
+                                        onChange={(e) => handleRoomItemChange(activePageIndex - 1, itemIndex, 'imageId', e.target.value)}
+                                    />
+                                </div>
+                                {itemImageInfo && (
+                                <div className="relative w-24 h-24 mt-2">
+                                    <Image src={itemImageInfo.url} alt={item.name} layout="fill" className="rounded-md object-cover"/>
+                                </div>
+                                )}
+
+                                <Button 
+                                    type="button"
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="absolute top-1 right-1 h-6 w-6 text-destructive"
+                                    onClick={() => removeRoomItem(activePageIndex - 1, itemIndex)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
                             </div>
-                        ))
-                    ) : (
-                        <Button variant="outline" type="button" onClick={handleAddHours} className="w-full">
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Add Opening Hours
-                        </Button>
-                    )}
-                </div>
-                
-                <div className="space-y-2">
-                    <Label>Map Position</Label>
-                    <Button variant="outline" type="button" onClick={onEnterRepositionMode} className='w-full'>
-                        <Move className="mr-2 h-4 w-4" />
-                        Set Position on Map
-                    </Button>
-                    <div className="grid grid-cols-2 gap-2">
-                        <Input disabled value={`X: ${formData.mapPosition.x.toFixed(2)}%`} />
-                        <Input disabled value={`Y: ${formData.mapPosition.y.toFixed(2)}%`} />
+                        );
+                      })}
+                      <Button variant="outline" type="button" onClick={() => addRoomItem(activePageIndex - 1)} className="w-full">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        เพิ่มรายการ +
+                      </Button>
                     </div>
-                </div>
+                  </div>
+                )
+              )}
             </div>
 
             <SheetFooter className="absolute bottom-0 right-0 w-full bg-background p-6 border-t justify-between">
@@ -554,6 +773,9 @@ export default function EditMapPage() {
     try {
         const docRef = await addDoc(collection(db, 'locations'), newLocationData);
         const newLocationWithId = { id: docRef.id, ...newLocationData } as Location;
+        
+        await setDoc(doc(db, 'locations', newLocationWithId.id), { ...newLocationData, id: newLocationWithId.id });
+
         setAllLocations(prev => [...prev, newLocationWithId]);
         setSelectedLocation(newLocationWithId);
     } catch (error) {
