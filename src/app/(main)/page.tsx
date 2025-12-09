@@ -13,7 +13,6 @@ import {
 import { Button } from '@/components/ui/button';
 import LocationList from '@/components/location-list';
 import MapView from '@/components/map-view';
-import AiTourGuide from '@/components/ai-tour-guide';
 import type { Location, LocationCategory } from '@/lib/types';
 import { Loader2, User } from 'lucide-react';
 import AppHeader from '@/components/header';
@@ -211,7 +210,7 @@ export default function Home() {
         </SidebarContent>
         <SidebarFooter>
           <div className="flex flex-col gap-2 p-2">
-            <AiTourGuide />
+            
           </div>
         </SidebarFooter>
       </Sidebar>
