@@ -29,6 +29,12 @@
       "hint": "medical building"
     }
   },
+  "building-17": {
+    "main": {
+      "url": "/IMG_17.jpg",
+      "hint": "medical building"
+    }
+  },
   "building-4": {
     "main": {
       "url": "/IMG_4.jpg",
@@ -158,6 +164,12 @@
   "building-16": {
     "main": {
       "url": "/IMG_16.jpg",
+      "hint": "plane building"
+    }
+  },
+  "building-1001": {
+    "main": {
+      "url": "/IMG_1001.jpg",
       "hint": "modern building"
     }
   }

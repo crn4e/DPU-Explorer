@@ -177,7 +177,7 @@ export const locations: Location[] = [
   },
   {
     id: 'building-15',
-    name: 'Building 15- Aviation Training',
+    name: 'Building 15',
     category: ['Academic'],
     description: 'The College of Aviation Development and Training (CADT), featuring advanced simulators and a full-size aircraft for hands-on learning.',
     hours: defaultHours,
@@ -268,4 +268,20 @@ export const locations: Location[] = [
     hours: defaultHours,
     mapPosition: { x: 27, y: 58 }, // Inside Building 10
   },
+  {
+    id: 'building-1001',
+    name: 'อาคาร 1001',
+    category: ['Services'],
+    description: '1000',
+    hours: {
+      Monday: { open: '08:00', close: '20:00' },
+      Tuesday: { open: '08:00', close: '20:00' },
+      Wednesday: { open: '08:00', close: '20:00' },
+      Thursday: { open: '08:00', close: '20:00' },
+      Friday: { open: '08:00', close: '18:00' },
+      Saturday: null,
+      Sunday: null,
+    },
+    mapPosition: { x: 50, y: 50 },
+  }
 ];
