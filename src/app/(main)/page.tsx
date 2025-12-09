@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { db, auth } from '@/lib/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query } from 'firebase/firestore';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -60,20 +60,26 @@ export default function Home() {
     const fetchLocations = async () => {
       setIsLoading(true);
       try {
-        const q = query(collection(db, "locations"), where("isDeleted", "!=", true));
+        const q = query(collection(db, "locations"));
         const querySnapshot = await getDocs(q);
-        const locationsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Location));
+        const locationsData = querySnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() } as Location))
+          .filter(loc => !loc.isDeleted); // Filter on the client side
         setAllLocations(locationsData);
       } catch (error) {
         console.error("Error fetching locations: ", error);
-        // Optionally, handle the error in the UI
+        toast({
+          title: "Error",
+          description: "Could not fetch location data. Please check your connection and permissions.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchLocations();
-  }, []);
+  }, [toast]);
 
   const handleLogout = async () => {
     try {
