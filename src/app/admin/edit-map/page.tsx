@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc, deleteField } from 'firebase/firestore';
+import { doc, setDoc, collection, getDocs, updateDoc, addDoc, deleteDoc, deleteField, getDoc } from 'firebase/firestore';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import {
@@ -87,7 +87,8 @@ function AddLocationSheet({
     const [isSaving, setIsSaving] = useState(false);
     const { toast } = useToast();
 
-    const handleSave = async () => {
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
         if (!name || !description) {
             toast({
                 title: 'Missing Information',
@@ -142,52 +143,54 @@ function AddLocationSheet({
     return (
         <Sheet open={isOpen} onOpenChange={onOpenChange}>
             <SheetContent>
-                <SheetHeader>
-                    <SheetTitle>Add New Location</SheetTitle>
-                </SheetHeader>
-                <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
-                    <div className="space-y-2">
-                        <Label>Map Position</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                            <Input value={`X: ${newPosition.x.toFixed(2)}%`} disabled />
-                            <Input value={`Y: ${newPosition.y.toFixed(2)}%`} disabled />
+                <form onSubmit={handleSave}>
+                    <SheetHeader>
+                        <SheetTitle>Add New Location</SheetTitle>
+                    </SheetHeader>
+                    <div className="grid max-h-[calc(100vh-150px)] gap-4 overflow-y-auto p-4">
+                        <div className="space-y-2">
+                            <Label>Map Position</Label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <Input value={`X: ${newPosition.x.toFixed(2)}%`} disabled />
+                                <Input value={`Y: ${newPosition.y.toFixed(2)}%`} disabled />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-name">Name</Label>
+                            <Input id="new-name" value={name} onChange={(e) => setName(e.target.value)} required/>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="new-category">Category</Label>
+                            <Select value={category[0]} onValueChange={(value: LocationCategory) => setCategory([value])}>
+                                <SelectTrigger id="new-category">
+                                    <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.filter(c => c !== 'All').map(cat => (
+                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-description">Description</Label>
+                            <Textarea id="new-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required/>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="new-announcement">Announcement (Optional)</Label>
+                            <Textarea id="new-announcement" value={announcement} onChange={(e) => setAnnouncement(e.target.value)} rows={2} />
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-name">Name</Label>
-                        <Input id="new-name" value={name} onChange={(e) => setName(e.target.value)} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="new-category">Category</Label>
-                        <Select value={category[0]} onValueChange={(value: LocationCategory) => setCategory([value])}>
-                            <SelectTrigger id="new-category">
-                                <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {categories.filter(c => c !== 'All').map(cat => (
-                                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-description">Description</Label>
-                        <Textarea id="new-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="new-announcement">Announcement (Optional)</Label>
-                        <Textarea id="new-announcement" value={announcement} onChange={(e) => setAnnouncement(e.target.value)} rows={2} />
-                    </div>
-                </div>
-                <SheetFooter>
-                    <SheetClose asChild>
-                        <Button variant="outline">Cancel</Button>
-                    </SheetClose>
-                    <Button onClick={handleSave} disabled={isSaving}>
-                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Save Location
-                    </Button>
-                </SheetFooter>
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button variant="outline" type="button">Cancel</Button>
+                        </SheetClose>
+                        <Button type="submit" disabled={isSaving}>
+                            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save Location
+                        </Button>
+                    </SheetFooter>
+                </form>
             </SheetContent>
         </Sheet>
     );
@@ -434,7 +437,8 @@ function EditLocationSheet({
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!formData) return;
     setIsSaving(true);
     try {
@@ -472,12 +476,14 @@ function EditLocationSheet({
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-[550px]">
+       <form onSubmit={handleSave}>
         <SheetHeader>
           <SheetTitle>Edit: {location?.name}</SheetTitle>
         </SheetHeader>
 
         <div className="flex items-center gap-2 border-b border-border pb-2 mb-4 overflow-x-auto">
             <Button
+              type="button"
               variant={activePageIndex === 0 ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setActivePageIndex(0)}
@@ -488,6 +494,7 @@ function EditLocationSheet({
             {formData.directoryInfo?.map((page, index) => (
               <div key={page.imageId || index} className="flex items-center gap-1 shrink-0">
                 <Button
+                    type="button"
                     variant={activePageIndex === index + 1 ? 'secondary' : 'ghost'}
                     size="sm"
                     onClick={() => setActivePageIndex(index + 1)}
@@ -496,12 +503,12 @@ function EditLocationSheet({
                     {page.title || `Page ${index + 2}`}
                 </Button>
                 <div className="flex flex-col">
-                  <button onClick={() => moveDirectoryPage(index, 'left')} disabled={index === 0} className="disabled:opacity-20"><ArrowLeft className="h-3 w-3" /></button>
-                  <button onClick={() => moveDirectoryPage(index, 'right')} disabled={index === formData.directoryInfo.length - 1} className="disabled:opacity-20"><ArrowRight className="h-3 w-3" /></button>
+                  <button type="button" onClick={() => moveDirectoryPage(index, 'left')} disabled={index === 0} className="disabled:opacity-20"><ArrowLeft className="h-3 w-3" /></button>
+                  <button type="button" onClick={() => moveDirectoryPage(index, 'right')} disabled={index === formData.directoryInfo.length - 1} className="disabled:opacity-20"><ArrowRight className="h-3 w-3" /></button>
                 </div>
               </div>
             ))}
-            <Button onClick={addDirectoryPage} variant="ghost" size="icon" className="shrink-0 h-8 w-8">
+            <Button onClick={addDirectoryPage} type="button" variant="ghost" size="icon" className="shrink-0 h-8 w-8">
                 <PlusCircle className="h-4 w-4"/>
             </Button>
         </div>
@@ -523,7 +530,7 @@ function EditLocationSheet({
                 <Input id="image-upload" type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="hidden" />
                  {isUploading ? (
                   <div className="space-y-2">
-                    <Button variant="outline" disabled>
+                    <Button variant="outline" disabled type="button">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Uploading...
                     </Button>
@@ -531,7 +538,7 @@ function EditLocationSheet({
                     <p className="text-xs text-muted-foreground">{uploadProgress === 100 ? 'Finalizing...' : `Uploading... ${uploadProgress}%`}</p>
                   </div>
                 ) : (
-                  <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                  <Button variant="outline" type="button" onClick={() => fileInputRef.current?.click()}>
                       <UploadCloud className="mr-2 h-4 w-4" />
                       Change Image
                   </Button>
@@ -539,7 +546,7 @@ function EditLocationSheet({
             </div>
               <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
-                  <Input id="name" value={formData.name} onChange={handleChange} />
+                  <Input id="name" value={formData.name} onChange={handleChange} required/>
               </div>
                <div className="space-y-2">
                 <Label>Category</Label>
@@ -547,7 +554,7 @@ function EditLocationSheet({
                     {formData.category.map(cat => (
                         <Badge key={cat} variant="secondary" className="flex items-center gap-1">
                             {cat}
-                            <button onClick={() => removeCategory(cat)} className="rounded-full hover:bg-muted-foreground/20">
+                            <button type="button" onClick={() => removeCategory(cat)} className="rounded-full hover:bg-muted-foreground/20">
                                 <X className="h-3 w-3" />
                             </button>
                         </Badge>
@@ -569,7 +576,7 @@ function EditLocationSheet({
               </div>
               <div className="space-y-2">
                   <Label htmlFor="description">Description (Page 1)</Label>
-                  <Textarea id="description" value={formData.description} onChange={handleChange} rows={4} />
+                  <Textarea id="description" value={formData.description} onChange={handleChange} rows={4} required/>
               </div>
               <div className="space-y-2">
                   <Label htmlFor="announcement">Announcement</Label>
@@ -583,7 +590,7 @@ function EditLocationSheet({
                       <Label>Opening Hours</Label>
                     </div>
                      {formData.hours && (
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={handleClearAllHours}>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" type="button" onClick={handleClearAllHours}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                      )}
@@ -619,7 +626,7 @@ function EditLocationSheet({
                         </div>
                     ))
                   ) : (
-                    <Button variant="outline" onClick={handleAddHours} className="w-full">
+                    <Button variant="outline" type="button" onClick={handleAddHours} className="w-full">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Add Opening Hours
                     </Button>
@@ -628,7 +635,7 @@ function EditLocationSheet({
               
               <div className="space-y-2">
                   <Label>Map Position</Label>
-                  <Button variant="outline" onClick={onEnterRepositionMode} className='w-full'>
+                  <Button variant="outline" type="button" onClick={onEnterRepositionMode} className='w-full'>
                       <Move className="mr-2 h-4 w-4" />
                       Set Position on Map
                   </Button>
@@ -644,6 +651,7 @@ function EditLocationSheet({
                  <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold">Editing Page: {formData.directoryInfo[activePageIndex - 1].title}</h3>
                      <Button
+                        type="button"
                         variant="ghost"
                         size="icon"
                         className="text-destructive hover:text-destructive"
@@ -722,6 +730,7 @@ function EditLocationSheet({
                             )}
 
                             <Button 
+                                type="button"
                                 variant="ghost" 
                                 size="icon" 
                                 className="absolute top-1 right-1 h-6 w-6 text-destructive"
@@ -732,7 +741,7 @@ function EditLocationSheet({
                         </div>
                     );
                   })}
-                  <Button variant="outline" onClick={() => addRoomItem(activePageIndex - 1)} className="w-full">
+                  <Button variant="outline" type="button" onClick={() => addRoomItem(activePageIndex - 1)} className="w-full">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     เพิ่มรายการ +
                   </Button>
@@ -746,7 +755,7 @@ function EditLocationSheet({
         <SheetFooter className="absolute bottom-0 right-0 w-full bg-background p-6 border-t justify-between">
            <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">
+              <Button variant="destructive" type="button">
                 <Trash2 className="mr-2 h-4 w-4" /> Delete Location
               </Button>
             </AlertDialogTrigger>
@@ -769,14 +778,15 @@ function EditLocationSheet({
           </AlertDialog>
           <div className="flex gap-2">
             <SheetClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline" type="button">Cancel</Button>
             </SheetClose>
-            <Button onClick={handleSave} disabled={isSaving || isUploading}>
+            <Button type="submit" disabled={isSaving || isUploading}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Save Changes
             </Button>
           </div>
         </SheetFooter>
+        </form>
       </SheetContent>
     </Sheet>
   );

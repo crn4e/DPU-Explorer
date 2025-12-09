@@ -18,20 +18,6 @@ import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from './ui/scroll-area';
 
-function SubmitButton() {
-  const [isPending, startTransition] = useTransition();
-  return (
-    <Button type="submit" disabled={isPending} className="w-full">
-      {isPending ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
-        <Wand2 className="mr-2 h-4 w-4" />
-      )}
-      Generate Tour
-    </Button>
-  );
-}
-
 export default function AiTourGuide() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -103,6 +89,7 @@ export default function AiTourGuide() {
                 value={interests}
                 onChange={(e) => setInterests(e.target.value)}
                 rows={4}
+                required
               />
             </div>
             <Button type="submit" disabled={isPending || !currentTime} className="w-full">

@@ -84,7 +84,8 @@ export default function EditAnnouncementPage() {
     fetchLocation();
   }, [isAuthenticated, locationId, router, toast]);
 
-  const handleSave = async () => {
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!locationId) return;
     setIsSaving(true);
     try {
@@ -141,6 +142,7 @@ export default function EditAnnouncementPage() {
                     </div>
                 <CardDescription>Editing announcement for: <span className="font-bold text-primary">{location?.name}</span></CardDescription>
                 </CardHeader>
+                <form onSubmit={handleSave}>
                 <CardContent>
                     <div className="space-y-2">
                         <Label htmlFor="announcement">Announcement Text</Label>
@@ -155,7 +157,7 @@ export default function EditAnnouncementPage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                    <Button onClick={handleSave} className="w-full" disabled={isSaving}>
+                    <Button type="submit" className="w-full" disabled={isSaving}>
                       {isSaving ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       ) : (
@@ -163,6 +165,7 @@ export default function EditAnnouncementPage() {
                       )}
                     </Button>
                 </CardFooter>
+                </form>
             </Card>
         </div>
     </div>
